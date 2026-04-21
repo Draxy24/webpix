@@ -1,12 +1,19 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, Post, Body } from '@nestjs/common';
+
+const pixels: Record<string, string> = {};
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  @Get('pixels')
+  getPixels() {
+    return pixels;
+  }
 
-  @Get('test')
-  getTest(): string {
-    return 'Backend is running';
+  @Post('pixel')
+  setPixel(@Body() body: { x: number; y: number; color: string }) {
+    const key = `${body.x},${body.y}`;
+    pixels[key] = body.color;
+
+    return { success: true };
   }
 }
