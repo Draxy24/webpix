@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 export default function Home() {
   const [clicksLeft, setClicksLeft] = useState(20);
   const [cooldown, setCooldown] = useState(0); // en segundos
+  const clicksRef = useRef(clicksLeft);
+  const cooldownRef = useRef(cooldown);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState("#000000");
@@ -38,8 +40,8 @@ export default function Home() {
     const handleClick = (event: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
 
-      if (cooldown > 0) return;
-      if (clicksLeft <= 0) return;
+      if (cooldownRef.current > 0) return;
+      if (clicksRef.current <= 0) return;
 
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
@@ -54,7 +56,7 @@ export default function Home() {
       setPixels((prev) => ({ ...prev, [key]: colorRef.current }));
 
       setClicksLeft((prev) => {
-        const newValue = prev - 1;
+        const newValue = Math.max(prev - 1, 0);
 
         if (newValue <= 0) {
           setCooldown(3 * 60 * 60);
@@ -216,6 +218,14 @@ export default function Home() {
     }, 1000);
 
     return () => clearInterval(interval);
+  }, [cooldown]);
+
+  useEffect(() => {
+    clicksRef.current = clicksLeft;
+  }, [clicksLeft]);
+
+  useEffect(() => {
+    cooldownRef.current = cooldown;
   }, [cooldown]);
 
   return (
