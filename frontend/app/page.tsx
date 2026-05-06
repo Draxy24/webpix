@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const [clicksLeft, setClicksLeft] = useState(20);
+  const [cooldown, setCooldown] = useState(0); // en segundos
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState("#000000");
   const colorRef = useRef(selectedColor);
@@ -35,6 +38,9 @@ export default function Home() {
     const handleClick = (event: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
 
+      if (cooldown > 0) return;
+      if (clicksLeft <= 0) return;
+
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
 
@@ -46,6 +52,16 @@ export default function Home() {
 
       const key = `${x},${y}`;
       setPixels((prev) => ({ ...prev, [key]: colorRef.current }));
+
+      setClicksLeft((prev) => {
+        const newValue = prev - 1;
+
+        if (newValue <= 0) {
+          setCooldown(3 * 60 * 60);
+        }
+
+        return newValue;
+      });
 
       fetch("http://localhost:3001/pixel", {
         method: "POST",
@@ -131,6 +147,77 @@ export default function Home() {
     loadPixels();
   }, []);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let scrollLeft = 0;
+    let scrollTop = 0;
+
+    const onMouseDown = (e: MouseEvent) => {
+      // SOLO botón derecho (para no romper el click de pintar)
+      if (e.button !== 2) return;
+
+      isDragging = true;
+      container.style.cursor = "grabbing";
+
+      startX = e.pageX;
+      startY = e.pageY;
+      scrollLeft = container.scrollLeft;
+      scrollTop = container.scrollTop;
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+
+      container.scrollLeft = scrollLeft - dx;
+      container.scrollTop = scrollTop - dy;
+    };
+
+    const onMouseUp = () => {
+      isDragging = false;
+      container.style.cursor = "grab";
+    };
+
+    const disableContextMenu = (e: MouseEvent) => {
+      e.preventDefault(); // evita menú clic derecho
+    };
+
+    container.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    container.addEventListener("contextmenu", disableContextMenu);
+
+    return () => {
+      container.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      container.removeEventListener("contextmenu", disableContextMenu);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const interval = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          setClicksLeft(20); // reiniciar clicks
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [cooldown]);
+
   return (
     <main
       style={{
@@ -147,12 +234,24 @@ export default function Home() {
         style={{ marginBottom: "10px" }}
       />
 
+      <div style={{ marginBottom: "10px", textAlign: "center" }}>
+        <p>Píxeles restantes: {clicksLeft}</p>
+
+        {cooldown > 0 && (
+          <p style={{ color: "red" }}>
+            En cooldown — espera {Math.floor(cooldown / 60)} min
+          </p>
+        )}
+      </div>
+
       <div
+        ref={containerRef}
         style={{
           overflow: "auto",
           maxHeight: "80vh",
           maxWidth: "80vw",
           border: "1px solid gray",
+          cursor: "grab",
         }}
       >
         <canvas
