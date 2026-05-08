@@ -13,9 +13,12 @@ export default function Home() {
   const colorRef = useRef(selectedColor);
   const [pixels, setPixels] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
-
-    const saved = localStorage.getItem("pixels");
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem("pixels");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
   });
   const [zoom, setZoom] = useState(10);
 
@@ -53,28 +56,30 @@ export default function Home() {
       ctx.fillRect(x, y, 1, 1);
 
       const key = `${x},${y}`;
-      setPixels((prev) => ({ ...prev, [key]: colorRef.current }));
+      const color = colorRef.current;
 
+      // Actualización optimista
+      setPixels((prev) => ({ ...prev, [key]: color }));
       setClicksLeft((prev) => {
         const newValue = Math.max(prev - 1, 0);
-
-        if (newValue <= 0) {
-          setCooldown(3 * 60 * 60);
-        }
-
+        if (newValue <= 0) setCooldown(3 * 60 * 60);
         return newValue;
       });
 
+      // Envío al backend con rollback si falla
       fetch("http://localhost:3001/pixel", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          x,
-          y,
-          color: colorRef.current,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ x, y, color }),
+      }).catch(() => {
+        // Si falla, revertimos el pixel y devolvemos el click
+        setPixels((prev) => {
+          const reverted = { ...prev };
+          delete reverted[key];
+          return reverted;
+        });
+        setClicksLeft((prev) => prev + 1);
+        console.error("Error al guardar el pixel, se revirtió el cambio.");
       });
     };
 
@@ -85,7 +90,7 @@ export default function Home() {
 
       setZoom((prev) => {
         const newZoom = event.deltaY < 0 ? prev + 1 : prev - 1;
-        return Math.max(1, Math.min(newZoom, 15));
+        return Math.max(1, Math.min(newZoom, 40));
       });
     };
 
@@ -111,27 +116,6 @@ export default function Home() {
       const [x, y] = key.split(",").map(Number);
       ctx.fillStyle = pixels[key];
       ctx.fillRect(x, y, 1, 1);
-    }
-
-    if (zoom >= 5) {
-      ctx.strokeStyle = "rgba(0,0,0,0.15)";
-      ctx.lineWidth = 1 / zoom;
-
-      const step = zoom >= 20 ? 1 : zoom >= 10 ? 5 : 10;
-
-      for (let x = 0; x <= canvas.width; x += step) {
-        ctx.beginPath();
-        ctx.moveTo(x + 0.5, 0);
-        ctx.lineTo(x + 0.5, canvas.height);
-        ctx.stroke();
-      }
-
-      for (let y = 0; y <= canvas.height; y += step) {
-        ctx.beginPath();
-        ctx.moveTo(0, y + 0.5);
-        ctx.lineTo(canvas.width, y + 0.5);
-        ctx.stroke();
-      }
     }
   }, [pixels, zoom]);
 
@@ -264,16 +248,41 @@ export default function Home() {
           cursor: "grab",
         }}
       >
-        <canvas
-          ref={canvasRef}
+        <div
           style={{
-            border: "1px solid black",
+            position: "relative",
             width: `${1000 * zoom}px`,
             height: `${1000 * zoom}px`,
-            imageRendering: "pixelated",
-            display: "block",
           }}
-        />
+        >
+          <canvas
+            ref={canvasRef}
+            style={{
+              border: "1px solid black",
+              width: `${1000 * zoom}px`,
+              height: `${1000 * zoom}px`,
+              imageRendering: "pixelated",
+              display: "block",
+            }}
+          />
+          {zoom >= 3 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+                backgroundImage: `
+            linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px)
+          `,
+                backgroundSize: `${zoom}px ${zoom}px`,
+              }}
+            />
+          )}
+        </div>
       </div>
     </main>
   );
