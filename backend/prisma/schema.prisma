@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String?       @unique
+  phone         String?       @unique
+  nickname      String        @unique
+  passwordHash  String
+  verified      Boolean       @default(false)
+  profilePic    String?
+  subscriptionTier  SubscriptionTier @default(FREE)
+  createdAt     DateTime      @default(now())
+
+  pixels        Pixel[]
+  friendsSent     Friendship[]  @relation("FriendsSent")
+  friendsReceived Friendship[]  @relation("FriendsReceived")
+}
+
+model Pixel {
+  id        Int      @id @default(autoincrement())
+  x         Int
+  y         Int
+  color     String
+  paintedAt DateTime @default(now())
+  userId    Int?
+
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@unique([x, y])
+}
+
+model Friendship {
+  id         Int              @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+
+  sender     User @relation("FriendsSent", fields: [senderId], references: [id])
+  receiver   User @relation("FriendsReceived", fields: [receiverId], references: [id])
+}
+
+enum SubscriptionTier {
+  FREE
+  PLUS
+  PREMIUM
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
