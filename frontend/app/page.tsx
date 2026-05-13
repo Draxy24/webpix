@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "./context/auth";
 
 export default function Home() {
+  const { token, nickname, logout } = useAuth();
+  const tokenRef = useRef(token);
+
   const [clicksLeft, setClicksLeft] = useState(20);
-  const [cooldown, setCooldown] = useState(0); // en segundos
+  const [cooldown, setCooldown] = useState(0);
   const clicksRef = useRef(clicksLeft);
   const cooldownRef = useRef(cooldown);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,6 +25,10 @@ export default function Home() {
     }
   });
   const [zoom, setZoom] = useState(10);
+
+  useEffect(() => {
+    tokenRef.current = token;
+  }, [token]);
 
   useEffect(() => {
     colorRef.current = selectedColor;
@@ -58,7 +66,6 @@ export default function Home() {
       const key = `${x},${y}`;
       const color = colorRef.current;
 
-      // Actualización optimista
       setPixels((prev) => ({ ...prev, [key]: color }));
       setClicksLeft((prev) => {
         const newValue = Math.max(prev - 1, 0);
@@ -66,13 +73,19 @@ export default function Home() {
         return newValue;
       });
 
-      // Envío al backend con rollback si falla
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (tokenRef.current) {
+        headers["Authorization"] = `Bearer ${tokenRef.current}`;
+      }
+
       fetch("http://localhost:3001/pixel", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ x, y, color }),
       }).catch(() => {
-        // Si falla, revertimos el pixel y devolvemos el click
         setPixels((prev) => {
           const reverted = { ...prev };
           delete reverted[key];
@@ -87,7 +100,6 @@ export default function Home() {
 
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
-
       setZoom((prev) => {
         const newZoom = event.deltaY < 0 ? prev + 1 : prev - 1;
         return Math.max(1, Math.min(newZoom, 40));
@@ -129,7 +141,6 @@ export default function Home() {
       const data = await res.json();
       setPixels(data);
     };
-
     loadPixels();
   }, []);
 
@@ -144,12 +155,9 @@ export default function Home() {
     let scrollTop = 0;
 
     const onMouseDown = (e: MouseEvent) => {
-      // SOLO botón derecho (para no romper el click de pintar)
       if (e.button !== 2) return;
-
       isDragging = true;
       container.style.cursor = "grabbing";
-
       startX = e.pageX;
       startY = e.pageY;
       scrollLeft = container.scrollLeft;
@@ -158,10 +166,8 @@ export default function Home() {
 
     const onMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-
       const dx = e.pageX - startX;
       const dy = e.pageY - startY;
-
       container.scrollLeft = scrollLeft - dx;
       container.scrollTop = scrollTop - dy;
     };
@@ -171,9 +177,7 @@ export default function Home() {
       container.style.cursor = "grab";
     };
 
-    const disableContextMenu = (e: MouseEvent) => {
-      e.preventDefault(); // evita menú clic derecho
-    };
+    const disableContextMenu = (e: MouseEvent) => e.preventDefault();
 
     container.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
@@ -190,17 +194,15 @@ export default function Home() {
 
   useEffect(() => {
     if (cooldown <= 0) return;
-
     const interval = setInterval(() => {
       setCooldown((prev) => {
         if (prev <= 1) {
-          setClicksLeft(20); // reiniciar clicks
+          setClicksLeft(20);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [cooldown]);
 
@@ -221,6 +223,39 @@ export default function Home() {
         marginTop: "20px",
       }}
     >
+      {/* Barra de usuario */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "10px",
+        }}
+      >
+        {nickname ? (
+          <>
+            <span style={{ fontSize: "14px" }}>
+              Hola, <strong>{nickname}</strong>
+            </span>
+            <button
+              onClick={logout}
+              style={{ fontSize: "13px", cursor: "pointer" }}
+            >
+              Cerrar sesión
+            </button>
+          </>
+        ) : (
+          <>
+            <a href="/login" style={{ fontSize: "14px" }}>
+              Iniciar sesión
+            </a>
+            <a href="/register" style={{ fontSize: "14px" }}>
+              Registrarse
+            </a>
+          </>
+        )}
+      </div>
+
       <input
         type="color"
         value={selectedColor}
@@ -230,7 +265,6 @@ export default function Home() {
 
       <div style={{ marginBottom: "10px", textAlign: "center" }}>
         <p>Píxeles restantes: {clicksLeft}</p>
-
         {cooldown > 0 && (
           <p style={{ color: "red" }}>
             En cooldown — espera {Math.floor(cooldown / 60)} min
@@ -275,9 +309,9 @@ export default function Home() {
                 height: "100%",
                 pointerEvents: "none",
                 backgroundImage: `
-            linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px)
-          `,
+                  linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px),
+                  linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px)
+                `,
                 backgroundSize: `${zoom}px ${zoom}px`,
               }}
             />
