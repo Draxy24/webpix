@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "cooldownUntil" TIMESTAMP(3),
+ADD COLUMN     "isAdmin" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "pixelsUsed" INTEGER NOT NULL DEFAULT 0;

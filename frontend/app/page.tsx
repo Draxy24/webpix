@@ -85,15 +85,28 @@ export default function Home() {
         method: "POST",
         headers,
         body: JSON.stringify({ x, y, color }),
-      }).catch(() => {
-        setPixels((prev) => {
-          const reverted = { ...prev };
-          delete reverted[key];
-          return reverted;
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.state) {
+            if (data.state.isAdmin) {
+              setClicksLeft(Infinity);
+            } else if (data.state.pixelsLeft !== null) {
+              setClicksLeft(data.state.pixelsLeft);
+              if (data.state.cooldownSeconds > 0)
+                setCooldown(data.state.cooldownSeconds);
+            }
+          }
+        })
+        .catch(() => {
+          setPixels((prev) => {
+            const reverted = { ...prev };
+            delete reverted[key];
+            return reverted;
+          });
+          setClicksLeft((prev) => prev + 1);
+          console.error("Error al guardar el pixel, se revirtió el cambio.");
         });
-        setClicksLeft((prev) => prev + 1);
-        console.error("Error al guardar el pixel, se revirtió el cambio.");
-      });
     };
 
     canvas.addEventListener("click", handleClick);
@@ -143,6 +156,27 @@ export default function Home() {
     };
     loadPixels();
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchUserState = async () => {
+      const res = await fetch("http://localhost:3001/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (data.isAdmin) {
+        setClicksLeft(Infinity);
+        setCooldown(0);
+      } else {
+        setClicksLeft(data.pixelsLeft ?? 20);
+        setCooldown(data.cooldownSeconds ?? 0);
+      }
+    };
+
+    fetchUserState();
+  }, [token]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -264,7 +298,7 @@ export default function Home() {
       />
 
       <div style={{ marginBottom: "10px", textAlign: "center" }}>
-        <p>Píxeles restantes: {clicksLeft}</p>
+        <p>Píxeles restantes: {clicksLeft === Infinity ? "∞" : clicksLeft}</p>
         {cooldown > 0 && (
           <p style={{ color: "red" }}>
             En cooldown — espera {Math.floor(cooldown / 60)} min

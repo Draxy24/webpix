@@ -8,19 +8,22 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String?       @unique
-  phone         String?       @unique
-  nickname      String        @unique
-  passwordHash  String
-  verified      Boolean       @default(false)
-  profilePic    String?
-  subscriptionTier  SubscriptionTier @default(FREE)
-  createdAt     DateTime      @default(now())
+  id               Int              @id @default(autoincrement())
+  email            String?          @unique
+  phone            String?          @unique
+  nickname         String           @unique
+  passwordHash     String
+  verified         Boolean          @default(false)
+  profilePic       String?
+  subscriptionTier SubscriptionTier @default(FREE)
+  isAdmin          Boolean          @default(false)
+  pixelsUsed       Int              @default(0)
+  cooldownUntil    DateTime?
+  createdAt        DateTime         @default(now())
 
-  pixels        Pixel[]
-  friendsSent     Friendship[]  @relation("FriendsSent")
-  friendsReceived Friendship[]  @relation("FriendsReceived")
+  pixels          Pixel[]
+  friendsSent     Friendship[]     @relation("FriendsSent")
+  friendsReceived Friendship[]     @relation("FriendsReceived")
 }
 
 model Pixel {
