@@ -6,7 +6,7 @@ const TIER_LIMITS: Record<
   SubscriptionTier,
   { pixels: number; cooldownHours: number }
 > = {
-  FREE: { pixels: 20, cooldownHours: 3 },
+  FREE: { pixels: 30, cooldownHours: 3 },
   PLUS: { pixels: 60, cooldownHours: 1 },
   PREMIUM: { pixels: Infinity, cooldownHours: 0 },
 };
@@ -104,13 +104,30 @@ export class PixelService {
     });
     const limit = TIER_LIMITS[updated!.subscriptionTier];
 
+    // Si con este píxel se alcanzó el límite, activamos el cooldown ahora mismo
+    let cooldownSeconds = 0;
+    if (
+      !updated!.isAdmin &&
+      limit.pixels !== Infinity &&
+      updated!.pixelsUsed >= limit.pixels
+    ) {
+      const cooldownUntil = new Date(
+        Date.now() + limit.cooldownHours * 60 * 60 * 1000,
+      );
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { cooldownUntil },
+      });
+      cooldownSeconds = limit.cooldownHours * 60 * 60;
+    }
+
     return {
       isAdmin: updated!.isAdmin,
       pixelsLeft:
         updated!.isAdmin || limit.pixels === Infinity
           ? null
           : Math.max(limit.pixels - updated!.pixelsUsed, 0),
-      cooldownSeconds: 0,
+      cooldownSeconds,
     };
   }
 

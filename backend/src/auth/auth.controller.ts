@@ -11,7 +11,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const TIER_LIMITS = {
-  FREE: { pixels: 20, cooldownHours: 3 },
+  FREE: { pixels: 30, cooldownHours: 3 },
   PLUS: { pixels: 60, cooldownHours: 1 },
   PREMIUM: { pixels: Infinity, cooldownHours: 0 },
 };
@@ -49,24 +49,35 @@ export class AuthController {
     });
     if (!user) return null;
 
+    const now = new Date();
+    let pixelsUsed = user.pixelsUsed;
+
+    // Si el cooldown ya expiró, reseteamos en DB y en local
+    if (user.cooldownUntil && user.cooldownUntil <= now) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { pixelsUsed: 0, cooldownUntil: null },
+      });
+      pixelsUsed = 0;
+    }
+
     const limit = TIER_LIMITS[user.subscriptionTier];
-    const cooldownActive =
-      user.cooldownUntil && user.cooldownUntil > new Date();
+    const cooldownActive = user.cooldownUntil && user.cooldownUntil > now;
     const cooldownSeconds = cooldownActive
-      ? Math.ceil((user.cooldownUntil!.getTime() - Date.now()) / 1000)
+      ? Math.ceil((user.cooldownUntil!.getTime() - now.getTime()) / 1000)
       : 0;
 
     return {
       nickname: user.nickname,
       isAdmin: user.isAdmin,
       subscriptionTier: user.subscriptionTier,
-      pixelsUsed: user.pixelsUsed,
+      pixelsUsed,
       pixelLimit:
         user.isAdmin || limit.pixels === Infinity ? null : limit.pixels,
       pixelsLeft:
         user.isAdmin || limit.pixels === Infinity
           ? null
-          : Math.max(limit.pixels - user.pixelsUsed, 0),
+          : Math.max(limit.pixels - pixelsUsed, 0),
       cooldownSeconds,
     };
   }

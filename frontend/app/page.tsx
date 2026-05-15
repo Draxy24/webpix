@@ -86,8 +86,20 @@ export default function Home() {
         headers,
         body: JSON.stringify({ x, y, color }),
       })
-        .then((res) => res.json())
-        .then((data) => {
+        .then(async (res) => {
+          const data = await res.json();
+
+          if (!res.ok) {
+            // Revertir actualización optimista
+            setPixels((prev) => {
+              const reverted = { ...prev };
+              delete reverted[key];
+              return reverted;
+            });
+            setClicksLeft((prev) => prev + 1);
+            return;
+          }
+
           if (data.state) {
             if (data.state.isAdmin) {
               setClicksLeft(Infinity);
@@ -231,7 +243,21 @@ export default function Home() {
     const interval = setInterval(() => {
       setCooldown((prev) => {
         if (prev <= 1) {
-          setClicksLeft(20);
+          if (tokenRef.current) {
+            fetch("http://localhost:3001/auth/me", {
+              headers: { Authorization: `Bearer ${tokenRef.current}` },
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.isAdmin) {
+                  setClicksLeft(Infinity);
+                } else {
+                  setClicksLeft(data.pixelsLeft ?? 20);
+                }
+              });
+          } else {
+            setClicksLeft(20);
+          }
           return 0;
         }
         return prev - 1;
