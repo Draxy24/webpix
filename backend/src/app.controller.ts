@@ -35,15 +35,12 @@ export class AppController {
   ) {
     const userId = req.user?.id ?? null;
     const ip = req.ip ?? 'unknown';
-
-    const state = await this.pixelService.checkAndPaint(
+    return await this.pixelService.checkAndPaint(
       body.x,
       body.y,
       body.color,
       userId,
       ip,
     );
-
-    return { success: true, state };
   }
 }

@@ -7,7 +7,7 @@ export default function Home() {
   const { token, nickname, logout } = useAuth();
   const tokenRef = useRef(token);
 
-  const [clicksLeft, setClicksLeft] = useState(20);
+  const [clicksLeft, setClicksLeft] = useState(30);
   const [cooldown, setCooldown] = useState(0);
   const clicksRef = useRef(clicksLeft);
   const cooldownRef = useRef(cooldown);
@@ -89,14 +89,14 @@ export default function Home() {
         .then(async (res) => {
           const data = await res.json();
 
-          if (!res.ok) {
-            // Revertir actualización optimista
+          if (!data.success) {
             setPixels((prev) => {
               const reverted = { ...prev };
               delete reverted[key];
               return reverted;
             });
             setClicksLeft((prev) => prev + 1);
+            if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
             return;
           }
 

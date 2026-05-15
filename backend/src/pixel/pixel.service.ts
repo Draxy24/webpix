@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SubscriptionTier } from '@prisma/client';
 
@@ -11,7 +11,17 @@ const TIER_LIMITS: Record<
   PREMIUM: { pixels: Infinity, cooldownHours: 0 },
 };
 
-// Para usuarios anónimos (sin cuenta) usamos memoria por ahora
+type PaintResult =
+  | {
+      success: true;
+      state: {
+        isAdmin: boolean;
+        pixelsLeft: number | null;
+        cooldownSeconds: number;
+      };
+    }
+  | { success: false; cooldownSeconds: number; message: string };
+
 const anonymousCooldowns = new Map<
   string,
   { pixelsUsed: number; cooldownUntil: Date | null }
@@ -27,12 +37,11 @@ export class PixelService {
     color: string,
     userId: number | null,
     ip: string,
-  ) {
+  ): Promise<PaintResult> {
     if (userId) {
       return await this.paintAsUser(x, y, color, userId);
     } else {
-      await this.paintAsAnonymous(x, y, color, ip);
-      return null;
+      return await this.paintAsAnonymous(x, y, color, ip);
     }
   }
 
@@ -41,26 +50,27 @@ export class PixelService {
     y: number,
     color: string,
     userId: number,
-  ) {
+  ): Promise<PaintResult> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new ForbiddenException('Usuario no encontrado');
+    if (!user)
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Usuario no encontrado',
+      };
 
-    // Los admins no tienen cooldown ni límite
     if (!user.isAdmin) {
       const limit = TIER_LIMITS[user.subscriptionTier];
+      const now = new Date();
 
-      // Si hay cooldown activo, verificamos si ya pasó
-      if (user.cooldownUntil && user.cooldownUntil > new Date()) {
-        const secondsLeft = Math.ceil(
-          (user.cooldownUntil.getTime() - Date.now()) / 1000,
+      if (user.cooldownUntil && user.cooldownUntil > now) {
+        const cooldownSeconds = Math.ceil(
+          (user.cooldownUntil.getTime() - now.getTime()) / 1000,
         );
-        throw new ForbiddenException(
-          `En cooldown. Tiempo restante: ${Math.ceil(secondsLeft / 60)} minutos`,
-        );
+        return { success: false, cooldownSeconds, message: 'En cooldown' };
       }
 
-      // Si el cooldown ya pasó, reseteamos
-      if (user.cooldownUntil && user.cooldownUntil <= new Date()) {
+      if (user.cooldownUntil && user.cooldownUntil <= now) {
         await this.prisma.user.update({
           where: { id: userId },
           data: { pixelsUsed: 0, cooldownUntil: null },
@@ -69,7 +79,6 @@ export class PixelService {
         user.cooldownUntil = null;
       }
 
-      // Verificamos límite de píxeles
       if (limit.pixels !== Infinity && user.pixelsUsed >= limit.pixels) {
         const cooldownUntil = new Date(
           Date.now() + limit.cooldownHours * 60 * 60 * 1000,
@@ -78,20 +87,17 @@ export class PixelService {
           where: { id: userId },
           data: { cooldownUntil },
         });
-        throw new ForbiddenException(
-          `Límite alcanzado. Cooldown de ${limit.cooldownHours} hora(s) activado`,
-        );
+        const cooldownSeconds = limit.cooldownHours * 60 * 60;
+        return { success: false, cooldownSeconds, message: 'Límite alcanzado' };
       }
     }
 
-    // Pintamos el píxel
     await this.prisma.pixel.upsert({
       where: { x_y: { x, y } },
       update: { color, userId, paintedAt: new Date() },
       create: { x, y, color, userId },
     });
 
-    // Actualizamos contador solo si no es admin
     if (!user.isAdmin) {
       await this.prisma.user.update({
         where: { id: userId },
@@ -104,7 +110,6 @@ export class PixelService {
     });
     const limit = TIER_LIMITS[updated!.subscriptionTier];
 
-    // Si con este píxel se alcanzó el límite, activamos el cooldown ahora mismo
     let cooldownSeconds = 0;
     if (
       !updated!.isAdmin &&
@@ -122,12 +127,15 @@ export class PixelService {
     }
 
     return {
-      isAdmin: updated!.isAdmin,
-      pixelsLeft:
-        updated!.isAdmin || limit.pixels === Infinity
-          ? null
-          : Math.max(limit.pixels - updated!.pixelsUsed, 0),
-      cooldownSeconds,
+      success: true,
+      state: {
+        isAdmin: updated!.isAdmin,
+        pixelsLeft:
+          updated!.isAdmin || limit.pixels === Infinity
+            ? null
+            : Math.max(limit.pixels - updated!.pixelsUsed, 0),
+        cooldownSeconds,
+      },
     };
   }
 
@@ -136,7 +144,7 @@ export class PixelService {
     y: number,
     color: string,
     ip: string,
-  ) {
+  ): Promise<PaintResult> {
     const now = new Date();
     const state = anonymousCooldowns.get(ip) ?? {
       pixelsUsed: 0,
@@ -144,12 +152,10 @@ export class PixelService {
     };
 
     if (state.cooldownUntil && state.cooldownUntil > now) {
-      const secondsLeft = Math.ceil(
+      const cooldownSeconds = Math.ceil(
         (state.cooldownUntil.getTime() - now.getTime()) / 1000,
       );
-      throw new ForbiddenException(
-        `En cooldown. Tiempo restante: ${Math.ceil(secondsLeft / 60)} minutos`,
-      );
+      return { success: false, cooldownSeconds, message: 'En cooldown' };
     }
 
     if (state.cooldownUntil && state.cooldownUntil <= now) {
@@ -157,12 +163,14 @@ export class PixelService {
       state.cooldownUntil = null;
     }
 
-    if (state.pixelsUsed >= 20) {
+    if (state.pixelsUsed >= 30) {
       state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
       anonymousCooldowns.set(ip, state);
-      throw new ForbiddenException(
-        'Límite alcanzado. Cooldown de 3 hora(s) activado',
-      );
+      return {
+        success: false,
+        cooldownSeconds: 3 * 60 * 60,
+        message: 'Límite alcanzado',
+      };
     }
 
     await this.prisma.pixel.upsert({
@@ -173,5 +181,14 @@ export class PixelService {
 
     state.pixelsUsed += 1;
     anonymousCooldowns.set(ip, state);
+
+    return {
+      success: true,
+      state: {
+        isAdmin: false,
+        pixelsLeft: 30 - state.pixelsUsed,
+        cooldownSeconds: 0,
+      },
+    };
   }
 }
