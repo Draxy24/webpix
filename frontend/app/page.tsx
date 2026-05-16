@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./context/auth";
+import { io } from "socket.io-client";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -11,8 +12,15 @@ export default function Home() {
   const [cooldown, setCooldown] = useState(0);
   const clicksRef = useRef(clicksLeft);
   const cooldownRef = useRef(cooldown);
+  const [pixelOwners, setPixelOwners] = useState<Record<string, string>>({});
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    nickname: string;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pixelOwnersRef = useRef<Record<string, string>>({});
   const [selectedColor, setSelectedColor] = useState("#000000");
   const colorRef = useRef(selectedColor);
   const [pixels, setPixels] = useState<Record<string, string>>(() => {
@@ -133,9 +141,32 @@ export default function Home() {
 
     canvas.addEventListener("wheel", handleWheel);
 
+    const handleMouseMove = (event: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = Math.floor((event.clientX - rect.left) * scaleX);
+      const y = Math.floor((event.clientY - rect.top) * scaleY);
+      const key = `${x},${y}`;
+
+      if (pixelOwnersRef.current[key]) {
+        setTooltip({
+          x: event.clientX,
+          y: event.clientY,
+          nickname: pixelOwnersRef.current[key],
+        });
+      } else {
+        setTooltip(null);
+      }
+    };
+
+    canvas.addEventListener("mousemove", handleMouseMove);
+
+    // Y en el return del cleanup:
     return () => {
       canvas.removeEventListener("click", handleClick);
       canvas.removeEventListener("wheel", handleWheel);
+      canvas.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
@@ -164,7 +195,8 @@ export default function Home() {
     const loadPixels = async () => {
       const res = await fetch("http://localhost:3001/pixels");
       const data = await res.json();
-      setPixels(data);
+      setPixels(data.colors);
+      setPixelOwners(data.owners);
     };
     loadPixels();
   }, []);
@@ -256,7 +288,7 @@ export default function Home() {
                 }
               });
           } else {
-            setClicksLeft(20);
+            setClicksLeft(30);
           }
           return 0;
         }
@@ -273,6 +305,34 @@ export default function Home() {
   useEffect(() => {
     cooldownRef.current = cooldown;
   }, [cooldown]);
+
+  useEffect(() => {
+    const socket = io("http://localhost:3001");
+
+    socket.on(
+      "pixel",
+      (data: {
+        x: number;
+        y: number;
+        color: string;
+        nickname: string | null;
+      }) => {
+        const key = `${data.x},${data.y}`;
+        setPixels((prev) => ({ ...prev, [key]: data.color }));
+        if (data.nickname) {
+          setPixelOwners((prev) => ({ ...prev, [key]: data.nickname! }));
+        }
+      },
+    );
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    pixelOwnersRef.current = pixelOwners;
+  }, [pixelOwners]);
 
   return (
     <main
@@ -378,6 +438,24 @@ export default function Home() {
           )}
         </div>
       </div>
+      {tooltip && (
+        <div
+          style={{
+            position: "fixed",
+            top: tooltip.y + 12,
+            left: tooltip.x + 12,
+            background: "rgba(0,0,0,0.75)",
+            color: "#fff",
+            padding: "4px 8px",
+            borderRadius: "4px",
+            fontSize: "12px",
+            pointerEvents: "none",
+            zIndex: 1000,
+          }}
+        >
+          {tooltip.nickname}
+        </div>
+      )}
     </main>
   );
 }

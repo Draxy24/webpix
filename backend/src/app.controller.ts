@@ -19,12 +19,20 @@ export class AppController {
 
   @Get('pixels')
   async getPixels() {
-    const pixels = await this.prisma.pixel.findMany();
-    const result: Record<string, string> = {};
+    const pixels = await this.prisma.pixel.findMany({
+      include: { user: { select: { nickname: true } } },
+    });
+
+    const colors: Record<string, string> = {};
+    const owners: Record<string, string> = {};
+
     for (const pixel of pixels) {
-      result[`${pixel.x},${pixel.y}`] = pixel.color;
+      const key = `${pixel.x},${pixel.y}`;
+      colors[key] = pixel.color;
+      if (pixel.user?.nickname) owners[key] = pixel.user.nickname;
     }
-    return result;
+
+    return { colors, owners };
   }
 
   @UseGuards(OptionalJwtGuard)
@@ -34,12 +42,14 @@ export class AppController {
     @Request() req: { user?: { id: number; nickname: string }; ip?: string },
   ) {
     const userId = req.user?.id ?? null;
+    const nickname = req.user?.nickname ?? null;
     const ip = req.ip ?? 'unknown';
     return await this.pixelService.checkAndPaint(
       body.x,
       body.y,
       body.color,
       userId,
+      nickname,
       ip,
     );
   }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PixelGateway } from './pixel.gateway';
 import { SubscriptionTier } from '@prisma/client';
 
 const TIER_LIMITS: Record<
@@ -29,17 +30,21 @@ const anonymousCooldowns = new Map<
 
 @Injectable()
 export class PixelService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: PixelGateway,
+  ) {}
 
   async checkAndPaint(
     x: number,
     y: number,
     color: string,
     userId: number | null,
+    nickname: string | null,
     ip: string,
   ): Promise<PaintResult> {
     if (userId) {
-      return await this.paintAsUser(x, y, color, userId);
+      return await this.paintAsUser(x, y, color, userId, nickname);
     } else {
       return await this.paintAsAnonymous(x, y, color, ip);
     }
@@ -50,6 +55,7 @@ export class PixelService {
     y: number,
     color: string,
     userId: number,
+    nickname: string | null,
   ): Promise<PaintResult> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user)
@@ -97,6 +103,8 @@ export class PixelService {
       update: { color, userId, paintedAt: new Date() },
       create: { x, y, color, userId },
     });
+
+    this.gateway.broadcastPixel(x, y, color, nickname);
 
     if (!user.isAdmin) {
       await this.prisma.user.update({
@@ -178,6 +186,8 @@ export class PixelService {
       update: { color, userId: null, paintedAt: new Date() },
       create: { x, y, color, userId: null },
     });
+
+    this.gateway.broadcastPixel(x, y, color, null);
 
     state.pixelsUsed += 1;
     anonymousCooldowns.set(ip, state);
