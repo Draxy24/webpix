@@ -133,9 +133,29 @@ export default function Home() {
 
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const mouseX = event.clientX - containerRect.left;
+      const mouseY = event.clientY - containerRect.top;
+
       setZoom((prev) => {
-        const newZoom = event.deltaY < 0 ? prev + 1 : prev - 1;
-        return Math.max(1, Math.min(newZoom, 40));
+        const newZoom = Math.max(
+          1,
+          Math.min(event.deltaY < 0 ? prev + 1 : prev - 1, 40),
+        );
+
+        const canvasX = (container.scrollLeft + mouseX) / prev;
+        const canvasY = (container.scrollTop + mouseY) / prev;
+
+        requestAnimationFrame(() => {
+          container.scrollLeft = canvasX * newZoom - mouseX;
+          container.scrollTop = canvasY * newZoom - mouseY;
+        });
+
+        return newZoom;
       });
     };
 
