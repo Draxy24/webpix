@@ -33,6 +33,95 @@ export default function Home() {
     }
   });
   const [zoom, setZoom] = useState(10);
+  const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
+  const PALETTES: Record<"FREE" | "PLUS" | "PREMIUM", string[]> = {
+    FREE: [
+      "#000000",
+      "#FFFFFF",
+      "#888888",
+      "#CCCCCC",
+      "#FF0000",
+      "#00CC00",
+      "#0000FF",
+      "#FFFF00",
+      "#FF8800",
+      "#FF00FF",
+      "#00FFFF",
+      "#884400",
+      "#FF88BB",
+      "#8800FF",
+      "#88FF44",
+      "#00AAFF",
+    ],
+    PLUS: [
+      "#000000",
+      "#222222",
+      "#444444",
+      "#666666",
+      "#888888",
+      "#AAAAAA",
+      "#CCCCCC",
+      "#FFFFFF",
+      "#550000",
+      "#AA0000",
+      "#FF0000",
+      "#FF5555",
+      "#FF8800",
+      "#FFAA00",
+      "#FFFF00",
+      "#FFFF88",
+      "#005500",
+      "#00AA00",
+      "#00FF00",
+      "#88FF88",
+      "#00AAAA",
+      "#00FFFF",
+      "#88FFFF",
+      "#0055FF",
+      "#0000FF",
+      "#5555FF",
+      "#8800FF",
+      "#FF00FF",
+      "#FF88FF",
+      "#FF88BB",
+      "#552200",
+      "#884400",
+    ],
+    PREMIUM: [
+      "#000000",
+      "#222222",
+      "#444444",
+      "#666666",
+      "#888888",
+      "#AAAAAA",
+      "#CCCCCC",
+      "#FFFFFF",
+      "#550000",
+      "#AA0000",
+      "#FF0000",
+      "#FF5555",
+      "#FF8800",
+      "#FFAA00",
+      "#FFFF00",
+      "#FFFF88",
+      "#005500",
+      "#00AA00",
+      "#00FF00",
+      "#88FF88",
+      "#00AAAA",
+      "#00FFFF",
+      "#88FFFF",
+      "#0055FF",
+      "#0000FF",
+      "#5555FF",
+      "#8800FF",
+      "#FF00FF",
+      "#FF88FF",
+      "#FF88BB",
+      "#552200",
+      "#884400",
+    ],
+  };
 
   useEffect(() => {
     tokenRef.current = token;
@@ -222,7 +311,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setUserTier("FREE");
+      setClicksLeft(30);
+      setCooldown(0);
+      return;
+    }
 
     const fetchUserState = async () => {
       const res = await fetch("http://localhost:3001/auth/me", {
@@ -233,9 +327,11 @@ export default function Home() {
       if (data.isAdmin) {
         setClicksLeft(Infinity);
         setCooldown(0);
+        setUserTier("PREMIUM");
       } else {
         setClicksLeft(data.pixelsLeft ?? 20);
         setCooldown(data.cooldownSeconds ?? 0);
+        setUserTier(data.subscriptionTier ?? "FREE");
       }
     };
 
@@ -396,12 +492,42 @@ export default function Home() {
         )}
       </div>
 
-      <input
-        type="color"
-        value={selectedColor}
-        onChange={(e) => setSelectedColor(e.target.value)}
-        style={{ marginBottom: "10px" }}
-      />
+      <div style={{ marginBottom: "10px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(8, 24px)",
+            gap: "4px",
+            justifyContent: "center",
+          }}
+        >
+          {PALETTES[userTier].map((color) => (
+            <button
+              key={color}
+              onClick={() => setSelectedColor(color)}
+              style={{
+                width: "24px",
+                height: "24px",
+                background: color,
+                border:
+                  selectedColor === color ? "2px solid #000" : "1px solid #888",
+                cursor: "pointer",
+                padding: 0,
+              }}
+              aria-label={color}
+            />
+          ))}
+        </div>
+        {userTier === "PREMIUM" && (
+          <div style={{ marginTop: "8px", textAlign: "center" }}>
+            <input
+              type="color"
+              value={selectedColor}
+              onChange={(e) => setSelectedColor(e.target.value)}
+            />
+          </div>
+        )}
+      </div>
 
       <div style={{ marginBottom: "10px", textAlign: "center" }}>
         <p>Píxeles restantes: {clicksLeft === Infinity ? "∞" : clicksLeft}</p>
