@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -122,6 +123,12 @@ export default function Home() {
       "#884400",
     ],
   };
+  const router = useRouter();
+  const routerRef = useRef(router);
+
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
 
   useEffect(() => {
     tokenRef.current = token;
@@ -147,20 +154,26 @@ export default function Home() {
 
     const handleClick = (event: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = Math.floor((event.clientX - rect.left) * scaleX);
+      const y = Math.floor((event.clientY - rect.top) * scaleY);
+      const key = `${x},${y}`;
+
+      // Ctrl+Click sobre un píxel pintado → ir al perfil del autor
+      if (event.ctrlKey && pixelOwnersRef.current[key]) {
+        routerRef.current.push(`/profile/${pixelOwnersRef.current[key]}`);
+        return;
+      }
 
       if (cooldownRef.current > 0) return;
       if (clicksRef.current <= 0) return;
 
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-
-      const x = Math.floor((event.clientX - rect.left) * scaleX);
-      const y = Math.floor((event.clientY - rect.top) * scaleY);
+      // ... resto del código igual, pero quita las líneas duplicadas de x, y, key
 
       ctx.fillStyle = colorRef.current;
       ctx.fillRect(x, y, 1, 1);
 
-      const key = `${x},${y}`;
       const color = colorRef.current;
 
       setPixels((prev) => ({ ...prev, [key]: color }));
@@ -473,6 +486,9 @@ export default function Home() {
             <span style={{ fontSize: "14px" }}>
               Hola, <strong>{nickname}</strong>
             </span>
+            <a href={`/profile/${nickname}`} style={{ fontSize: "14px" }}>
+              Mi perfil
+            </a>
             <button
               onClick={logout}
               style={{ fontSize: "13px", cursor: "pointer" }}
@@ -600,6 +616,9 @@ export default function Home() {
           }}
         >
           {tooltip.nickname}
+          <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>
+            Ctrl+Clic para ver perfil
+          </div>
         </div>
       )}
     </main>
