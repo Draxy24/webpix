@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
 import { useRouter } from "next/navigation";
@@ -35,6 +35,12 @@ export default function Home() {
   });
   const [zoom, setZoom] = useState(10);
   const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
+  const pendingZoomRef = useRef<{
+    canvasX: number;
+    canvasY: number;
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
   const PALETTES: Record<"FREE" | "PLUS" | "PREMIUM", string[]> = {
     FREE: [
       "#000000",
@@ -169,8 +175,6 @@ export default function Home() {
       if (cooldownRef.current > 0) return;
       if (clicksRef.current <= 0) return;
 
-      // ... resto del código igual, pero quita las líneas duplicadas de x, y, key
-
       ctx.fillStyle = colorRef.current;
       ctx.fillRect(x, y, 1, 1);
 
@@ -244,18 +248,13 @@ export default function Home() {
       const mouseY = event.clientY - containerRect.top;
 
       setZoom((prev) => {
-        const newZoom = Math.max(
-          1,
-          Math.min(event.deltaY < 0 ? prev + 1 : prev - 1, 40),
-        );
+        const factor = Math.exp(-event.deltaY * 0.001);
+        const newZoom = Math.max(1, Math.min(prev * factor, 40));
 
         const canvasX = (container.scrollLeft + mouseX) / prev;
         const canvasY = (container.scrollTop + mouseY) / prev;
 
-        requestAnimationFrame(() => {
-          container.scrollLeft = canvasX * newZoom - mouseX;
-          container.scrollTop = canvasY * newZoom - mouseY;
-        });
+        pendingZoomRef.current = { canvasX, canvasY, mouseX, mouseY };
 
         return newZoom;
       });
@@ -326,8 +325,12 @@ export default function Home() {
   useEffect(() => {
     if (!token) {
       setUserTier("FREE");
-      setClicksLeft(30);
-      setCooldown(0);
+      fetch("http://localhost:3001/anonymous-state")
+        .then((res) => res.json())
+        .then((data) => {
+          setClicksLeft(data.pixelsLeft);
+          setCooldown(data.cooldownSeconds);
+        });
       return;
     }
 
@@ -463,6 +466,18 @@ export default function Home() {
     pixelOwnersRef.current = pixelOwners;
   }, [pixelOwners]);
 
+  useLayoutEffect(() => {
+    if (!pendingZoomRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const { canvasX, canvasY, mouseX, mouseY } = pendingZoomRef.current;
+    container.scrollLeft = canvasX * zoom - mouseX;
+    container.scrollTop = canvasY * zoom - mouseY;
+
+    pendingZoomRef.current = null;
+  }, [zoom]);
+
   return (
     <main
       style={{
@@ -488,6 +503,9 @@ export default function Home() {
             </span>
             <a href={`/profile/${nickname}`} style={{ fontSize: "14px" }}>
               Mi perfil
+            </a>
+            <a href="/friends" style={{ fontSize: "14px" }}>
+              Amigos
             </a>
             <button
               onClick={logout}

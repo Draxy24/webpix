@@ -11,6 +11,13 @@ interface Profile {
   pixelCount: number;
 }
 
+type FriendStatus =
+  | "NONE"
+  | "FRIENDS"
+  | "REQUEST_SENT"
+  | "REQUEST_RECEIVED"
+  | "SELF";
+
 export default function ProfilePage() {
   const params = useParams();
   const nickname = params.nickname as string;
@@ -21,6 +28,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [profilePicInput, setProfilePicInput] = useState("");
+  const [friendStatus, setFriendStatus] = useState<{
+    status: FriendStatus;
+    friendshipId?: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -39,6 +50,15 @@ export default function ProfilePage() {
     fetchProfile();
   }, [nickname]);
 
+  useEffect(() => {
+    if (!token || isOwnProfile || !profile) return;
+    fetch(`http://localhost:3001/friendships/status/${nickname}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then(setFriendStatus);
+  }, [token, isOwnProfile, profile, nickname]);
+
   const handleSave = async () => {
     if (!token) return;
     const res = await fetch("http://localhost:3001/users/me", {
@@ -49,7 +69,6 @@ export default function ProfilePage() {
       },
       body: JSON.stringify({ profilePic: profilePicInput }),
     });
-
     if (res.ok) {
       const data = await res.json();
       setProfile((prev) =>
@@ -59,21 +78,76 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  const sendRequest = async () => {
+    const res = await fetch("http://localhost:3001/friendships", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ receiverNickname: nickname }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setFriendStatus({
+        status: data.status === "ACCEPTED" ? "FRIENDS" : "REQUEST_SENT",
+        friendshipId: data.id,
+      });
+    }
+  };
+
+  const acceptRequest = async () => {
+    if (!friendStatus?.friendshipId) return;
+    const res = await fetch(
+      `http://localhost:3001/friendships/${friendStatus.friendshipId}/accept`,
+      {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (res.ok)
+      setFriendStatus({
+        status: "FRIENDS",
+        friendshipId: friendStatus.friendshipId,
+      });
+  };
+
+  const declineRequest = async () => {
+    if (!friendStatus?.friendshipId) return;
+    const res = await fetch(
+      `http://localhost:3001/friendships/${friendStatus.friendshipId}/decline`,
+      {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (res.ok) setFriendStatus({ status: "NONE" });
+  };
+
+  const removeFriend = async () => {
+    if (!friendStatus?.friendshipId) return;
+    const res = await fetch(
+      `http://localhost:3001/friendships/${friendStatus.friendshipId}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (res.ok) setFriendStatus({ status: "NONE" });
+  };
+
+  if (loading)
     return (
       <main style={{ textAlign: "center", marginTop: "40px" }}>
         Cargando...
       </main>
     );
-  }
-
-  if (!profile) {
+  if (!profile)
     return (
       <main style={{ textAlign: "center", marginTop: "40px" }}>
         Perfil no encontrado
       </main>
     );
-  }
 
   return (
     <main style={{ maxWidth: "600px", margin: "40px auto", padding: "20px" }}>
@@ -116,6 +190,58 @@ export default function ProfilePage() {
             {new Date(profile.createdAt).toLocaleDateString("es-MX")}
           </span>
         </div>
+
+        {!isOwnProfile && token && friendStatus && (
+          <div style={{ marginTop: "8px" }}>
+            {friendStatus.status === "NONE" && (
+              <button
+                onClick={sendRequest}
+                style={{ padding: "8px 16px", cursor: "pointer" }}
+              >
+                Enviar solicitud de amistad
+              </button>
+            )}
+            {friendStatus.status === "REQUEST_SENT" && (
+              <span style={{ fontSize: "14px", color: "#aaa" }}>
+                Solicitud enviada
+              </span>
+            )}
+            {friendStatus.status === "REQUEST_RECEIVED" && (
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={acceptRequest}
+                  style={{ padding: "8px 16px", cursor: "pointer" }}
+                >
+                  Aceptar solicitud
+                </button>
+                <button
+                  onClick={declineRequest}
+                  style={{ padding: "8px 16px", cursor: "pointer" }}
+                >
+                  Declinar
+                </button>
+              </div>
+            )}
+            {friendStatus.status === "FRIENDS" && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ color: "#4a4" }}>✓ Amigos</span>
+                <button
+                  onClick={removeFriend}
+                  style={{ padding: "8px 16px", cursor: "pointer" }}
+                >
+                  Eliminar amistad
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {isOwnProfile && (
           <div style={{ marginTop: "16px", width: "100%" }}>

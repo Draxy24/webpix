@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 interface AuthContextType {
   token: string | null;
   nickname: string | null;
+  loading: boolean;
   login: (token: string, nickname: string) => void;
   logout: () => void;
 }
@@ -12,6 +13,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   token: null,
   nickname: null,
+  loading: true,
   login: () => {},
   logout: () => {},
 });
@@ -19,12 +21,14 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedNickname = localStorage.getItem("nickname");
     if (savedToken) setToken(savedToken);
     if (savedNickname) setNickname(savedNickname);
+    setLoading(false);
   }, []);
 
   const login = (token: string, nickname: string) => {
@@ -42,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, nickname, login, logout }}>
+    <AuthContext.Provider value={{ token, nickname, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

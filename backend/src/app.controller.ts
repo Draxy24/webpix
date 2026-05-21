@@ -35,6 +35,12 @@ export class AppController {
     return { colors, owners };
   }
 
+  @Get('anonymous-state')
+  getAnonymousState(@Request() req: { ip?: string }) {
+    const ip = req.ip ?? 'unknown';
+    return this.pixelService.getAnonymousState(ip);
+  }
+
   @UseGuards(OptionalJwtGuard)
   @Post('pixel')
   async setPixel(

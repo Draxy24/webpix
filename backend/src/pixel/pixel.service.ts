@@ -201,4 +201,31 @@ export class PixelService {
       },
     };
   }
+  getAnonymousState(ip: string): {
+    pixelsLeft: number;
+    cooldownSeconds: number;
+  } {
+    const now = new Date();
+    const state = anonymousCooldowns.get(ip);
+
+    if (!state) {
+      return { pixelsLeft: 30, cooldownSeconds: 0 };
+    }
+
+    if (state.cooldownUntil && state.cooldownUntil <= now) {
+      state.pixelsUsed = 0;
+      state.cooldownUntil = null;
+      anonymousCooldowns.set(ip, state);
+    }
+
+    const cooldownActive = state.cooldownUntil && state.cooldownUntil > now;
+    const cooldownSeconds = cooldownActive
+      ? Math.ceil((state.cooldownUntil!.getTime() - now.getTime()) / 1000)
+      : 0;
+
+    return {
+      pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
+      cooldownSeconds,
+    };
+  }
 }
