@@ -24,6 +24,9 @@ model User {
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")
   friendsReceived Friendship[]     @relation("FriendsReceived")
+  publications         Publication[]
+  publicationReactions PublicationReaction[]
+  publicationComments  PublicationComment[]
 }
 
 model Pixel {
@@ -60,4 +63,49 @@ enum FriendshipStatus {
   PENDING
   ACCEPTED
   DECLINED
+}
+
+model Publication {
+  id          Int                   @id @default(autoincrement())
+  userId      Int
+  title       String?
+  x1          Int
+  y1          Int
+  x2          Int
+  y2          Int
+  pixelData   Json
+  createdAt   DateTime              @default(now())
+
+  user        User                  @relation(fields: [userId], references: [id])
+  reactions   PublicationReaction[]
+  comments    PublicationComment[]
+}
+
+model PublicationReaction {
+  id            Int          @id @default(autoincrement())
+  publicationId Int
+  userId        Int
+  type          ReactionType
+  createdAt     DateTime     @default(now())
+
+  publication   Publication  @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id])
+
+  @@unique([publicationId, userId])
+}
+
+model PublicationComment {
+  id            Int         @id @default(autoincrement())
+  publicationId Int
+  userId        Int
+  content       String
+  createdAt     DateTime    @default(now())
+
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id])
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
 }

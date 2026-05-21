@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PixelModule } from './pixel/pixel.module';
 import { FriendshipsModule } from './friendships/friendships.module';
+import { PublicationsModule } from './publications/publications.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { FriendshipsModule } from './friendships/friendships.module';
     AuthModule,
     PixelModule,
     FriendshipsModule,
+    PublicationsModule,
   ],
   controllers: [AppController],
   providers: [],

@@ -3,12 +3,27 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "../../context/auth";
+import PublicationCanvas from "../../components/PublicationCanvas";
 
 interface Profile {
   nickname: string;
   profilePic: string | null;
   createdAt: string;
   pixelCount: number;
+}
+
+interface PublicationSummary {
+  id: number;
+  title: string | null;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  pixelData: Record<string, string>;
+  createdAt: string;
+  likes: number;
+  dislikes: number;
+  commentCount: number;
 }
 
 type FriendStatus =
@@ -28,6 +43,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [profilePicInput, setProfilePicInput] = useState("");
+  const [publications, setPublications] = useState<PublicationSummary[]>([]);
   const [friendStatus, setFriendStatus] = useState<{
     status: FriendStatus;
     friendshipId?: number;
@@ -58,6 +74,13 @@ export default function ProfilePage() {
       .then((res) => res.json())
       .then(setFriendStatus);
   }, [token, isOwnProfile, profile, nickname]);
+
+  useEffect(() => {
+    if (!profile) return;
+    fetch(`http://localhost:3001/publications/user/${nickname}`)
+      .then((res) => res.json())
+      .then(setPublications);
+  }, [profile, nickname]);
 
   const handleSave = async () => {
     if (!token) return;
@@ -284,6 +307,53 @@ export default function ProfilePage() {
             )}
           </div>
         )}
+
+        <div style={{ width: "100%", marginTop: "32px" }}>
+          <h2 style={{ marginBottom: "12px" }}>Publicaciones</h2>
+          {publications.length === 0 ? (
+            <p style={{ color: "#aaa" }}>Sin publicaciones todavía.</p>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                gap: "16px",
+              }}
+            >
+              {publications.map((pub) => (
+                <a
+                  key={pub.id}
+                  href={`/publication/${pub.id}`}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "6px",
+                    textDecoration: "none",
+                    color: "inherit",
+                  }}
+                >
+                  <PublicationCanvas
+                    pixelData={pub.pixelData}
+                    x1={pub.x1}
+                    y1={pub.y1}
+                    x2={pub.x2}
+                    y2={pub.y2}
+                    maxSize={150}
+                  />
+                  <div style={{ textAlign: "center", fontSize: "13px" }}>
+                    {pub.title && (
+                      <div style={{ fontWeight: "bold" }}>{pub.title}</div>
+                    )}
+                    <div style={{ color: "#aaa", fontSize: "12px" }}>
+                      👍 {pub.likes} · 👎 {pub.dislikes} · 💬 {pub.commentCount}
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
 
         <a href="/" style={{ marginTop: "20px", fontSize: "13px" }}>
           ← Volver al lienzo

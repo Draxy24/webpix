@@ -41,6 +41,20 @@ export default function Home() {
     mouseX: number;
     mouseY: number;
   } | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selection, setSelection] = useState<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  } | null>(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishTitle, setPublishTitle] = useState("");
+  const [publishError, setPublishError] = useState("");
+  const [publishing, setPublishing] = useState(false);
+
+  const selectionModeRef = useRef(false);
+  const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const PALETTES: Record<"FREE" | "PLUS" | "PREMIUM", string[]> = {
     FREE: [
       "#000000",
@@ -172,6 +186,9 @@ export default function Home() {
         return;
       }
 
+      // En modo selección no se pinta
+      if (selectionModeRef.current) return;
+
       if (cooldownRef.current > 0) return;
       if (clicksRef.current <= 0) return;
 
@@ -268,8 +285,27 @@ export default function Home() {
       const scaleY = canvas.height / rect.height;
       const x = Math.floor((event.clientX - rect.left) * scaleX);
       const y = Math.floor((event.clientY - rect.top) * scaleY);
-      const key = `${x},${y}`;
 
+      // Si estamos arrastrando una selección
+      if (selectionModeRef.current && selectionStartRef.current) {
+        const start = selectionStartRef.current;
+        setSelection({
+          x1: Math.min(start.x, x),
+          y1: Math.min(start.y, y),
+          x2: Math.max(start.x, x),
+          y2: Math.max(start.y, y),
+        });
+        return;
+      }
+
+      // En modo selección, ocultar tooltip
+      if (selectionModeRef.current) {
+        setTooltip(null);
+        return;
+      }
+
+      // Tooltip normal
+      const key = `${x},${y}`;
       if (pixelOwnersRef.current[key]) {
         setTooltip({
           x: event.clientX,
@@ -281,6 +317,29 @@ export default function Home() {
       }
     };
 
+    const handleSelectionMouseDown = (event: MouseEvent) => {
+      if (!selectionModeRef.current) return;
+      if (event.button !== 0) return;
+      event.preventDefault();
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = Math.floor((event.clientX - rect.left) * scaleX);
+      const y = Math.floor((event.clientY - rect.top) * scaleY);
+
+      selectionStartRef.current = { x, y };
+      setSelection({ x1: x, y1: y, x2: x, y2: y });
+    };
+
+    const handleSelectionMouseUp = () => {
+      if (!selectionModeRef.current) return;
+      selectionStartRef.current = null;
+    };
+
+    canvas.addEventListener("mousedown", handleSelectionMouseDown);
+    canvas.addEventListener("mouseup", handleSelectionMouseUp);
+
     canvas.addEventListener("mousemove", handleMouseMove);
 
     // Y en el return del cleanup:
@@ -288,6 +347,8 @@ export default function Home() {
       canvas.removeEventListener("click", handleClick);
       canvas.removeEventListener("wheel", handleWheel);
       canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mousedown", handleSelectionMouseDown);
+      canvas.removeEventListener("mouseup", handleSelectionMouseUp);
     };
   }, []);
 
@@ -466,6 +527,46 @@ export default function Home() {
     pixelOwnersRef.current = pixelOwners;
   }, [pixelOwners]);
 
+  useEffect(() => {
+    selectionModeRef.current = selectionMode;
+  }, [selectionMode]);
+
+  const handlePublish = async () => {
+    if (!selection || !token) return;
+    setPublishing(true);
+    setPublishError("");
+
+    try {
+      const res = await fetch("http://localhost:3001/publications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: publishTitle || undefined,
+          x1: selection.x1,
+          y1: selection.y1,
+          x2: selection.x2,
+          y2: selection.y2,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al publicar");
+
+      setShowPublishModal(false);
+      setSelectionMode(false);
+      setSelection(null);
+      setPublishTitle("");
+      alert("¡Publicación creada exitosamente!");
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : "Error al publicar");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   useLayoutEffect(() => {
     if (!pendingZoomRef.current) return;
     const container = containerRef.current;
@@ -563,6 +664,53 @@ export default function Home() {
         )}
       </div>
 
+      {nickname && (
+        <div
+          style={{
+            marginBottom: "10px",
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+          }}
+        >
+          {!selectionMode ? (
+            <button
+              onClick={() => setSelectionMode(true)}
+              style={{ padding: "8px 16px", cursor: "pointer" }}
+            >
+              Publicar creación
+            </button>
+          ) : (
+            <>
+              <span style={{ fontSize: "13px" }}>
+                {selection
+                  ? `Área: ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
+                  : "Arrastra sobre el lienzo para seleccionar"}
+              </span>
+              <button
+                onClick={() => setShowPublishModal(true)}
+                disabled={!selection}
+                style={{
+                  padding: "8px 16px",
+                  cursor: selection ? "pointer" : "not-allowed",
+                }}
+              >
+                Publicar
+              </button>
+              <button
+                onClick={() => {
+                  setSelectionMode(false);
+                  setSelection(null);
+                }}
+                style={{ padding: "8px 16px", cursor: "pointer" }}
+              >
+                Cancelar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       <div style={{ marginBottom: "10px", textAlign: "center" }}>
         <p>Píxeles restantes: {clicksLeft === Infinity ? "∞" : clicksLeft}</p>
         {cooldown > 0 && (
@@ -616,6 +764,22 @@ export default function Home() {
               }}
             />
           )}
+
+          {selection && (
+            <div
+              style={{
+                position: "absolute",
+                left: `${selection.x1 * zoom}px`,
+                top: `${selection.y1 * zoom}px`,
+                width: `${(selection.x2 - selection.x1 + 1) * zoom}px`,
+                height: `${(selection.y2 - selection.y1 + 1) * zoom}px`,
+                border: "2px solid #4a9eff",
+                background: "rgba(74, 158, 255, 0.15)",
+                pointerEvents: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          )}
         </div>
       </div>
       {tooltip && (
@@ -636,6 +800,85 @@ export default function Home() {
           {tooltip.nickname}
           <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>
             Ctrl+Clic para ver perfil
+          </div>
+        </div>
+      )}
+
+      {showPublishModal && selection && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: "#222",
+              padding: "24px",
+              borderRadius: "8px",
+              maxWidth: "400px",
+              width: "90%",
+              color: "#fff",
+            }}
+          >
+            <h2 style={{ marginTop: 0 }}>Publicar creación</h2>
+            <p style={{ fontSize: "14px", color: "#aaa" }}>
+              Área: {selection.x2 - selection.x1 + 1} ×{" "}
+              {selection.y2 - selection.y1 + 1} píxeles
+            </p>
+            <input
+              type="text"
+              placeholder="Título (opcional, máx 60)"
+              maxLength={60}
+              value={publishTitle}
+              onChange={(e) => setPublishTitle(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                marginBottom: "12px",
+                boxSizing: "border-box",
+              }}
+            />
+            {publishError && (
+              <p style={{ color: "#f88", fontSize: "13px", marginTop: 0 }}>
+                {publishError}
+              </p>
+            )}
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowPublishModal(false);
+                  setPublishError("");
+                }}
+                style={{ padding: "8px 16px", cursor: "pointer" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                style={{
+                  padding: "8px 16px",
+                  cursor: publishing ? "not-allowed" : "pointer",
+                }}
+              >
+                {publishing ? "Publicando..." : "Confirmar"}
+              </button>
+            </div>
           </div>
         </div>
       )}
