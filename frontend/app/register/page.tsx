@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
+import { COUNTRIES } from "../lib/countries";
 
 export default function RegisterPage() {
   const { login } = useAuth();
@@ -13,6 +14,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [country, setCountry] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +24,18 @@ export default function RegisterPage() {
     try {
       const body =
         method === "email"
-          ? { nickname, email: emailOrPhone, password }
-          : { nickname, phone: emailOrPhone, password };
+          ? {
+              nickname,
+              email: emailOrPhone,
+              password,
+              country: country || undefined,
+            }
+          : {
+              nickname,
+              phone: emailOrPhone,
+              password,
+              country: country || undefined,
+            };
 
       const res = await fetch("http://localhost:3001/auth/register", {
         method: "POST",
@@ -45,9 +57,24 @@ export default function RegisterPage() {
   };
 
   return (
-    <main style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "80px" }}>
+    <main
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        marginTop: "80px",
+      }}
+    >
       <h1>Crear cuenta</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px", width: "300px" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          width: "300px",
+        }}
+      >
         <input
           type="text"
           placeholder="Nickname"
@@ -88,7 +115,9 @@ export default function RegisterPage() {
         </div>
         <input
           type={method === "email" ? "email" : "tel"}
-          placeholder={method === "email" ? "correo@ejemplo.com" : "+52 000 000 0000"}
+          placeholder={
+            method === "email" ? "correo@ejemplo.com" : "+52 000 000 0000"
+          }
           value={emailOrPhone}
           onChange={(e) => setEmailOrPhone(e.target.value)}
           required
@@ -103,7 +132,23 @@ export default function RegisterPage() {
           style={{ padding: "8px", fontSize: "14px" }}
         />
         {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
-        <button type="submit" disabled={loading} style={{ padding: "10px", cursor: "pointer" }}>
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          style={{ padding: "8px", fontSize: "14px" }}
+        >
+          <option value="">País (opcional)</option>
+          {COUNTRIES.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{ padding: "10px", cursor: "pointer" }}
+        >
           {loading ? "Registrando..." : "Crear cuenta"}
         </button>
         <p style={{ textAlign: "center", fontSize: "13px" }}>

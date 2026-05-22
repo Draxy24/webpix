@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { PixelModule } from './pixel/pixel.module';
 import { FriendshipsModule } from './friendships/friendships.module';
 import { PublicationsModule } from './publications/publications.module';
+import { RankingsModule } from './rankings/rankings.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PublicationsModule } from './publications/publications.module';
     PixelModule,
     FriendshipsModule,
     PublicationsModule,
+    RankingsModule,
   ],
   controllers: [AppController],
   providers: [],

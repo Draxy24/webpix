@@ -31,6 +31,7 @@ export class UsersController {
     return {
       nickname: user.nickname,
       profilePic: user.profilePic,
+      country: user.country,
       createdAt: user.createdAt,
       pixelCount,
     };
@@ -40,16 +41,20 @@ export class UsersController {
   @Patch('me')
   async updateMe(
     @Request() req: { user: { id: number } },
-    @Body() body: { profilePic?: string },
+    @Body() body: { profilePic?: string; country?: string },
   ) {
     const updated = await this.prisma.user.update({
       where: { id: req.user.id },
-      data: { profilePic: body.profilePic },
+      data: {
+        profilePic: body.profilePic,
+        country: body.country,
+      },
     });
 
     return {
       nickname: updated.nickname,
       profilePic: updated.profilePic,
+      country: updated.country,
     };
   }
 }

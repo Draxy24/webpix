@@ -31,6 +31,7 @@ export class AuthController {
       phone?: string;
       nickname: string;
       password: string;
+      country?: string;
     },
   ) {
     return this.authService.register(body);

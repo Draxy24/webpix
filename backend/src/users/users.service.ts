@@ -26,6 +26,7 @@ export class UsersService {
     phone?: string;
     nickname: string;
     passwordHash: string;
+    country?: string;
   }) {
     return this.prisma.user.create({ data });
   }

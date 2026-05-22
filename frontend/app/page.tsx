@@ -597,6 +597,9 @@ export default function Home() {
           marginBottom: "10px",
         }}
       >
+        <a href="/rankings" style={{ fontSize: "14px" }}>
+          Rankings
+        </a>
         {nickname ? (
           <>
             <span style={{ fontSize: "14px" }}>

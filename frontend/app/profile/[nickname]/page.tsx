@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "../../context/auth";
 import PublicationCanvas from "../../components/PublicationCanvas";
+import { COUNTRIES } from "../../lib/countries";
+import Flag from "../../components/Flag";
 
 interface Profile {
   nickname: string;
   profilePic: string | null;
+  country: string | null;
   createdAt: string;
   pixelCount: number;
 }
@@ -38,6 +41,7 @@ export default function ProfilePage() {
   const nickname = params.nickname as string;
   const { nickname: myNickname, token } = useAuth();
   const isOwnProfile = myNickname === nickname;
+  const [countryInput, setCountryInput] = useState("");
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +61,7 @@ export default function ProfilePage() {
         const data = await res.json();
         setProfile(data);
         setProfilePicInput(data.profilePic ?? "");
+        setCountryInput(data.country ?? "");
       } catch {
         setProfile(null);
       } finally {
@@ -90,12 +95,17 @@ export default function ProfilePage() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ profilePic: profilePicInput }),
+      body: JSON.stringify({
+        profilePic: profilePicInput,
+        country: countryInput || null,
+      }),
     });
     if (res.ok) {
       const data = await res.json();
       setProfile((prev) =>
-        prev ? { ...prev, profilePic: data.profilePic } : prev,
+        prev
+          ? { ...prev, profilePic: data.profilePic, country: data.country }
+          : prev,
       );
       setEditing(false);
     }
@@ -196,7 +206,17 @@ export default function ProfilePage() {
             border: "2px solid #888",
           }}
         />
-        <h1 style={{ margin: 0 }}>{profile.nickname}</h1>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <h1 style={{ margin: 0 }}>{profile.nickname}</h1>
+          {profile.country && <Flag code={profile.country} />}
+        </div>
         <div
           style={{
             display: "flex",
@@ -273,7 +293,7 @@ export default function ProfilePage() {
                 onClick={() => setEditing(true)}
                 style={{ padding: "8px 16px", cursor: "pointer" }}
               >
-                Editar foto de perfil
+                Editar perfil
               </button>
             ) : (
               <div
@@ -286,6 +306,18 @@ export default function ProfilePage() {
                   onChange={(e) => setProfilePicInput(e.target.value)}
                   style={{ padding: "8px" }}
                 />
+                <select
+                  value={countryInput}
+                  onChange={(e) => setCountryInput(e.target.value)}
+                  style={{ padding: "8px" }}
+                >
+                  <option value="">Sin país</option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
                     onClick={handleSave}

@@ -20,6 +20,7 @@ model User {
   pixelsUsed       Int              @default(0)
   cooldownUntil    DateTime?
   createdAt        DateTime         @default(now())
+  country String?
 
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")
