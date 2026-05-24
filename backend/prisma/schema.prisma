@@ -21,6 +21,7 @@ model User {
   cooldownUntil    DateTime?
   createdAt        DateTime         @default(now())
   country String?
+  verificationCodes VerificationCode[]
 
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")
@@ -109,4 +110,21 @@ model PublicationComment {
 enum ReactionType {
   LIKE
   DISLIKE
+}
+
+model VerificationCode {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  code      String
+  type      VerificationType
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum VerificationType {
+  EMAIL
+  PHONE
+  PASSWORD_RESET
 }

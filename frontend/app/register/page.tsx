@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
 import { COUNTRIES } from "../lib/countries";
+import PhoneCountrySelect from "../components/PhoneCountrySelect";
 
 export default function RegisterPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [nickname, setNickname] = useState("");
   const [method, setMethod] = useState<"email" | "phone">("email");
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("MX");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,20 +25,20 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const body =
-        method === "email"
-          ? {
-              nickname,
-              email: emailOrPhone,
-              password,
-              country: country || undefined,
-            }
-          : {
-              nickname,
-              phone: emailOrPhone,
-              password,
-              country: country || undefined,
-            };
+      let body;
+      if (method === "email") {
+        body = { nickname, email, password, country: country || undefined };
+      } else {
+        const dialCode =
+          COUNTRIES.find((c) => c.code === phoneCountry)?.dialCode ?? "";
+        const fullPhone = `${dialCode}${phoneNumber.replace(/\s/g, "")}`;
+        body = {
+          nickname,
+          phone: fullPhone,
+          password,
+          country: country || undefined,
+        };
+      }
 
       const res = await fetch("http://localhost:3001/auth/register", {
         method: "POST",
@@ -44,11 +47,10 @@ export default function RegisterPage() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message ?? "Error al registrarse");
 
       login(data.token, data.nickname);
-      router.push("/");
+      router.push("/verify");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al registrarse");
     } finally {
@@ -113,16 +115,33 @@ export default function RegisterPage() {
             Teléfono
           </button>
         </div>
-        <input
-          type={method === "email" ? "email" : "tel"}
-          placeholder={
-            method === "email" ? "correo@ejemplo.com" : "+52 000 000 0000"
-          }
-          value={emailOrPhone}
-          onChange={(e) => setEmailOrPhone(e.target.value)}
-          required
-          style={{ padding: "8px", fontSize: "14px" }}
-        />
+
+        {method === "email" ? (
+          <input
+            type="email"
+            placeholder="correo@ejemplo.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ padding: "8px", fontSize: "14px" }}
+          />
+        ) : (
+          <div style={{ display: "flex", gap: "6px" }}>
+            <PhoneCountrySelect
+              value={phoneCountry}
+              onChange={setPhoneCountry}
+            />
+            <input
+              type="tel"
+              placeholder="476 124 5532"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+              style={{ padding: "8px", fontSize: "14px", flex: 1 }}
+            />
+          </div>
+        )}
+
         <input
           type="password"
           placeholder="Contraseña"

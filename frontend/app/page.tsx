@@ -232,9 +232,9 @@ export default function Home() {
           }
 
           if (data.state) {
-            if (data.state.isAdmin) {
+            if (data.state.isAdmin || data.state.pixelsLeft === null) {
               setClicksLeft(Infinity);
-            } else if (data.state.pixelsLeft !== null) {
+            } else {
               setClicksLeft(data.state.pixelsLeft);
               if (data.state.cooldownSeconds > 0)
                 setCooldown(data.state.cooldownSeconds);
@@ -401,19 +401,30 @@ export default function Home() {
       });
       const data = await res.json();
 
+      // Muro de verificación: si no está verificado y no es admin, al /verify
+      if (!data.verified && !data.isAdmin) {
+        router.push("/verify");
+        return;
+      }
+
       if (data.isAdmin) {
         setClicksLeft(Infinity);
         setCooldown(0);
         setUserTier("PREMIUM");
       } else {
-        setClicksLeft(data.pixelsLeft ?? 20);
-        setCooldown(data.cooldownSeconds ?? 0);
+        if (data.pixelsLeft === null) {
+          setClicksLeft(Infinity);
+          setCooldown(0);
+        } else {
+          setClicksLeft(data.pixelsLeft);
+          setCooldown(data.cooldownSeconds ?? 0);
+        }
         setUserTier(data.subscriptionTier ?? "FREE");
       }
     };
 
     fetchUserState();
-  }, [token]);
+  }, [router, token]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -474,10 +485,10 @@ export default function Home() {
             })
               .then((res) => res.json())
               .then((data) => {
-                if (data.isAdmin) {
+                if (data.isAdmin || data.pixelsLeft === null) {
                   setClicksLeft(Infinity);
                 } else {
-                  setClicksLeft(data.pixelsLeft ?? 20);
+                  setClicksLeft(data.pixelsLeft);
                 }
               });
           } else {

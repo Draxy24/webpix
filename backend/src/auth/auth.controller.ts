@@ -42,6 +42,42 @@ export class AuthController {
     return this.authService.login(body);
   }
 
+  @Post('verify-email')
+  verifyEmail(@Body() body: { code: string }) {
+    return this.authService.verifyEmail(body.code);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('verify-phone')
+  verifyPhone(
+    @Request() req: { user: { id: number } },
+    @Body() body: { code: string },
+  ) {
+    return this.authService.verifyPhone(req.user.id, body.code);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('resend-verification')
+  resendVerification(@Request() req: { user: { id: number } }) {
+    return this.authService.resendVerification(req.user.id);
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() body: { emailOrPhone: string }) {
+    return this.authService.forgotPassword(body.emailOrPhone);
+  }
+
+  @Post('reset-password')
+  resetPassword(
+    @Body() body: { emailOrPhone: string; code: string; newPassword: string },
+  ) {
+    return this.authService.resetPassword(
+      body.emailOrPhone,
+      body.code,
+      body.newPassword,
+    );
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getMe(@Request() req: { user: { id: number; nickname: string } }) {
@@ -50,10 +86,14 @@ export class AuthController {
     });
     if (!user) return null;
 
+    let needsVerification: 'email' | 'phone' | null = null;
+    if (!user.verified) {
+      needsVerification = user.email ? 'email' : 'phone';
+    }
+
     const now = new Date();
     let pixelsUsed = user.pixelsUsed;
 
-    // Si el cooldown ya expiró, reseteamos en DB y en local
     if (user.cooldownUntil && user.cooldownUntil <= now) {
       await this.prisma.user.update({
         where: { id: user.id },
@@ -71,6 +111,8 @@ export class AuthController {
     return {
       nickname: user.nickname,
       isAdmin: user.isAdmin,
+      verified: user.verified,
+      needsVerification,
       subscriptionTier: user.subscriptionTier,
       pixelsUsed,
       pixelLimit:

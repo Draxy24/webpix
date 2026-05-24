@@ -38,9 +38,24 @@ export default function LoginPage() {
   };
 
   return (
-    <main style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "80px" }}>
+    <main
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        marginTop: "80px",
+      }}
+    >
       <h1>Iniciar sesión</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px", width: "300px" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          width: "300px",
+        }}
+      >
         <input
           type="text"
           placeholder="Email o teléfono"
@@ -58,11 +73,18 @@ export default function LoginPage() {
           style={{ padding: "8px", fontSize: "14px" }}
         />
         {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
-        <button type="submit" disabled={loading} style={{ padding: "10px", cursor: "pointer" }}>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{ padding: "10px", cursor: "pointer" }}
+        >
           {loading ? "Entrando..." : "Entrar"}
         </button>
         <p style={{ textAlign: "center", fontSize: "13px" }}>
           ¿No tienes cuenta? <a href="/register">Regístrate</a>
+        </p>
+        <p style={{ textAlign: "center", fontSize: "13px" }}>
+          <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
         </p>
       </form>
     </main>
