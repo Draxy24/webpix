@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
@@ -77,6 +78,20 @@ export class AuthService {
 
     const valid = await bcrypt.compare(data.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Credenciales inválidas');
+
+    const banned =
+      user.banPermanent ||
+      (user.bannedUntil != null && user.bannedUntil > new Date());
+
+    if (banned) {
+      throw new ForbiddenException({
+        message: 'Tu cuenta está suspendida',
+        banned: true,
+        banReason: user.banReason,
+        bannedUntil: user.bannedUntil,
+        banPermanent: user.banPermanent,
+      });
+    }
 
     const token = this.jwtService.sign({
       sub: user.id,

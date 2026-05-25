@@ -6,6 +6,7 @@ import { useAuth } from "../../context/auth";
 import PublicationCanvas from "../../components/PublicationCanvas";
 import { COUNTRIES } from "../../lib/countries";
 import Flag from "../../components/Flag";
+import ReportModal from "../../components/ReportModal";
 
 interface Profile {
   nickname: string;
@@ -48,6 +49,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [profilePicInput, setProfilePicInput] = useState("");
   const [publications, setPublications] = useState<PublicationSummary[]>([]);
+  const [showReport, setShowReport] = useState(false);
   const [friendStatus, setFriendStatus] = useState<{
     status: FriendStatus;
     friendshipId?: number;
@@ -283,6 +285,20 @@ export default function ProfilePage() {
                 </button>
               </div>
             )}
+
+            {!isOwnProfile && token && (
+              <button
+                onClick={() => setShowReport(true)}
+                style={{
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  color: "#c33",
+                }}
+              >
+                Reportar usuario
+              </button>
+            )}
           </div>
         )}
 
@@ -390,6 +406,14 @@ export default function ProfilePage() {
         <a href="/" style={{ marginTop: "20px", fontSize: "13px" }}>
           ← Volver al lienzo
         </a>
+
+        {showReport && (
+          <ReportModal
+            type="USER"
+            targetNickname={profile.nickname}
+            onClose={() => setShowReport(false)}
+          />
+        )}
       </div>
     </main>
   );

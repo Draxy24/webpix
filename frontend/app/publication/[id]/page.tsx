@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "../../context/auth";
 import PublicationCanvas from "../../components/PublicationCanvas";
+import ReportModal from "../../components/ReportModal";
 
 interface Comment {
   id: number;
@@ -38,6 +39,8 @@ export default function PublicationPage() {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showReportPub, setShowReportPub] = useState(false);
+  const [reportCommentId, setReportCommentId] = useState<number | null>(null);
 
   const fetchPublication = useCallback(async () => {
     const headers: Record<string, string> = {};
@@ -215,6 +218,19 @@ export default function PublicationPage() {
             Eliminar publicación
           </button>
         )}
+        {token && !isMine && (
+          <button
+            onClick={() => setShowReportPub(true)}
+            style={{
+              padding: "4px 10px",
+              cursor: "pointer",
+              fontSize: "12px",
+              color: "#c33",
+            }}
+          >
+            Reportar publicación
+          </button>
+        )}
       </div>
 
       <div style={{ marginTop: "32px" }}>
@@ -300,11 +316,40 @@ export default function PublicationPage() {
                     Eliminar
                   </button>
                 )}
+                {token && !c.isMine && (
+                  <button
+                    onClick={() => setReportCommentId(c.id)}
+                    style={{
+                      cursor: "pointer",
+                      fontSize: "11px",
+                      color: "#c33",
+                      background: "none",
+                      border: "none",
+                    }}
+                  >
+                    Reportar
+                  </button>
+                )}
               </div>
             ))
           )}
         </div>
       </div>
+
+      {showReportPub && (
+        <ReportModal
+          type="PUBLICATION"
+          publicationId={pub.id}
+          onClose={() => setShowReportPub(false)}
+        />
+      )}
+      {reportCommentId !== null && (
+        <ReportModal
+          type="COMMENT"
+          commentId={reportCommentId}
+          onClose={() => setReportCommentId(null)}
+        />
+      )}
     </main>
   );
 }

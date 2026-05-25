@@ -1,17 +1,29 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards, Request, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PublicationsService } from './publications.service';
 import { OptionalJwtGuard } from '../auth/optional-jwt.guard';
+import { NotBannedGuard } from '../auth/not-banned.guard';
 
 @Controller('publications')
 export class PublicationsController {
   constructor(private publicationsService: PublicationsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post()
   create(
     @Request() req: { user: { id: number } },
-    @Body() body: { title?: string; x1: number; y1: number; x2: number; y2: number },
+    @Body()
+    body: { title?: string; x1: number; y1: number; x2: number; y2: number },
   ) {
     return this.publicationsService.create(req.user.id, body);
   }
@@ -30,7 +42,7 @@ export class PublicationsController {
     return this.publicationsService.findById(id, req.user?.id ?? null);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Delete(':id')
   delete(
     @Request() req: { user: { id: number } },
@@ -39,7 +51,7 @@ export class PublicationsController {
     return this.publicationsService.delete(id, req.user.id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post(':id/react')
   react(
     @Request() req: { user: { id: number } },
@@ -49,7 +61,7 @@ export class PublicationsController {
     return this.publicationsService.react(id, req.user.id, body.type);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post(':id/comments')
   addComment(
     @Request() req: { user: { id: number } },
@@ -59,7 +71,7 @@ export class PublicationsController {
     return this.publicationsService.addComment(id, req.user.id, body.content);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Delete('comments/:commentId')
   deleteComment(
     @Request() req: { user: { id: number } },

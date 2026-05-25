@@ -86,12 +86,16 @@ export class AuthController {
     });
     if (!user) return null;
 
+    const now = new Date();
+
+    const isBanned =
+      user.banPermanent || (user.bannedUntil != null && user.bannedUntil > now);
+
     let needsVerification: 'email' | 'phone' | null = null;
     if (!user.verified) {
       needsVerification = user.email ? 'email' : 'phone';
     }
 
-    const now = new Date();
     let pixelsUsed = user.pixelsUsed;
 
     if (user.cooldownUntil && user.cooldownUntil <= now) {
@@ -114,6 +118,10 @@ export class AuthController {
       verified: user.verified,
       needsVerification,
       subscriptionTier: user.subscriptionTier,
+      banned: isBanned,
+      banReason: user.banReason,
+      bannedUntil: user.bannedUntil,
+      banPermanent: user.banPermanent,
       pixelsUsed,
       pixelLimit:
         user.isAdmin || limit.pixels === Infinity ? null : limit.pixels,

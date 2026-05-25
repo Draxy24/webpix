@@ -7,6 +7,7 @@ import { PixelModule } from './pixel/pixel.module';
 import { FriendshipsModule } from './friendships/friendships.module';
 import { PublicationsModule } from './publications/publications.module';
 import { RankingsModule } from './rankings/rankings.module';
+import { ModerationModule } from './moderation/moderation.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RankingsModule } from './rankings/rankings.module';
     FriendshipsModule,
     PublicationsModule,
     RankingsModule,
+    ModerationModule,
   ],
   controllers: [AppController],
   providers: [],

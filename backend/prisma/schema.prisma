@@ -22,6 +22,9 @@ model User {
   createdAt        DateTime         @default(now())
   country String?
   verificationCodes VerificationCode[]
+  bannedUntil  DateTime?
+  banPermanent Boolean   @default(false)
+  banReason    String?
 
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")
@@ -127,4 +130,41 @@ enum VerificationType {
   EMAIL
   PHONE
   PASSWORD_RESET
+}
+
+model Report {
+  id            Int          @id @default(autoincrement())
+  type          ReportType
+  reporterId    Int
+  targetUserId  Int?
+  publicationId Int?
+  commentId     Int?
+  reason        String
+  details       String?
+  status        ReportStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  resolvedAt    DateTime?
+  resolvedById  Int?
+}
+
+model ModerationAction {
+  id           Int      @id @default(autoincrement())
+  moderatorId  Int
+  action       String
+  targetUserId Int?
+  details      String?
+  createdAt    DateTime @default(now())
+}
+
+enum ReportType {
+  USER
+  PUBLICATION
+  COMMENT
+  BUG
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
 }

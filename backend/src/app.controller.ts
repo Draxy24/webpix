@@ -5,6 +5,7 @@ import {
   Body,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import { PixelService } from './pixel/pixel.service';
@@ -45,8 +46,15 @@ export class AppController {
   @Post('pixel')
   async setPixel(
     @Body() body: { x: number; y: number; color: string },
-    @Request() req: { user?: { id: number; nickname: string }; ip?: string },
+    @Request()
+    req: {
+      user?: { id: number; nickname: string; banned?: boolean };
+      ip?: string;
+    },
   ) {
+    if (req.user?.banned) {
+      throw new ForbiddenException('Tu cuenta está suspendida');
+    }
     const userId = req.user?.id ?? null;
     const nickname = req.user?.nickname ?? null;
     const ip = req.ip ?? 'unknown';
