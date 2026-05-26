@@ -114,31 +114,79 @@ export class ModerationService {
     });
 
     const userIds = new Set<number>();
+    const pubIds = new Set<number>();
+    const commentIds = new Set<number>();
     reports.forEach((r) => {
       userIds.add(r.reporterId);
       if (r.targetUserId) userIds.add(r.targetUserId);
+      if (r.publicationId) pubIds.add(r.publicationId);
+      if (r.commentId) commentIds.add(r.commentId);
     });
+
+    const pubs = await this.prisma.publication.findMany({
+      where: { id: { in: [...pubIds] } },
+      select: { id: true, userId: true, title: true },
+    });
+    const comments = await this.prisma.publicationComment.findMany({
+      where: { id: { in: [...commentIds] } },
+      select: { id: true, userId: true, content: true },
+    });
+
+    pubs.forEach((p) => userIds.add(p.userId));
+    comments.forEach((c) => userIds.add(c.userId));
+
     const users = await this.prisma.user.findMany({
       where: { id: { in: [...userIds] } },
       select: { id: true, nickname: true },
     });
     const userMap = new Map(users.map((u) => [u.id, u.nickname]));
+    const pubMap = new Map(pubs.map((p) => [p.id, p]));
+    const commentMap = new Map(comments.map((c) => [c.id, c]));
 
-    return reports.map((r) => ({
-      id: r.id,
-      type: r.type,
-      reason: r.reason,
-      details: r.details,
-      status: r.status,
-      createdAt: r.createdAt,
-      reporterNickname: userMap.get(r.reporterId) ?? 'desconocido',
-      targetUserId: r.targetUserId,
-      targetNickname: r.targetUserId
-        ? (userMap.get(r.targetUserId) ?? null)
-        : null,
-      publicationId: r.publicationId,
-      commentId: r.commentId,
-    }));
+    return reports.map((r) => {
+      let contentAuthorId: number | null = null;
+      let contentAuthorNickname: string | null = null;
+      let contentPreview: string | null = null;
+
+      if (r.type === 'PUBLICATION' && r.publicationId) {
+        const p = pubMap.get(r.publicationId);
+        if (p) {
+          contentAuthorId = p.userId;
+          contentAuthorNickname = userMap.get(p.userId) ?? null;
+          contentPreview = p.title ?? `Publicación #${r.publicationId}`;
+        } else {
+          contentPreview = 'Publicación eliminada';
+        }
+      } else if (r.type === 'COMMENT' && r.commentId) {
+        const c = commentMap.get(r.commentId);
+        if (c) {
+          contentAuthorId = c.userId;
+          contentAuthorNickname = userMap.get(c.userId) ?? null;
+          contentPreview = c.content;
+        } else {
+          contentPreview = 'Comentario eliminado';
+        }
+      }
+
+      return {
+        id: r.id,
+        type: r.type,
+        reason: r.reason,
+        details: r.details,
+        status: r.status,
+        createdAt: r.createdAt,
+        reporterNickname: userMap.get(r.reporterId) ?? 'desconocido',
+        targetUserId: r.targetUserId,
+        targetNickname: r.targetUserId
+          ? (userMap.get(r.targetUserId) ?? null)
+          : null,
+        publicationId: r.publicationId,
+        commentId: r.commentId,
+        contentAuthorId,
+        contentAuthorNickname,
+        contentPreview,
+      };
+    });
   }
 
   async resolveReport(reportId: number, adminId: number) {

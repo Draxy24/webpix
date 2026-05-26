@@ -11,10 +11,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [banInfo, setBanInfo] = useState<{
+    banReason: string | null;
+    bannedUntil: string | null;
+    banPermanent: boolean;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setBanInfo(null);
     setLoading(true);
 
     try {
@@ -26,7 +32,17 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message ?? "Error al iniciar sesión");
+      if (!res.ok) {
+        if (data.banned) {
+          setBanInfo({
+            banReason: data.banReason,
+            bannedUntil: data.bannedUntil,
+            banPermanent: data.banPermanent,
+          });
+          return;
+        }
+        throw new Error(data.message ?? "Error al iniciar sesión");
+      }
 
       login(data.token, data.nickname);
       router.push("/");
@@ -72,7 +88,38 @@ export default function LoginPage() {
           required
           style={{ padding: "8px", fontSize: "14px" }}
         />
+
+        {banInfo && (
+          <div
+            style={{
+              background: "#2a1a1a",
+              border: "1px solid #c33",
+              borderRadius: "8px",
+              padding: "12px",
+              fontSize: "13px",
+            }}
+          >
+            <div
+              style={{ color: "#c33", fontWeight: "bold", marginBottom: "6px" }}
+            >
+              🚫 Cuenta suspendida
+            </div>
+            <div style={{ marginBottom: "4px" }}>
+              <strong>Motivo:</strong> {banInfo.banReason ?? "No especificado"}
+            </div>
+            <div>
+              <strong>Duración:</strong>{" "}
+              {banInfo.banPermanent
+                ? "Permanente"
+                : banInfo.bannedUntil
+                  ? `Hasta el ${new Date(banInfo.bannedUntil).toLocaleString("es-MX")}`
+                  : "No especificada"}
+            </div>
+          </div>
+        )}
+
         {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
+
         <button
           type="submit"
           disabled={loading}

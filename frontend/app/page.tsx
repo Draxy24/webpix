@@ -401,6 +401,16 @@ export default function Home() {
       });
       const data = await res.json();
 
+      if (data.banned) {
+        router.push("/banned");
+        return;
+      }
+
+      if (!data.verified && !data.isAdmin) {
+        router.push("/verify");
+        return;
+      }
+
       // Muro de verificación: si no está verificado y no es admin, al /verify
       if (!data.verified && !data.isAdmin) {
         router.push("/verify");
