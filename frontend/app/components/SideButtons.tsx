@@ -1,0 +1,109 @@
+"use client";
+
+import styles from "./SideButtons.module.css";
+
+export type PanelSection = "menu" | "settings" | "achievements" | "tasks";
+
+function Icon({ section }: { section: PanelSection | "bug" }) {
+  switch (section) {
+    case "menu":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="2" y="3" width="12" height="2" />
+          <rect x="2" y="7" width="12" height="2" />
+          <rect x="2" y="11" width="12" height="2" />
+        </svg>
+      );
+    case "settings":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="6" y="1" width="4" height="3" />
+          <rect x="6" y="12" width="4" height="3" />
+          <rect x="1" y="6" width="3" height="4" />
+          <rect x="12" y="6" width="3" height="4" />
+          <rect x="3" y="3" width="3" height="3" />
+          <rect x="10" y="3" width="3" height="3" />
+          <rect x="3" y="10" width="3" height="3" />
+          <rect x="10" y="10" width="3" height="3" />
+          <rect x="6" y="6" width="4" height="4" />
+        </svg>
+      );
+    case "achievements":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="4" y="2" width="8" height="5" />
+          <rect x="5" y="7" width="6" height="2" />
+          <rect x="2" y="3" width="2" height="3" />
+          <rect x="12" y="3" width="2" height="3" />
+          <rect x="7" y="9" width="2" height="2" />
+          <rect x="5" y="11" width="6" height="2" />
+          <rect x="4" y="13" width="8" height="2" />
+        </svg>
+      );
+    case "tasks":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="4" y="1" width="2" height="3" />
+          <rect x="10" y="1" width="2" height="3" />
+          <rect x="2" y="3" width="12" height="2" />
+          <rect x="2" y="3" width="2" height="11" />
+          <rect x="12" y="3" width="2" height="11" />
+          <rect x="2" y="12" width="12" height="2" />
+          <rect x="5" y="7" width="2" height="2" />
+          <rect x="9" y="7" width="2" height="2" />
+        </svg>
+      );
+    case "bug":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="5" y="4" width="6" height="8" />
+          <rect x="6" y="2" width="4" height="2" />
+          <rect x="2" y="5" width="3" height="2" />
+          <rect x="2" y="9" width="3" height="2" />
+          <rect x="11" y="5" width="3" height="2" />
+          <rect x="11" y="9" width="3" height="2" />
+        </svg>
+      );
+  }
+}
+
+export default function SideButtons({
+  activeSection,
+  onSelect,
+  onReportBug,
+  panelOpen,
+}: {
+  activeSection: PanelSection | null;
+  onSelect: (section: PanelSection) => void;
+  onReportBug: () => void;
+  panelOpen: boolean;
+}) {
+  const sections: { key: PanelSection; label: string }[] = [
+    { key: "menu", label: "Menú" },
+    { key: "settings", label: "Configuración" },
+    { key: "achievements", label: "Logros" },
+    { key: "tasks", label: "Tareas semanales" },
+  ];
+
+  return (
+    <div className={`${styles.stack} ${panelOpen ? styles.stackShifted : ""}`}>
+      {sections.map((s) => (
+        <button
+          key={s.key}
+          className={`${styles.button} ${activeSection === s.key ? styles.buttonActive : ""}`}
+          onClick={() => onSelect(s.key)}
+          title={s.label}
+        >
+          <Icon section={s.key} />
+        </button>
+      ))}
+      <button
+        className={styles.button}
+        onClick={onReportBug}
+        title="Reportar bug"
+      >
+        <Icon section="bug" />
+      </button>
+    </div>
+  );
+}

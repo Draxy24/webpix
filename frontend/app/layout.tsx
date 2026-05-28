@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter, Press_Start_2P } from "next/font/google";
 import { AuthProvider } from "./context/auth";
+import { SettingsProvider } from "./context/settings";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${pressStart.variable}`}>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <SettingsProvider>{children}</SettingsProvider>
+        </AuthProvider>
       </body>
     </html>
   );

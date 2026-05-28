@@ -5,6 +5,11 @@ import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
 import { useRouter } from "next/navigation";
 import FloatingToolbox, { type Tool } from "./components/FloatingToolbox";
+import SideButtons, { type PanelSection } from "./components/SideButtons";
+import SidePanel from "./components/SidePanel";
+import MenuPanel from "./components/MenuPanel";
+import { useSettings } from "./context/settings";
+import SettingsPanel from "./components/SettingsPanel";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -14,6 +19,11 @@ export default function Home() {
   const [cooldown, setCooldown] = useState(0);
   const clicksRef = useRef(clicksLeft);
   const cooldownRef = useRef(cooldown);
+  const { settings } = useSettings();
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const showCoordsRef = useRef(settings.showCoords);
   const [pixelOwners, setPixelOwners] = useState<Record<string, string>>({});
   const [tooltip, setTooltip] = useState<{
     x: number;
@@ -25,6 +35,7 @@ export default function Home() {
   const pixelOwnersRef = useRef<Record<string, string>>({});
   const [selectedColor, setSelectedColor] = useState("#000000");
   const colorRef = useRef(selectedColor);
+  const [panelSection, setPanelSection] = useState<PanelSection | null>(null);
   const [pixels, setPixels] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -275,6 +286,10 @@ export default function Home() {
       const x = Math.floor((event.clientX - rect.left) * scaleX);
       const y = Math.floor((event.clientY - rect.top) * scaleY);
 
+      if (showCoordsRef.current) {
+        setCursorPos({ x, y });
+      }
+
       if (selectionModeRef.current && selectionStartRef.current) {
         const start = selectionStartRef.current;
         setSelection({
@@ -489,6 +504,10 @@ export default function Home() {
   }, [cooldown]);
 
   useEffect(() => {
+    showCoordsRef.current = settings.showCoords;
+  }, [settings.showCoords]);
+
+  useEffect(() => {
     const clampZoom = () => {
       const minZoom = Math.max(
         1,
@@ -610,7 +629,7 @@ export default function Home() {
               background: "#fff",
             }}
           />
-          {zoom >= 3 && (
+          {zoom >= settings.gridThreshold && (
             <div
               style={{
                 position: "absolute",
@@ -668,34 +687,23 @@ export default function Home() {
         )}
       </div>
 
-      {/* Overlay esquina superior derecha: navegación temporal (será reemplazado por menú hamburguesa) */}
-      <div style={overlayBox(16, 16, "right")}>
-        <a href="/rankings" style={navLink}>
-          Rankings
-        </a>
-        {nickname ? (
-          <>
-            <a href={`/profile/${nickname}`} style={navLink}>
-              {nickname}
-            </a>
-            <a href="/friends" style={navLink}>
-              Amigos
-            </a>
-            <button onClick={logout} style={navButton}>
-              Salir
-            </button>
-          </>
-        ) : (
-          <>
-            <a href="/login" style={navLink}>
-              Iniciar sesión
-            </a>
-            <a href="/register" style={navLink}>
-              Registrarse
-            </a>
-          </>
-        )}
-      </div>
+      {settings.showCoords && cursorPos && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "16px",
+            left: "16px",
+            background: "var(--color-surface)",
+            border: "var(--border-normal) solid var(--color-border-strong)",
+            borderRadius: "var(--radius-md)",
+            padding: "var(--space-2) var(--space-3)",
+            fontSize: "var(--text-sm)",
+            zIndex: 30,
+          }}
+        >
+          X: {cursorPos.x} · Y: {cursorPos.y}
+        </div>
+      )}
 
       {/* Overlay centro arriba: controles de publicación (temporal) */}
       {nickname && (
@@ -858,6 +866,58 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <SideButtons
+        activeSection={panelSection}
+        onSelect={(s) => setPanelSection((prev) => (prev === s ? null : s))}
+        onReportBug={() => router.push("/report-bug")}
+        panelOpen={panelSection !== null}
+      />
+
+      <SidePanel
+        open={panelSection !== null}
+        title={
+          panelSection === "menu"
+            ? "Menú"
+            : panelSection === "settings"
+              ? "Configuración"
+              : panelSection === "achievements"
+                ? "Logros"
+                : panelSection === "tasks"
+                  ? "Tareas semanales"
+                  : ""
+        }
+        onClose={() => setPanelSection(null)}
+      >
+        {panelSection === "menu" && (
+          <MenuPanel
+            nickname={nickname}
+            userTier={userTier}
+            isAdmin={isAdmin}
+            onLogout={() => {
+              logout();
+              setPanelSection(null);
+            }}
+            onNavigate={(path) => router.push(path)}
+          />
+        )}
+        {panelSection === "settings" && (
+          <SettingsPanel
+            palette={PALETTES[userTier]}
+            showCustomColor={userTier === "PREMIUM" || isAdmin}
+          />
+        )}
+        {panelSection === "achievements" && (
+          <p style={{ color: "var(--color-text-secondary)" }}>
+            Logros próximamente.
+          </p>
+        )}
+        {panelSection === "tasks" && (
+          <p style={{ color: "var(--color-text-secondary)" }}>
+            Tareas semanales próximamente.
+          </p>
+        )}
+      </SidePanel>
     </main>
   );
 }
