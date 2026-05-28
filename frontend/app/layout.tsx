@@ -1,31 +1,33 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Inter, Press_Start_2P } from "next/font/google";
 import { AuthProvider } from "./context/auth";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const pressStart = Press_Start_2P({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "WebPix",
   description: "Lienzo colaborativo de pixel art",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html lang="es" className={`${inter.variable} ${pressStart.variable}`}>
+      <body>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

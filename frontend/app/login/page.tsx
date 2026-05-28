@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
+import Button from "../components/Button";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -120,13 +121,9 @@ export default function LoginPage() {
 
         {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: "10px", cursor: "pointer" }}
-        >
+        <Button type="submit" disabled={loading} fullWidth size="lg">
           {loading ? "Entrando..." : "Entrar"}
-        </button>
+        </Button>
         <p style={{ textAlign: "center", fontSize: "13px" }}>
           ¿No tienes cuenta? <a href="/register">Regístrate</a>
         </p>

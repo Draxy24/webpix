@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
 import { useRouter } from "next/navigation";
+import FloatingToolbox, { type Tool } from "./components/FloatingToolbox";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -35,6 +36,8 @@ export default function Home() {
   });
   const [zoom, setZoom] = useState(10);
   const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTool, setActiveTool] = useState<Tool>("brush");
   const pendingZoomRef = useRef<{
     canvasX: number;
     canvasY: number;
@@ -55,6 +58,7 @@ export default function Home() {
 
   const selectionModeRef = useRef(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
+
   const PALETTES: Record<"FREE" | "PLUS" | "PREMIUM", string[]> = {
     FREE: [
       "#000000",
@@ -149,11 +153,9 @@ export default function Home() {
   useEffect(() => {
     routerRef.current = router;
   }, [router]);
-
   useEffect(() => {
     tokenRef.current = token;
   }, [token]);
-
   useEffect(() => {
     colorRef.current = selectedColor;
   }, [selectedColor]);
@@ -161,14 +163,11 @@ export default function Home() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     const size = 1000;
     canvas.width = size;
     canvas.height = size;
-
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, size, size);
 
@@ -180,15 +179,12 @@ export default function Home() {
       const y = Math.floor((event.clientY - rect.top) * scaleY);
       const key = `${x},${y}`;
 
-      // Ctrl+Click sobre un píxel pintado → ir al perfil del autor
       if (event.ctrlKey && pixelOwnersRef.current[key]) {
         routerRef.current.push(`/profile/${pixelOwnersRef.current[key]}`);
         return;
       }
 
-      // En modo selección no se pinta
       if (selectionModeRef.current) return;
-
       if (cooldownRef.current > 0) return;
       if (clicksRef.current <= 0) return;
 
@@ -196,7 +192,6 @@ export default function Home() {
       ctx.fillRect(x, y, 1, 1);
 
       const color = colorRef.current;
-
       setPixels((prev) => ({ ...prev, [key]: color }));
       setClicksLeft((prev) => {
         const newValue = Math.max(prev - 1, 0);
@@ -207,10 +202,8 @@ export default function Home() {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-
-      if (tokenRef.current) {
+      if (tokenRef.current)
         headers["Authorization"] = `Bearer ${tokenRef.current}`;
-      }
 
       fetch("http://localhost:3001/pixel", {
         method: "POST",
@@ -219,7 +212,6 @@ export default function Home() {
       })
         .then(async (res) => {
           const data = await res.json();
-
           if (!data.success) {
             setPixels((prev) => {
               const reverted = { ...prev };
@@ -230,7 +222,6 @@ export default function Home() {
             if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
             return;
           }
-
           if (data.state) {
             if (data.state.isAdmin || data.state.pixelsLeft === null) {
               setClicksLeft(Infinity);
@@ -256,27 +247,25 @@ export default function Home() {
 
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
-
       const container = containerRef.current;
       if (!container) return;
-
       const containerRect = container.getBoundingClientRect();
       const mouseX = event.clientX - containerRect.left;
       const mouseY = event.clientY - containerRect.top;
-
       setZoom((prev) => {
         const factor = Math.exp(-event.deltaY * 0.001);
-        const newZoom = Math.max(1, Math.min(prev * factor, 40));
-
+        const minZoom = Math.max(
+          1,
+          window.innerWidth / 1000,
+          window.innerHeight / 1000,
+        );
+        const newZoom = Math.max(minZoom, Math.min(prev * factor, 40));
         const canvasX = (container.scrollLeft + mouseX) / prev;
         const canvasY = (container.scrollTop + mouseY) / prev;
-
         pendingZoomRef.current = { canvasX, canvasY, mouseX, mouseY };
-
         return newZoom;
       });
     };
-
     canvas.addEventListener("wheel", handleWheel);
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -286,7 +275,6 @@ export default function Home() {
       const x = Math.floor((event.clientX - rect.left) * scaleX);
       const y = Math.floor((event.clientY - rect.top) * scaleY);
 
-      // Si estamos arrastrando una selección
       if (selectionModeRef.current && selectionStartRef.current) {
         const start = selectionStartRef.current;
         setSelection({
@@ -297,14 +285,10 @@ export default function Home() {
         });
         return;
       }
-
-      // En modo selección, ocultar tooltip
       if (selectionModeRef.current) {
         setTooltip(null);
         return;
       }
-
-      // Tooltip normal
       const key = `${x},${y}`;
       if (pixelOwnersRef.current[key]) {
         setTooltip({
@@ -321,13 +305,11 @@ export default function Home() {
       if (!selectionModeRef.current) return;
       if (event.button !== 0) return;
       event.preventDefault();
-
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
       const x = Math.floor((event.clientX - rect.left) * scaleX);
       const y = Math.floor((event.clientY - rect.top) * scaleY);
-
       selectionStartRef.current = { x, y };
       setSelection({ x1: x, y1: y, x2: x, y2: y });
     };
@@ -339,10 +321,8 @@ export default function Home() {
 
     canvas.addEventListener("mousedown", handleSelectionMouseDown);
     canvas.addEventListener("mouseup", handleSelectionMouseUp);
-
     canvas.addEventListener("mousemove", handleMouseMove);
 
-    // Y en el return del cleanup:
     return () => {
       canvas.removeEventListener("click", handleClick);
       canvas.removeEventListener("wheel", handleWheel);
@@ -355,13 +335,10 @@ export default function Home() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     for (const key in pixels) {
       const [x, y] = key.split(",").map(Number);
       ctx.fillStyle = pixels[key];
@@ -386,6 +363,7 @@ export default function Home() {
   useEffect(() => {
     if (!token) {
       setUserTier("FREE");
+      setIsAdmin(false);
       fetch("http://localhost:3001/anonymous-state")
         .then((res) => res.json())
         .then((data) => {
@@ -405,23 +383,18 @@ export default function Home() {
         router.push("/banned");
         return;
       }
-
-      if (!data.verified && !data.isAdmin) {
-        router.push("/verify");
-        return;
-      }
-
-      // Muro de verificación: si no está verificado y no es admin, al /verify
       if (!data.verified && !data.isAdmin) {
         router.push("/verify");
         return;
       }
 
       if (data.isAdmin) {
+        setIsAdmin(true);
         setClicksLeft(Infinity);
         setCooldown(0);
         setUserTier("PREMIUM");
       } else {
+        setIsAdmin(false);
         if (data.pixelsLeft === null) {
           setClicksLeft(Infinity);
           setCooldown(0);
@@ -439,12 +412,11 @@ export default function Home() {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
     let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let scrollLeft = 0;
-    let scrollTop = 0;
+    let startX = 0,
+      startY = 0,
+      scrollLeft = 0,
+      scrollTop = 0;
 
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 2) return;
@@ -455,7 +427,6 @@ export default function Home() {
       scrollLeft = container.scrollLeft;
       scrollTop = container.scrollTop;
     };
-
     const onMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
       const dx = e.pageX - startX;
@@ -463,12 +434,10 @@ export default function Home() {
       container.scrollLeft = scrollLeft - dx;
       container.scrollTop = scrollTop - dy;
     };
-
     const onMouseUp = () => {
       isDragging = false;
       container.style.cursor = "grab";
     };
-
     const disableContextMenu = (e: MouseEvent) => e.preventDefault();
 
     container.addEventListener("mousedown", onMouseDown);
@@ -515,14 +484,26 @@ export default function Home() {
   useEffect(() => {
     clicksRef.current = clicksLeft;
   }, [clicksLeft]);
-
   useEffect(() => {
     cooldownRef.current = cooldown;
   }, [cooldown]);
 
   useEffect(() => {
-    const socket = io("http://localhost:3001");
+    const clampZoom = () => {
+      const minZoom = Math.max(
+        1,
+        window.innerWidth / 1000,
+        window.innerHeight / 1000,
+      );
+      setZoom((prev) => Math.max(prev, minZoom));
+    };
+    clampZoom();
+    window.addEventListener("resize", clampZoom);
+    return () => window.removeEventListener("resize", clampZoom);
+  }, []);
 
+  useEffect(() => {
+    const socket = io("http://localhost:3001");
     socket.on(
       "pixel",
       (data: {
@@ -538,7 +519,6 @@ export default function Home() {
         }
       },
     );
-
     return () => {
       socket.disconnect();
     };
@@ -547,7 +527,6 @@ export default function Home() {
   useEffect(() => {
     pixelOwnersRef.current = pixelOwners;
   }, [pixelOwners]);
-
   useEffect(() => {
     selectionModeRef.current = selectionMode;
   }, [selectionMode]);
@@ -556,7 +535,6 @@ export default function Home() {
     if (!selection || !token) return;
     setPublishing(true);
     setPublishError("");
-
     try {
       const res = await fetch("http://localhost:3001/publications", {
         method: "POST",
@@ -572,10 +550,8 @@ export default function Home() {
           y2: selection.y2,
         }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al publicar");
-
       setShowPublishModal(false);
       setSelectionMode(false);
       setSelection(null);
@@ -592,165 +568,28 @@ export default function Home() {
     if (!pendingZoomRef.current) return;
     const container = containerRef.current;
     if (!container) return;
-
     const { canvasX, canvasY, mouseX, mouseY } = pendingZoomRef.current;
     container.scrollLeft = canvasX * zoom - mouseX;
     container.scrollTop = canvasY * zoom - mouseY;
-
     pendingZoomRef.current = null;
   }, [zoom]);
 
   return (
     <main
       style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "20px",
+        position: "fixed",
+        inset: 0,
+        overflow: "hidden",
+        background: "var(--color-bg)",
       }}
     >
-      {/* Barra de usuario */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          marginBottom: "10px",
-        }}
-      >
-        <a href="/rankings" style={{ fontSize: "14px" }}>
-          Rankings
-        </a>
-        {nickname ? (
-          <>
-            <span style={{ fontSize: "14px" }}>
-              Hola, <strong>{nickname}</strong>
-            </span>
-            <a href={`/profile/${nickname}`} style={{ fontSize: "14px" }}>
-              Mi perfil
-            </a>
-            <a href="/friends" style={{ fontSize: "14px" }}>
-              Amigos
-            </a>
-            <button
-              onClick={logout}
-              style={{ fontSize: "13px", cursor: "pointer" }}
-            >
-              Cerrar sesión
-            </button>
-          </>
-        ) : (
-          <>
-            <a href="/login" style={{ fontSize: "14px" }}>
-              Iniciar sesión
-            </a>
-            <a href="/register" style={{ fontSize: "14px" }}>
-              Registrarse
-            </a>
-          </>
-        )}
-      </div>
-
-      <div style={{ marginBottom: "10px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(8, 24px)",
-            gap: "4px",
-            justifyContent: "center",
-          }}
-        >
-          {PALETTES[userTier].map((color) => (
-            <button
-              key={color}
-              onClick={() => setSelectedColor(color)}
-              style={{
-                width: "24px",
-                height: "24px",
-                background: color,
-                border:
-                  selectedColor === color ? "2px solid #000" : "1px solid #888",
-                cursor: "pointer",
-                padding: 0,
-              }}
-              aria-label={color}
-            />
-          ))}
-        </div>
-        {userTier === "PREMIUM" && (
-          <div style={{ marginTop: "8px", textAlign: "center" }}>
-            <input
-              type="color"
-              value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value)}
-            />
-          </div>
-        )}
-      </div>
-
-      {nickname && (
-        <div
-          style={{
-            marginBottom: "10px",
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-          }}
-        >
-          {!selectionMode ? (
-            <button
-              onClick={() => setSelectionMode(true)}
-              style={{ padding: "8px 16px", cursor: "pointer" }}
-            >
-              Publicar creación
-            </button>
-          ) : (
-            <>
-              <span style={{ fontSize: "13px" }}>
-                {selection
-                  ? `Área: ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
-                  : "Arrastra sobre el lienzo para seleccionar"}
-              </span>
-              <button
-                onClick={() => setShowPublishModal(true)}
-                disabled={!selection}
-                style={{
-                  padding: "8px 16px",
-                  cursor: selection ? "pointer" : "not-allowed",
-                }}
-              >
-                Publicar
-              </button>
-              <button
-                onClick={() => {
-                  setSelectionMode(false);
-                  setSelection(null);
-                }}
-                style={{ padding: "8px 16px", cursor: "pointer" }}
-              >
-                Cancelar
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      <div style={{ marginBottom: "10px", textAlign: "center" }}>
-        <p>Píxeles restantes: {clicksLeft === Infinity ? "∞" : clicksLeft}</p>
-        {cooldown > 0 && (
-          <p style={{ color: "red" }}>
-            En cooldown — espera {Math.floor(cooldown / 60)} min
-          </p>
-        )}
-      </div>
-
+      {/* Contenedor del lienzo a pantalla completa */}
       <div
         ref={containerRef}
         style={{
+          position: "absolute",
+          inset: 0,
           overflow: "auto",
-          maxHeight: "80vh",
-          maxWidth: "80vw",
-          border: "1px solid gray",
           cursor: "grab",
         }}
       >
@@ -764,11 +603,11 @@ export default function Home() {
           <canvas
             ref={canvasRef}
             style={{
-              border: "1px solid black",
               width: `${1000 * zoom}px`,
               height: `${1000 * zoom}px`,
               imageRendering: "pixelated",
               display: "block",
+              background: "#fff",
             }}
           />
           {zoom >= 3 && (
@@ -788,7 +627,6 @@ export default function Home() {
               }}
             />
           )}
-
           {selection && (
             <div
               style={{
@@ -797,8 +635,8 @@ export default function Home() {
                 top: `${selection.y1 * zoom}px`,
                 width: `${(selection.x2 - selection.x1 + 1) * zoom}px`,
                 height: `${(selection.y2 - selection.y1 + 1) * zoom}px`,
-                border: "2px solid #4a9eff",
-                background: "rgba(74, 158, 255, 0.15)",
+                border: "2px solid var(--color-brand)",
+                background: "rgba(255, 122, 26, 0.15)",
                 pointerEvents: "none",
                 boxSizing: "border-box",
               }}
@@ -806,17 +644,122 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Overlay esquina superior izquierda: info de píxeles */}
+      <div style={overlayBox(16, 16, "left")}>
+        <div style={{ fontSize: "var(--text-sm)" }}>
+          <span style={{ color: "var(--color-text-secondary)" }}>
+            Píxeles:{" "}
+          </span>
+          <strong style={{ color: "var(--color-brand)" }}>
+            {clicksLeft === Infinity ? "∞" : clicksLeft}
+          </strong>
+        </div>
+        {cooldown > 0 && (
+          <div
+            style={{
+              fontSize: "var(--text-xs)",
+              color: "var(--color-warning)",
+              marginTop: "4px",
+            }}
+          >
+            Cooldown: {Math.floor(cooldown / 60)}m {cooldown % 60}s
+          </div>
+        )}
+      </div>
+
+      {/* Overlay esquina superior derecha: navegación temporal (será reemplazado por menú hamburguesa) */}
+      <div style={overlayBox(16, 16, "right")}>
+        <a href="/rankings" style={navLink}>
+          Rankings
+        </a>
+        {nickname ? (
+          <>
+            <a href={`/profile/${nickname}`} style={navLink}>
+              {nickname}
+            </a>
+            <a href="/friends" style={navLink}>
+              Amigos
+            </a>
+            <button onClick={logout} style={navButton}>
+              Salir
+            </button>
+          </>
+        ) : (
+          <>
+            <a href="/login" style={navLink}>
+              Iniciar sesión
+            </a>
+            <a href="/register" style={navLink}>
+              Registrarse
+            </a>
+          </>
+        )}
+      </div>
+
+      {/* Overlay centro arriba: controles de publicación (temporal) */}
+      {nickname && (
+        <div style={overlayBoxCenter}>
+          {!selectionMode ? (
+            <button onClick={() => setSelectionMode(true)} style={navButton}>
+              Publicar creación
+            </button>
+          ) : (
+            <>
+              <span
+                style={{
+                  fontSize: "var(--text-sm)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                {selection
+                  ? `${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
+                  : "Arrastra sobre el lienzo"}
+              </span>
+              <button
+                onClick={() => setShowPublishModal(true)}
+                disabled={!selection}
+                style={navButton}
+              >
+                Publicar
+              </button>
+              <button
+                onClick={() => {
+                  setSelectionMode(false);
+                  setSelection(null);
+                }}
+                style={navButton}
+              >
+                Cancelar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Caja de herramientas flotante */}
+      <FloatingToolbox
+        activeTool={activeTool}
+        onToolChange={setActiveTool}
+        color={selectedColor}
+        onColorChange={setSelectedColor}
+        palette={PALETTES[userTier]}
+        showCustomColor={userTier === "PREMIUM" || isAdmin}
+      />
+
+      {/* Tooltip */}
       {tooltip && (
         <div
           style={{
             position: "fixed",
             top: tooltip.y + 12,
             left: tooltip.x + 12,
-            background: "rgba(0,0,0,0.75)",
-            color: "#fff",
+            background: "var(--color-bg)",
+            color: "var(--color-text)",
+            border: "var(--border-thin) solid var(--color-border-strong)",
             padding: "4px 8px",
-            borderRadius: "4px",
-            fontSize: "12px",
+            borderRadius: "var(--radius-sm)",
+            fontSize: "var(--text-xs)",
             pointerEvents: "none",
             zIndex: 1000,
           }}
@@ -828,15 +771,13 @@ export default function Home() {
         </div>
       )}
 
+      {/* Modal de publicación */}
       {showPublishModal && selection && (
         <div
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.7)",
+            inset: 0,
+            background: "var(--color-overlay)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -845,16 +786,21 @@ export default function Home() {
         >
           <div
             style={{
-              background: "#222",
-              padding: "24px",
-              borderRadius: "8px",
+              background: "var(--color-surface)",
+              padding: "var(--space-6)",
+              borderRadius: "var(--radius-lg)",
+              border: "var(--border-normal) solid var(--color-border-strong)",
               maxWidth: "400px",
               width: "90%",
-              color: "#fff",
             }}
           >
             <h2 style={{ marginTop: 0 }}>Publicar creación</h2>
-            <p style={{ fontSize: "14px", color: "#aaa" }}>
+            <p
+              style={{
+                fontSize: "var(--text-sm)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
               Área: {selection.x2 - selection.x1 + 1} ×{" "}
               {selection.y2 - selection.y1 + 1} píxeles
             </p>
@@ -872,7 +818,13 @@ export default function Home() {
               }}
             />
             {publishError && (
-              <p style={{ color: "#f88", fontSize: "13px", marginTop: 0 }}>
+              <p
+                style={{
+                  color: "var(--color-danger)",
+                  fontSize: "var(--text-sm)",
+                  marginTop: 0,
+                }}
+              >
                 {publishError}
               </p>
             )}
@@ -909,3 +861,56 @@ export default function Home() {
     </main>
   );
 }
+
+// ============ Estilos auxiliares para overlays ============
+
+function overlayBox(
+  top: number,
+  sideValue: number,
+  side: "left" | "right",
+): React.CSSProperties {
+  return {
+    position: "absolute",
+    top: `${top}px`,
+    [side]: `${sideValue}px`,
+    background: "var(--color-surface)",
+    border: "var(--border-normal) solid var(--color-border-strong)",
+    borderRadius: "var(--radius-md)",
+    padding: "var(--space-2) var(--space-3)",
+    boxShadow: "var(--shadow-soft-md)",
+    zIndex: 30,
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-3)",
+  };
+}
+
+const overlayBoxCenter: React.CSSProperties = {
+  position: "absolute",
+  top: "16px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  background: "var(--color-surface)",
+  border: "var(--border-normal) solid var(--color-border-strong)",
+  borderRadius: "var(--radius-md)",
+  padding: "var(--space-2) var(--space-3)",
+  boxShadow: "var(--shadow-soft-md)",
+  zIndex: 30,
+  display: "flex",
+  alignItems: "center",
+  gap: "var(--space-3)",
+};
+
+const navLink: React.CSSProperties = {
+  fontSize: "var(--text-sm)",
+  color: "var(--color-text)",
+};
+
+const navButton: React.CSSProperties = {
+  fontSize: "var(--text-sm)",
+  cursor: "pointer",
+  background: "transparent",
+  border: "none",
+  color: "var(--color-text)",
+  padding: "4px 8px",
+};
