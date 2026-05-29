@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
+import Button from "../components/Button";
 
 export default function BannedPage() {
   const { token, loading, logout } = useAuth();
@@ -40,7 +41,15 @@ export default function BannedPage() {
 
   if (loading || checking) {
     return (
-      <main style={{ textAlign: "center", marginTop: "80px" }}>
+      <main
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--color-text-secondary)",
+        }}
+      >
         Cargando...
       </main>
     );
@@ -49,54 +58,88 @@ export default function BannedPage() {
   return (
     <main
       style={{
-        maxWidth: "480px",
-        margin: "80px auto",
-        padding: "24px",
-        textAlign: "center",
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-4)",
       }}
     >
-      <div style={{ fontSize: "48px" }}>🚫</div>
-      <h1 style={{ color: "#c33" }}>Cuenta suspendida</h1>
-      <p style={{ fontSize: "15px" }}>
-        Tu cuenta ha sido suspendida por incumplir las normas de la comunidad.
-      </p>
-
       <div
         style={{
-          background: "#2a1a1a",
-          border: "1px solid #c33",
-          borderRadius: "8px",
-          padding: "16px",
-          margin: "20px 0",
-          textAlign: "left",
+          width: "440px",
+          maxWidth: "100%",
+          padding: "var(--space-6)",
+          background: "var(--color-surface)",
+          border: "var(--border-normal) solid var(--color-danger)",
+          borderRadius: "var(--radius-lg)",
+          textAlign: "center",
         }}
       >
-        <div style={{ marginBottom: "8px" }}>
-          <strong>Motivo:</strong> {info?.banReason ?? "No especificado"}
+        <div style={{ fontSize: "48px", marginBottom: "var(--space-3)" }}>
+          🚫
         </div>
-        <div>
-          <strong>Duración:</strong>{" "}
-          {info?.banPermanent
-            ? "Permanente"
-            : info?.bannedUntil
-              ? `Hasta el ${new Date(info.bannedUntil).toLocaleString("es-MX")}`
-              : "No especificada"}
+        <h1
+          style={{
+            color: "var(--color-danger)",
+            margin: "0 0 var(--space-3) 0",
+            fontFamily: "var(--font-display), monospace",
+            fontSize: "var(--text-lg)",
+          }}
+        >
+          Cuenta suspendida
+        </h1>
+        <p
+          style={{
+            fontSize: "var(--text-sm)",
+            color: "var(--color-text-secondary)",
+            margin: "0 0 var(--space-4) 0",
+          }}
+        >
+          Tu cuenta ha sido suspendida por incumplir las normas de la comunidad.
+        </p>
+        <div
+          style={{
+            background: "rgba(195, 51, 51, 0.1)",
+            border: "var(--border-thin) solid var(--color-danger)",
+            borderRadius: "var(--radius-sm)",
+            padding: "var(--space-4)",
+            margin: "0 0 var(--space-4) 0",
+            textAlign: "left",
+            fontSize: "var(--text-sm)",
+          }}
+        >
+          <div style={{ marginBottom: "var(--space-2)" }}>
+            <strong>Motivo:</strong> {info?.banReason ?? "No especificado"}
+          </div>
+          <div>
+            <strong>Duración:</strong>{" "}
+            {info?.banPermanent
+              ? "Permanente"
+              : info?.bannedUntil
+                ? `Hasta el ${new Date(info.bannedUntil).toLocaleString("es-MX")}`
+                : "No especificada"}
+          </div>
         </div>
+        <p
+          style={{
+            fontSize: "var(--text-xs)",
+            color: "var(--color-text-muted)",
+            margin: "0 0 var(--space-4) 0",
+          }}
+        >
+          Si crees que esto es un error, puedes contactar al equipo de soporte.
+        </p>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            logout();
+            router.push("/login");
+          }}
+        >
+          Cerrar sesión
+        </Button>
       </div>
-
-      <p style={{ fontSize: "13px", color: "#aaa" }}>
-        Si crees que esto es un error, puedes contactar al equipo de soporte.
-      </p>
-
-      <button
-        onClick={() => {
-          logout();
-          router.push("/login");
-        }}
-        style={{ padding: "10px 20px", cursor: "pointer", marginTop: "12px" }}
-      >
-        Cerrar sesión
-      </button>
     </main>
   );
 }

@@ -6,6 +6,8 @@ import Flag from "./Flag";
 import { COUNTRIES } from "../lib/countries";
 import { useAuth } from "../context/auth";
 import styles from "./MenuPanel.module.css";
+import LoginForm from "./LoginForm";
+import RegisterForm from "./RegisterForm";
 
 export default function MenuPanel({
   nickname,
@@ -13,12 +15,14 @@ export default function MenuPanel({
   isAdmin,
   onLogout,
   onNavigate,
+  onClose,
 }: {
   nickname: string | null;
   userTier: "FREE" | "PLUS" | "PREMIUM";
   isAdmin: boolean;
   onLogout: () => void;
   onNavigate: (path: string) => void;
+  onClose: () => void;
 }) {
   const { token } = useAuth();
   const [tab, setTab] = useState<"profile" | "rankings" | "friends">("profile");
@@ -34,6 +38,7 @@ export default function MenuPanel({
   const [picInput, setPicInput] = useState("");
   const [countryInput, setCountryInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
   useEffect(() => {
     if (!nickname) return;
@@ -196,23 +201,14 @@ export default function MenuPanel({
           )
         ) : (
           <div className={styles.box}>
-            <p className={styles.muted}>
-              Inicia sesión para acceder a tu perfil, amigos y más.
-            </p>
-            <Button
-              variant="primary"
-              fullWidth
-              onClick={() => onNavigate("/login")}
-            >
-              Iniciar sesión
-            </Button>
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => onNavigate("/register")}
-            >
-              Registrarse
-            </Button>
+            {authMode === "login" ? (
+              <LoginForm
+                onSuccess={onClose}
+                switchToRegister={() => setAuthMode("register")}
+              />
+            ) : (
+              <RegisterForm switchToLogin={() => setAuthMode("login")} />
+            )}
           </div>
         ))}
 

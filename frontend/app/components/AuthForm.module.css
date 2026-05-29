@@ -1,0 +1,106 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--color-elevated);
+  color: var(--color-text);
+  border: var(--border-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.methodTabs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.methodTab {
+  flex: 1;
+  padding: 8px;
+  background: var(--color-elevated);
+  color: var(--color-text-secondary);
+  border: var(--border-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+
+.methodTabActive {
+  background: var(--color-brand);
+  color: #fff;
+  border-color: var(--color-brand);
+}
+
+.phoneRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.banBox {
+  background: rgba(195, 51, 51, 0.1);
+  border: var(--border-thin) solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: var(--text-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.banTitle {
+  color: var(--color-danger);
+  font-weight: var(--weight-bold);
+  margin-bottom: 4px;
+}
+
+.footerLinks {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footerLinks p {
+  margin: 0;
+}
+
+.footerLinks a {
+  color: var(--color-brand);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: var(--color-brand);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  font-family: inherit;
+}
+
+.linkButton:hover {
+  color: var(--color-brand-hover);
+}

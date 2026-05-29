@@ -899,6 +899,7 @@ export default function Home() {
               setPanelSection(null);
             }}
             onNavigate={(path) => router.push(path)}
+            onClose={() => setPanelSection(null)}
           />
         )}
         {panelSection === "settings" && (

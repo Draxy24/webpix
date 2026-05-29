@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
+import AuthPageLayout from "../components/AuthPageLayout";
+import Button from "../components/Button";
+import styles from "../components/AuthForm.module.css";
 
 export default function VerifyPage() {
   const { token, loading } = useAuth();
@@ -72,40 +75,66 @@ export default function VerifyPage() {
 
   if (loading || checking) {
     return (
-      <main style={{ textAlign: "center", marginTop: "80px" }}>
-        Cargando...
-      </main>
+      <AuthPageLayout title="Cargando...">
+        <p
+          style={{
+            textAlign: "center",
+            color: "var(--color-text-secondary)",
+            margin: 0,
+          }}
+        >
+          ...
+        </p>
+      </AuthPageLayout>
     );
   }
 
   return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "80px",
-        gap: "16px",
-      }}
-    >
-      <h1>Verifica tu cuenta</h1>
-
+    <AuthPageLayout title="Verifica tu cuenta">
       {method === "email" && (
-        <div style={{ textAlign: "center", maxWidth: "360px" }}>
-          <p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-3)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              textAlign: "center",
+              margin: 0,
+            }}
+          >
             Te enviamos un correo con un enlace de verificación. Ábrelo para
             activar tu cuenta.
           </p>
-          <p style={{ fontSize: "13px", color: "#aaa" }}>
+          <p
+            style={{
+              fontSize: "var(--text-xs)",
+              color: "var(--color-text-muted)",
+              textAlign: "center",
+              margin: 0,
+            }}
+          >
             Una vez verificado, podrás acceder al lienzo.
           </p>
-          <button
-            onClick={handleResend}
-            style={{ padding: "8px 16px", cursor: "pointer", marginTop: "8px" }}
-          >
+          <Button variant="secondary" fullWidth onClick={handleResend}>
             Reenviar correo
-          </button>
-          {info && <p style={{ color: "#4a4", fontSize: "13px" }}>{info}</p>}
+          </Button>
+          {info && (
+            <p
+              style={{
+                color: "var(--color-success)",
+                fontSize: "var(--text-xs)",
+                textAlign: "center",
+                margin: 0,
+              }}
+            >
+              {info}
+            </p>
+          )}
         </div>
       )}
 
@@ -114,12 +143,19 @@ export default function VerifyPage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "10px",
-            width: "280px",
-            textAlign: "center",
+            gap: "var(--space-3)",
           }}
         >
-          <p>Ingresa el código de 6 dígitos que enviamos a tu teléfono.</p>
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              textAlign: "center",
+              margin: 0,
+            }}
+          >
+            Ingresa el código de 6 dígitos que enviamos a tu teléfono.
+          </p>
           <input
             type="text"
             inputMode="numeric"
@@ -127,30 +163,39 @@ export default function VerifyPage() {
             placeholder="123456"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            className={styles.input}
             style={{
-              padding: "8px",
-              fontSize: "18px",
               textAlign: "center",
+              fontSize: "var(--text-lg)",
               letterSpacing: "4px",
             }}
           />
-          {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
-          <button
+          {error && <p className={styles.error}>{error}</p>}
+          <Button
+            fullWidth
+            size="lg"
             onClick={handleVerifyPhone}
             disabled={submitting || code.length !== 6}
-            style={{ padding: "10px", cursor: "pointer" }}
           >
             {submitting ? "Verificando..." : "Verificar"}
-          </button>
-          <button
-            onClick={handleResend}
-            style={{ padding: "8px", cursor: "pointer", fontSize: "13px" }}
-          >
+          </Button>
+          <Button variant="ghost" fullWidth onClick={handleResend}>
             Reenviar código
-          </button>
-          {info && <p style={{ color: "#4a4", fontSize: "13px" }}>{info}</p>}
+          </Button>
+          {info && (
+            <p
+              style={{
+                color: "var(--color-success)",
+                fontSize: "var(--text-xs)",
+                textAlign: "center",
+                margin: 0,
+              }}
+            >
+              {info}
+            </p>
+          )}
         </div>
       )}
-    </main>
+    </AuthPageLayout>
   );
 }

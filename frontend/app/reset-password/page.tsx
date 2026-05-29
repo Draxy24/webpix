@@ -2,6 +2,9 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import AuthPageLayout from "../components/AuthPageLayout";
+import Button from "../components/Button";
+import styles from "../components/AuthForm.module.css";
 
 function ResetPasswordInner() {
   const searchParams = useSearchParams();
@@ -38,53 +41,42 @@ function ResetPasswordInner() {
 
   if (success) {
     return (
-      <main
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          marginTop: "80px",
-          gap: "16px",
-        }}
-      >
-        <h1>¡Contraseña actualizada! ✓</h1>
-        <button
-          onClick={() => router.push("/login")}
-          style={{ padding: "10px 20px", cursor: "pointer" }}
+      <AuthPageLayout title="¡Contraseña actualizada!">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-3)",
+          }}
         >
-          Iniciar sesión
-        </button>
-      </main>
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              textAlign: "center",
+              margin: 0,
+            }}
+          >
+            Tu contraseña ha sido restablecida correctamente.
+          </p>
+          <Button fullWidth size="lg" onClick={() => router.push("/login")}>
+            Iniciar sesión
+          </Button>
+        </div>
+      </AuthPageLayout>
     );
   }
 
   return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "80px",
-        gap: "16px",
-      }}
-    >
-      <h1>Restablecer contraseña</h1>
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          width: "300px",
-        }}
-      >
+    <AuthPageLayout title="Restablecer contraseña">
+      <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
           placeholder="Email o teléfono"
           value={emailOrPhone}
           onChange={(e) => setEmailOrPhone(e.target.value)}
           required
-          style={{ padding: "8px", fontSize: "14px" }}
+          className={styles.input}
         />
         <input
           type="text"
@@ -92,7 +84,7 @@ function ResetPasswordInner() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           required
-          style={{ padding: "8px", fontSize: "14px" }}
+          className={styles.input}
         />
         <input
           type="password"
@@ -100,18 +92,14 @@ function ResetPasswordInner() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
-          style={{ padding: "8px", fontSize: "14px" }}
+          className={styles.input}
         />
-        {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: "10px", cursor: "pointer" }}
-        >
+        {error && <p className={styles.error}>{error}</p>}
+        <Button type="submit" disabled={loading} fullWidth size="lg">
           {loading ? "Guardando..." : "Restablecer contraseña"}
-        </button>
+        </Button>
       </form>
-    </main>
+    </AuthPageLayout>
   );
 }
 
@@ -119,9 +107,17 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <main style={{ textAlign: "center", marginTop: "80px" }}>
-          Cargando...
-        </main>
+        <AuthPageLayout title="Cargando...">
+          <p
+            style={{
+              textAlign: "center",
+              color: "var(--color-text-secondary)",
+              margin: 0,
+            }}
+          >
+            ...
+          </p>
+        </AuthPageLayout>
       }
     >
       <ResetPasswordInner />

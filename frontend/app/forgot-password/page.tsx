@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AuthPageLayout from "../components/AuthPageLayout";
+import Button from "../components/Button";
+import styles from "../components/AuthForm.module.css";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -22,40 +25,44 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "80px",
-        gap: "16px",
-      }}
-    >
-      <h1>Recuperar contraseña</h1>
+    <AuthPageLayout title="Recuperar contraseña">
       {submitted ? (
-        <div style={{ textAlign: "center", maxWidth: "360px" }}>
-          <p>
-            Si existe una cuenta asociada, te enviamos instrucciones para
-            recuperar tu contraseña.
-          </p>
-          <button
-            onClick={() => router.push("/reset-password")}
-            style={{ padding: "8px 16px", cursor: "pointer", marginTop: "8px" }}
-          >
-            Ya tengo mi código
-          </button>
-        </div>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
+        <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
-            width: "300px",
+            gap: "var(--space-3)",
+            textAlign: "center",
           }}
         >
-          <p style={{ fontSize: "13px", color: "#aaa", textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              margin: 0,
+            }}
+          >
+            Si existe una cuenta asociada, te enviamos instrucciones para
+            recuperar tu contraseña.
+          </p>
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => router.push("/reset-password")}
+          >
+            Ya tengo mi código
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              textAlign: "center",
+              margin: 0,
+            }}
+          >
             Ingresa tu correo o teléfono y te enviaremos instrucciones.
           </p>
           <input
@@ -64,20 +71,24 @@ export default function ForgotPasswordPage() {
             value={emailOrPhone}
             onChange={(e) => setEmailOrPhone(e.target.value)}
             required
-            style={{ padding: "8px", fontSize: "14px" }}
+            className={styles.input}
           />
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ padding: "10px", cursor: "pointer" }}
-          >
+          <Button type="submit" disabled={loading} fullWidth size="lg">
             {loading ? "Enviando..." : "Enviar instrucciones"}
-          </button>
-          <p style={{ textAlign: "center", fontSize: "13px" }}>
-            <a href="/login">Volver a iniciar sesión</a>
+          </Button>
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "var(--text-sm)",
+              margin: 0,
+            }}
+          >
+            <a href="/login" style={{ color: "var(--color-brand)" }}>
+              Volver a iniciar sesión
+            </a>
           </p>
         </form>
       )}
-    </main>
+    </AuthPageLayout>
   );
 }

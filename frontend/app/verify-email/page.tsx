@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import AuthPageLayout from "../components/AuthPageLayout";
+import Button from "../components/Button";
 
 function VerifyEmailInner() {
   const searchParams = useSearchParams();
@@ -27,36 +29,62 @@ function VerifyEmailInner() {
     verify();
   }, [code]);
 
-  return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: "80px",
-        gap: "16px",
-      }}
-    >
-      {status === "verifying" && <p>Verificando...</p>}
-      {status === "success" && (
-        <>
-          <h1>¡Cuenta verificada! ✓</h1>
-          <p>Tu correo ha sido verificado correctamente.</p>
-          <button
-            onClick={() => router.push("/")}
-            style={{ padding: "10px 20px", cursor: "pointer" }}
+  if (status === "verifying") {
+    return (
+      <AuthPageLayout title="Verificando...">
+        <p
+          style={{
+            textAlign: "center",
+            color: "var(--color-text-secondary)",
+            margin: 0,
+          }}
+        >
+          Validando tu enlace de verificación.
+        </p>
+      </AuthPageLayout>
+    );
+  }
+
+  if (status === "success") {
+    return (
+      <AuthPageLayout title="¡Cuenta verificada!">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-3)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              textAlign: "center",
+              margin: 0,
+            }}
           >
+            Tu correo ha sido verificado correctamente.
+          </p>
+          <Button fullWidth size="lg" onClick={() => router.push("/")}>
             Ir al lienzo
-          </button>
-        </>
-      )}
-      {status === "error" && (
-        <>
-          <h1>Enlace inválido</h1>
-          <p>El enlace de verificación es inválido o ha expirado.</p>
-        </>
-      )}
-    </main>
+          </Button>
+        </div>
+      </AuthPageLayout>
+    );
+  }
+
+  return (
+    <AuthPageLayout title="Enlace inválido">
+      <p
+        style={{
+          textAlign: "center",
+          color: "var(--color-text-secondary)",
+          margin: 0,
+        }}
+      >
+        El enlace de verificación es inválido o ha expirado.
+      </p>
+    </AuthPageLayout>
   );
 }
 
@@ -64,9 +92,17 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <main style={{ textAlign: "center", marginTop: "80px" }}>
-          Cargando...
-        </main>
+        <AuthPageLayout title="Cargando...">
+          <p
+            style={{
+              textAlign: "center",
+              color: "var(--color-text-secondary)",
+              margin: 0,
+            }}
+          >
+            ...
+          </p>
+        </AuthPageLayout>
       }
     >
       <VerifyEmailInner />
