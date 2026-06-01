@@ -7,7 +7,9 @@
   flex-direction: column;
   gap: var(--space-2);
   z-index: 40;
-  transition: right 0.25s ease;
+  transition:
+    right 0.25s ease,
+    opacity 0.2s ease;
 }
 
 .stackShifted {
@@ -42,4 +44,11 @@
   background: var(--color-menu);
   color: #fff;
   border-color: var(--color-menu);
+}
+
+@media (max-width: 600px) {
+  .stackShifted {
+    opacity: 0;
+    pointer-events: none;
+  }
 }

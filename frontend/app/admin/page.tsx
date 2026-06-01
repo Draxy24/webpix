@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
+import Button from "../components/Button";
+import styles from "./admin.module.css";
 
 type Report = {
   id: number;
@@ -107,40 +109,10 @@ function BanModal({
   };
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#fff",
-          color: "#000",
-          padding: "20px",
-          borderRadius: "8px",
-          width: "340px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-        }}
-      >
-        <h3 style={{ margin: 0 }}>Banear a {target.nickname}</h3>
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            fontSize: "14px",
-          }}
-        >
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <h3 className={styles.modalTitle}>Banear a {target.nickname}</h3>
+        <label className={styles.checkRow}>
           <input
             type="checkbox"
             checked={permanent}
@@ -149,8 +121,8 @@ function BanModal({
           Baneo permanente
         </label>
         {!permanent && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <label style={{ fontSize: "13px" }}>Duración (días)</label>
+          <div className={styles.modalField}>
+            <label className={styles.modalLabel}>Duración (días)</label>
             <input
               type="number"
               min={1}
@@ -158,45 +130,37 @@ function BanModal({
               onChange={(e) =>
                 setDays(Math.max(1, parseInt(e.target.value) || 1))
               }
-              style={{ padding: "8px", fontSize: "14px" }}
+              className={styles.modalInput}
             />
           </div>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <label style={{ fontSize: "13px" }}>Motivo</label>
+        <div className={styles.modalField}>
+          <label className={styles.modalLabel}>Motivo</label>
           <input
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Ej: Contenido NSFW reiterado"
-            style={{ padding: "8px", fontSize: "14px" }}
+            className={styles.modalInput}
           />
         </div>
-        {error && (
-          <p style={{ color: "red", fontSize: "13px", margin: 0 }}>{error}</p>
-        )}
-        <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-          <button
-            onClick={onClose}
-            style={{ padding: "8px 12px", cursor: "pointer", flex: 1 }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleBan}
-            disabled={submitting}
-            style={{
-              padding: "8px 12px",
-              cursor: "pointer",
-              flex: 1,
-              background: "#c33",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-            }}
-          >
-            {submitting ? "Baneando..." : "Banear"}
-          </button>
+        {error && <p className={styles.modalError}>{error}</p>}
+        <div className={styles.modalButtons}>
+          <div style={{ flex: 1 }}>
+            <Button variant="secondary" fullWidth onClick={onClose}>
+              Cancelar
+            </Button>
+          </div>
+          <div style={{ flex: 1 }}>
+            <Button
+              variant="danger"
+              fullWidth
+              onClick={handleBan}
+              disabled={submitting}
+            >
+              {submitting ? "Baneando..." : "Banear"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -288,63 +252,28 @@ export default function AdminPage() {
   };
 
   if (loading || checking) {
-    return (
-      <main style={{ textAlign: "center", marginTop: "80px" }}>
-        Cargando...
-      </main>
-    );
+    return <main className={styles.centered}>Cargando...</main>;
   }
 
   return (
-    <main style={{ maxWidth: "800px", margin: "40px auto", padding: "20px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1 style={{ margin: 0 }}>Panel de moderación</h1>
-        <a href="/" style={{ fontSize: "13px" }}>
+    <main className={styles.main}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Panel de moderación</h1>
+        <a href="/" className={styles.backLink}>
           ← Volver al lienzo
         </a>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          marginTop: "20px",
-          borderBottom: "1px solid #555",
-        }}
-      >
+      <div className={styles.tabs}>
         <button
           onClick={() => setTab("reports")}
-          style={{
-            padding: "8px 16px",
-            cursor: "pointer",
-            background: "none",
-            border: "none",
-            color: tab === "reports" ? "#fff" : "#888",
-            borderBottom:
-              tab === "reports" ? "2px solid #fff" : "2px solid transparent",
-            fontSize: "14px",
-          }}
+          className={`${styles.tab} ${tab === "reports" ? styles.tabActive : ""}`}
         >
           Reportes
         </button>
         <button
           onClick={() => setTab("log")}
-          style={{
-            padding: "8px 16px",
-            cursor: "pointer",
-            background: "none",
-            border: "none",
-            color: tab === "log" ? "#fff" : "#888",
-            borderBottom:
-              tab === "log" ? "2px solid #fff" : "2px solid transparent",
-            fontSize: "14px",
-          }}
+          className={`${styles.tab} ${tab === "log" ? styles.tabActive : ""}`}
         >
           Registro
         </button>
@@ -352,22 +281,13 @@ export default function AdminPage() {
 
       {tab === "reports" && (
         <>
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              marginTop: "20px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-            >
-              <label style={{ fontSize: "12px", color: "#aaa" }}>Estado</label>
+          <div className={styles.filters}>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Estado</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                style={{ padding: "6px", fontSize: "14px" }}
+                className={styles.select}
               >
                 <option value="PENDING">Pendientes</option>
                 <option value="RESOLVED">Resueltos</option>
@@ -375,14 +295,12 @@ export default function AdminPage() {
                 <option value="">Todos</option>
               </select>
             </div>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-            >
-              <label style={{ fontSize: "12px", color: "#aaa" }}>Tipo</label>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Tipo</label>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                style={{ padding: "6px", fontSize: "14px" }}
+                className={styles.select}
               >
                 <option value="">Todos</option>
                 <option value="USER">Usuarios</option>
@@ -393,20 +311,11 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div
-            style={{
-              marginTop: "24px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-            }}
-          >
+          <div className={styles.list}>
             {loadingReports ? (
-              <p style={{ color: "#aaa" }}>Cargando reportes...</p>
+              <p className={styles.muted}>Cargando reportes...</p>
             ) : reports.length === 0 ? (
-              <p style={{ color: "#aaa" }}>
-                No hay reportes con estos filtros.
-              </p>
+              <p className={styles.muted}>No hay reportes con estos filtros.</p>
             ) : (
               reports.map((r) => {
                 const responsible =
@@ -423,40 +332,21 @@ export default function AdminPage() {
                       : null;
 
                 return (
-                  <div
-                    key={r.id}
-                    style={{
-                      border: "1px solid #555",
-                      borderRadius: "8px",
-                      padding: "16px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "8px",
-                      }}
-                    >
+                  <div key={r.id} className={styles.card}>
+                    <div className={styles.cardTop}>
                       <span
-                        style={{
-                          background: TYPE_COLORS[r.type],
-                          color: "#fff",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontSize: "12px",
-                        }}
+                        className={styles.badge}
+                        style={{ background: TYPE_COLORS[r.type] }}
                       >
                         {TYPE_LABELS[r.type]}
                       </span>
-                      <span style={{ fontSize: "12px", color: "#aaa" }}>
+                      <span className={styles.cardMeta}>
                         {STATUS_LABELS[r.status]} ·{" "}
                         {new Date(r.createdAt).toLocaleString("es-MX")}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: "14px" }}>
+                    <div className={styles.cardBody}>
                       <div>
                         <strong>Reportado por:</strong> {r.reporterNickname}
                       </div>
@@ -472,13 +362,7 @@ export default function AdminPage() {
                             <strong>Autor del contenido:</strong>{" "}
                             {r.contentAuthorNickname ?? "?"}
                           </div>
-                          <div
-                            style={{
-                              color: "#aaa",
-                              fontStyle: "italic",
-                              marginTop: "2px",
-                            }}
-                          >
+                          <div className={styles.preview}>
                             “{r.contentPreview}”
                           </div>
                         </>
@@ -487,42 +371,17 @@ export default function AdminPage() {
                         <strong>Motivo:</strong> {r.reason}
                       </div>
                       {r.details && (
-                        <div
-                          style={{
-                            marginTop: "4px",
-                            whiteSpace: "pre-wrap",
-                            background: "#2a2a2a",
-                            padding: "8px",
-                            borderRadius: "4px",
-                            fontSize: "13px",
-                          }}
-                        >
-                          {r.details}
-                        </div>
+                        <div className={styles.details}>{r.details}</div>
                       )}
                     </div>
 
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginTop: "12px",
-                        flexWrap: "wrap",
-                      }}
-                    >
+                    <div className={styles.actions}>
                       {r.type === "PUBLICATION" && r.publicationId && (
                         <>
                           <a
                             href={`/publication/${r.publicationId}`}
                             target="_blank"
-                            style={{
-                              padding: "6px 10px",
-                              fontSize: "13px",
-                              border: "1px solid #888",
-                              borderRadius: "4px",
-                              textDecoration: "none",
-                              color: "inherit",
-                            }}
+                            className={`${styles.actionBtn} ${styles.actionNeutral}`}
                           >
                             Ver publicación
                           </a>
@@ -534,7 +393,7 @@ export default function AdminPage() {
                                   "DELETE",
                                 );
                             }}
-                            style={btn("#a60")}
+                            className={`${styles.actionBtn} ${styles.actionWarn}`}
                           >
                             Borrar publicación
                           </button>
@@ -549,7 +408,7 @@ export default function AdminPage() {
                                 "DELETE",
                               );
                           }}
-                          style={btn("#a60")}
+                          className={`${styles.actionBtn} ${styles.actionWarn}`}
                         >
                           Borrar comentario
                         </button>
@@ -557,7 +416,7 @@ export default function AdminPage() {
                       {responsible && (
                         <button
                           onClick={() => setBanTarget(responsible)}
-                          style={btn("#c33")}
+                          className={`${styles.actionBtn} ${styles.actionDanger}`}
                         >
                           Banear a {responsible.nickname}
                         </button>
@@ -571,7 +430,7 @@ export default function AdminPage() {
                                 "PATCH",
                               )
                             }
-                            style={btn("#4a4")}
+                            className={`${styles.actionBtn} ${styles.actionSuccess}`}
                           >
                             Resolver
                           </button>
@@ -582,7 +441,7 @@ export default function AdminPage() {
                                 "PATCH",
                               )
                             }
-                            style={btn("#666")}
+                            className={`${styles.actionBtn} ${styles.actionNeutral}`}
                           >
                             Descartar
                           </button>
@@ -598,40 +457,23 @@ export default function AdminPage() {
       )}
 
       {tab === "log" && (
-        <div
-          style={{
-            marginTop: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-          }}
-        >
+        <div className={styles.logList}>
           {loadingLog ? (
-            <p style={{ color: "#aaa" }}>Cargando registro...</p>
+            <p className={styles.muted}>Cargando registro...</p>
           ) : log.length === 0 ? (
-            <p style={{ color: "#aaa" }}>
-              No hay acciones registradas todavía.
-            </p>
+            <p className={styles.muted}>No hay acciones registradas todavía.</p>
           ) : (
             log.map((entry) => (
-              <div
-                key={entry.id}
-                style={{
-                  border: "1px solid #555",
-                  borderRadius: "6px",
-                  padding: "12px",
-                  fontSize: "14px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <strong>{ACTION_LABELS[entry.action] ?? entry.action}</strong>
-                  <span style={{ fontSize: "12px", color: "#aaa" }}>
+              <div key={entry.id} className={styles.logEntry}>
+                <div className={styles.logTop}>
+                  <span className={styles.logAction}>
+                    {ACTION_LABELS[entry.action] ?? entry.action}
+                  </span>
+                  <span className={styles.cardMeta}>
                     {new Date(entry.createdAt).toLocaleString("es-MX")}
                   </span>
                 </div>
-                <div style={{ color: "#aaa", marginTop: "4px" }}>
+                <div className={styles.logMeta}>
                   Por <strong>{entry.moderator}</strong>
                   {entry.targetNickname && (
                     <>
@@ -660,16 +502,4 @@ export default function AdminPage() {
       )}
     </main>
   );
-}
-
-function btn(color: string): React.CSSProperties {
-  return {
-    padding: "6px 10px",
-    fontSize: "13px",
-    cursor: "pointer",
-    background: color,
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-  };
 }

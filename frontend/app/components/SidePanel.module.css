@@ -53,3 +53,11 @@
   overflow-y: auto;
   padding: var(--space-4);
 }
+
+@media (max-width: 600px) {
+  .panel {
+    width: 100vw;
+    max-width: 100vw;
+    border-left: none;
+  }
+}

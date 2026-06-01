@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { useAuth } from "../../context/auth";
 import PublicationCanvas from "../../components/PublicationCanvas";
 import ReportModal from "../../components/ReportModal";
+import Button from "../../components/Button";
+import styles from "./publication.module.css";
 
 interface Comment {
   id: number;
@@ -130,46 +132,31 @@ export default function PublicationPage() {
     if (res.ok) window.location.href = `/profile/${pub.author.nickname}`;
   };
 
-  if (loading)
-    return (
-      <main style={{ textAlign: "center", marginTop: "40px" }}>
-        Cargando...
-      </main>
-    );
+  if (loading) return <main className={styles.centered}>Cargando...</main>;
   if (!pub)
-    return (
-      <main style={{ textAlign: "center", marginTop: "40px" }}>
-        Publicación no encontrada
-      </main>
-    );
+    return <main className={styles.centered}>Publicación no encontrada</main>;
 
   const isMine = myNickname === pub.author.nickname;
 
   return (
-    <main style={{ maxWidth: "700px", margin: "40px auto", padding: "20px" }}>
-      <a href="/" style={{ fontSize: "13px" }}>
+    <main className={styles.main}>
+      <a href="/" className={styles.backLink}>
         ← Volver al lienzo
       </a>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "16px",
-        }}
-      >
-        {pub.title && <h1 style={{ margin: 0 }}>{pub.title}</h1>}
-        <PublicationCanvas
-          pixelData={pub.pixelData}
-          x1={pub.x1}
-          y1={pub.y1}
-          x2={pub.x2}
-          y2={pub.y2}
-          maxSize={500}
-        />
-        <div style={{ fontSize: "14px", color: "#aaa" }}>
+      <div className={styles.header}>
+        {pub.title && <h1 className={styles.title}>{pub.title}</h1>}
+        <div className={styles.canvasWrap}>
+          <PublicationCanvas
+            pixelData={pub.pixelData}
+            x1={pub.x1}
+            y1={pub.y1}
+            x2={pub.x2}
+            y2={pub.y2}
+            maxSize={500}
+          />
+        </div>
+        <div className={styles.meta}>
           Por{" "}
           <a href={`/profile/${pub.author.nickname}`}>{pub.author.nickname}</a>
           {" · "}
@@ -177,155 +164,104 @@ export default function PublicationPage() {
         </div>
 
         {token ? (
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div className={styles.reactions}>
             <button
               onClick={() => handleReact("LIKE")}
-              style={{
-                padding: "8px 16px",
-                cursor: "pointer",
-                background: pub.myReaction === "LIKE" ? "#4a4" : "#fff",
-                color: pub.myReaction === "LIKE" ? "#fff" : "#000",
-                border: "1px solid #4a4",
-              }}
+              className={`${styles.reactBtn} ${pub.myReaction === "LIKE" ? styles.likeActive : ""}`}
             >
               👍 {pub.likes}
             </button>
             <button
               onClick={() => handleReact("DISLIKE")}
-              style={{
-                padding: "8px 16px",
-                cursor: "pointer",
-                background: pub.myReaction === "DISLIKE" ? "#a44" : "#fff",
-                color: pub.myReaction === "DISLIKE" ? "#fff" : "#000",
-                border: "1px solid #a44",
-              }}
+              className={`${styles.reactBtn} ${pub.myReaction === "DISLIKE" ? styles.dislikeActive : ""}`}
             >
               👎 {pub.dislikes}
             </button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: "12px", color: "#aaa" }}>
+          <div className={styles.reactionsStatic}>
             <span>👍 {pub.likes}</span>
             <span>👎 {pub.dislikes}</span>
           </div>
         )}
 
         {isMine && (
-          <button
-            onClick={handleDeletePublication}
-            style={{ padding: "8px 16px", cursor: "pointer", color: "#f88" }}
-          >
+          <Button variant="danger" size="sm" onClick={handleDeletePublication}>
             Eliminar publicación
-          </button>
+          </Button>
         )}
         {token && !isMine && (
           <button
+            className={styles.reportButton}
             onClick={() => setShowReportPub(true)}
-            style={{
-              padding: "4px 10px",
-              cursor: "pointer",
-              fontSize: "12px",
-              color: "#c33",
-            }}
           >
             Reportar publicación
           </button>
         )}
       </div>
 
-      <div style={{ marginTop: "32px" }}>
-        <h2 style={{ marginBottom: "12px" }}>
+      <div className={styles.commentsSection}>
+        <h2 className={styles.commentsTitle}>
           Comentarios ({pub.comments.length})
         </h2>
 
         {token && (
-          <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+          <div className={styles.commentForm}>
             <input
               type="text"
               placeholder="Escribe un comentario (máx 100)"
               maxLength={100}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              style={{ flex: 1, padding: "8px" }}
+              className={styles.commentInput}
             />
-            <button
+            <Button
               onClick={handleAddComment}
               disabled={submittingComment || !newComment.trim()}
-              style={{ padding: "8px 16px", cursor: "pointer" }}
             >
               Enviar
-            </button>
+            </Button>
           </div>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className={styles.commentList}>
           {pub.comments.length === 0 ? (
-            <p style={{ color: "#aaa" }}>No hay comentarios todavía.</p>
+            <p className={styles.muted}>No hay comentarios todavía.</p>
           ) : (
             pub.comments.map((c) => (
-              <div
-                key={c.id}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "12px",
-                  padding: "12px",
-                  border: "1px solid #555",
-                  borderRadius: "8px",
-                }}
-              >
+              <div key={c.id} className={styles.comment}>
                 <div
-                  style={{
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    background: "#eee",
-                    backgroundImage: c.author.profilePic
-                      ? `url(${c.author.profilePic})`
-                      : "none",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    flexShrink: 0,
-                  }}
+                  className={styles.commentAvatar}
+                  style={
+                    c.author.profilePic
+                      ? { backgroundImage: `url(${c.author.profilePic})` }
+                      : undefined
+                  }
                 />
-                <div style={{ flex: 1 }}>
+                <div className={styles.commentBody}>
                   <a
                     href={`/profile/${c.author.nickname}`}
-                    style={{ fontWeight: "bold", fontSize: "13px" }}
+                    className={styles.commentAuthor}
                   >
                     {c.author.nickname}
                   </a>
-                  <div style={{ fontSize: "14px", marginTop: "4px" }}>
-                    {c.content}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#888",
-                      marginTop: "4px",
-                    }}
-                  >
+                  <div className={styles.commentContent}>{c.content}</div>
+                  <div className={styles.commentDate}>
                     {new Date(c.createdAt).toLocaleString("es-MX")}
                   </div>
                 </div>
                 {c.isMine && (
                   <button
+                    className={styles.commentAction}
                     onClick={() => handleDeleteComment(c.id)}
-                    style={{ cursor: "pointer", fontSize: "12px" }}
                   >
                     Eliminar
                   </button>
                 )}
                 {token && !c.isMine && (
                   <button
+                    className={styles.commentAction}
                     onClick={() => setReportCommentId(c.id)}
-                    style={{
-                      cursor: "pointer",
-                      fontSize: "11px",
-                      color: "#c33",
-                      background: "none",
-                      border: "none",
-                    }}
                   >
                     Reportar
                   </button>

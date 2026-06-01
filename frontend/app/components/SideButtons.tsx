@@ -2,7 +2,12 @@
 
 import styles from "./SideButtons.module.css";
 
-export type PanelSection = "menu" | "settings" | "achievements" | "tasks";
+export type PanelSection =
+  | "menu"
+  | "settings"
+  | "achievements"
+  | "tasks"
+  | "bug";
 
 function Icon({ section }: { section: PanelSection | "bug" }) {
   switch (section) {
@@ -70,12 +75,10 @@ function Icon({ section }: { section: PanelSection | "bug" }) {
 export default function SideButtons({
   activeSection,
   onSelect,
-  onReportBug,
   panelOpen,
 }: {
   activeSection: PanelSection | null;
   onSelect: (section: PanelSection) => void;
-  onReportBug: () => void;
   panelOpen: boolean;
 }) {
   const sections: { key: PanelSection; label: string }[] = [
@@ -98,8 +101,8 @@ export default function SideButtons({
         </button>
       ))}
       <button
-        className={styles.button}
-        onClick={onReportBug}
+        className={`${styles.button} ${activeSection === "bug" ? styles.buttonActive : ""}`}
+        onClick={() => onSelect("bug")}
         title="Reportar bug"
       >
         <Icon section="bug" />

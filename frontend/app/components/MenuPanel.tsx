@@ -8,6 +8,8 @@ import { useAuth } from "../context/auth";
 import styles from "./MenuPanel.module.css";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import RankingsView from "./RankingsView";
+import FriendsView from "./FriendsView";
 
 export default function MenuPanel({
   nickname,
@@ -212,36 +214,11 @@ export default function MenuPanel({
           </div>
         ))}
 
-      {tab === "rankings" && (
-        <div className={styles.box}>
-          <p className={styles.muted}>
-            Mira quiénes lideran el lienzo: más píxeles pintados y mejores
-            creadores, a nivel global y nacional.
-          </p>
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => onNavigate("/rankings")}
-          >
-            Ver rankings
-          </Button>
-        </div>
-      )}
+      {tab === "rankings" && <RankingsView />}
 
       {tab === "friends" &&
         (nickname ? (
-          <div className={styles.box}>
-            <p className={styles.muted}>
-              Gestiona tus amistades y solicitudes.
-            </p>
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => onNavigate("/friends")}
-            >
-              Ver amigos
-            </Button>
-          </div>
+          <FriendsView />
         ) : (
           <p className={styles.muted}>Inicia sesión para tener amigos.</p>
         ))}

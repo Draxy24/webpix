@@ -81,7 +81,19 @@ export default function FloatingToolbox({
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  // Init position from localStorage or default
+  const [isMobile, setIsMobile] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  // Detectar móvil
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 600px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Init position from localStorage or default (solo escritorio)
   useEffect(() => {
     const saved = localStorage.getItem("toolboxPosition");
     if (saved) {
@@ -90,7 +102,6 @@ export default function FloatingToolbox({
         return;
       } catch {}
     }
-    // Default: bottom center
     setPosition({
       x: window.innerWidth / 2 - 110,
       y: window.innerHeight - 240,
@@ -139,26 +150,9 @@ export default function FloatingToolbox({
     setDragging(true);
   };
 
-  if (!position) return null;
-
-  return (
-    <div
-      className={styles.toolbox}
-      style={{ left: position.x, top: position.y }}
-    >
-      <div
-        className={styles.handle}
-        onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
-        onTouchStart={(e) => {
-          if (e.touches[0])
-            handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
-        }}
-      >
-        <div className={styles.handleDot} />
-        <div className={styles.handleDot} />
-        <div className={styles.handleDot} />
-      </div>
-
+  // Contenido compartido (herramientas + paleta), reutilizado en ambos modos
+  const toolsContent = (
+    <>
       <div className={styles.tools}>
         {(["brush", "eraser", "publish", "private"] as Tool[]).map((tool) => (
           <button
@@ -202,6 +196,48 @@ export default function FloatingToolbox({
           )}
         </div>
       )}
+    </>
+  );
+
+  // Móvil: botón flotante que se expande
+  if (isMobile) {
+    return (
+      <div className={styles.toolboxMobile}>
+        {expanded && <div className={styles.mobilePanel}>{toolsContent}</div>}
+        <button
+          className={styles.mobileToggle}
+          onClick={() => setExpanded((e) => !e)}
+          aria-label="Herramientas"
+        >
+          <ToolIcon tool={activeTool} />
+          <span className={styles.colorDot} style={{ background: color }} />
+        </button>
+      </div>
+    );
+  }
+
+  // Escritorio: toolbox flotante arrastrable
+  if (!position) return null;
+
+  return (
+    <div
+      className={styles.toolbox}
+      style={{ left: position.x, top: position.y }}
+    >
+      <div
+        className={styles.handle}
+        onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
+        onTouchStart={(e) => {
+          if (e.touches[0])
+            handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+        }}
+      >
+        <div className={styles.handleDot} />
+        <div className={styles.handleDot} />
+        <div className={styles.handleDot} />
+      </div>
+
+      {toolsContent}
     </div>
   );
 }

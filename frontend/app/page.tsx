@@ -10,6 +10,7 @@ import SidePanel from "./components/SidePanel";
 import MenuPanel from "./components/MenuPanel";
 import { useSettings } from "./context/settings";
 import SettingsPanel from "./components/SettingsPanel";
+import BugReportView from "./components/BugReportView";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -66,6 +67,8 @@ export default function Home() {
   const [publishTitle, setPublishTitle] = useState("");
   const [publishError, setPublishError] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const zoomRef = useRef(zoom);
+  const multiTouchRef = useRef(false);
 
   const selectionModeRef = useRef(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -183,6 +186,8 @@ export default function Home() {
     ctx.fillRect(0, 0, size, size);
 
     const handleClick = (event: MouseEvent) => {
+      if (multiTouchRef.current) return;
+
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
@@ -502,6 +507,9 @@ export default function Home() {
   useEffect(() => {
     cooldownRef.current = cooldown;
   }, [cooldown]);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
 
   useEffect(() => {
     showCoordsRef.current = settings.showCoords;
@@ -519,6 +527,96 @@ export default function Home() {
     clampZoom();
     window.addEventListener("resize", clampZoom);
     return () => window.removeEventListener("resize", clampZoom);
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let pinchStartDist = 0;
+    let pinchStartZoom = 0;
+    let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const getDist = (t: TouchList) => {
+      const dx = t[0].clientX - t[1].clientX;
+      const dy = t[0].clientY - t[1].clientY;
+      return Math.hypot(dx, dy);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        multiTouchRef.current = true;
+        if (resetTimer) {
+          clearTimeout(resetTimer);
+          resetTimer = null;
+        }
+        pinchStartDist = getDist(e.touches);
+        pinchStartZoom = zoomRef.current;
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        e.preventDefault(); // evita el scroll nativo durante el pellizco
+        const dist = getDist(e.touches);
+        if (pinchStartDist === 0) {
+          pinchStartDist = dist;
+          return;
+        }
+        const ratio = dist / pinchStartDist;
+        const rect = container.getBoundingClientRect();
+        const midX =
+          (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        const midY =
+          (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+
+        setZoom((prev) => {
+          const minZoom = Math.max(
+            1,
+            window.innerWidth / 1000,
+            window.innerHeight / 1000,
+          );
+          const newZoom = Math.max(
+            minZoom,
+            Math.min(pinchStartZoom * ratio, 40),
+          );
+          const canvasX = (container.scrollLeft + midX) / prev;
+          const canvasY = (container.scrollTop + midY) / prev;
+          pendingZoomRef.current = {
+            canvasX,
+            canvasY,
+            mouseX: midX,
+            mouseY: midY,
+          };
+          return newZoom;
+        });
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        pinchStartDist = 0;
+        // mantener el bloqueo un instante para ignorar el click sintético tras el pellizco
+        if (resetTimer) clearTimeout(resetTimer);
+        resetTimer = setTimeout(() => {
+          multiTouchRef.current = false;
+          resetTimer = null;
+        }, 350);
+      }
+    };
+
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd);
+    container.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("touchcancel", onTouchEnd);
+      if (resetTimer) clearTimeout(resetTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -610,6 +708,8 @@ export default function Home() {
           inset: 0,
           overflow: "auto",
           cursor: "grab",
+          touchAction: "pan-x pan-y",
+          overscrollBehavior: "contain",
         }}
       >
         <div
@@ -870,7 +970,6 @@ export default function Home() {
       <SideButtons
         activeSection={panelSection}
         onSelect={(s) => setPanelSection((prev) => (prev === s ? null : s))}
-        onReportBug={() => router.push("/report-bug")}
         panelOpen={panelSection !== null}
       />
 
@@ -885,7 +984,9 @@ export default function Home() {
                 ? "Logros"
                 : panelSection === "tasks"
                   ? "Tareas semanales"
-                  : ""
+                  : panelSection === "bug"
+                    ? "Reportar bug"
+                    : ""
         }
         onClose={() => setPanelSection(null)}
       >
@@ -918,6 +1019,7 @@ export default function Home() {
             Tareas semanales próximamente.
           </p>
         )}
+        {panelSection === "bug" && <BugReportView />}
       </SidePanel>
     </main>
   );

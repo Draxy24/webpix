@@ -1,0 +1,315 @@
+.main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), monospace;
+  font-size: var(--text-lg);
+  color: var(--color-text);
+}
+
+.backLink {
+  font-size: var(--text-sm);
+  color: var(--color-brand);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  border-bottom: var(--border-thin) solid var(--color-border);
+}
+
+.tab {
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tabActive {
+  color: var(--color-menu);
+  border-bottom-color: var(--color-menu);
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.select {
+  padding: 6px 10px;
+  background: var(--color-elevated);
+  color: var(--color-text);
+  border: var(--border-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+
+.list {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.card {
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.badge {
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
+.cardMeta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.cardBody {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardBody strong {
+  color: var(--color-text-secondary);
+}
+
+.preview {
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.details {
+  margin-top: var(--space-2);
+  white-space: pre-wrap;
+  background: var(--color-elevated);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  padding: 6px 10px;
+  font-size: var(--text-xs);
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--color-elevated);
+  color: var(--color-text-secondary);
+  border: var(--border-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  transition: all 0.12s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.actionDanger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.actionDanger:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.actionWarn {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+.actionWarn:hover {
+  background: var(--color-warning);
+  color: var(--color-bg);
+}
+
+.actionSuccess {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+.actionSuccess:hover {
+  background: var(--color-success);
+  color: var(--color-bg);
+}
+
+.actionNeutral:hover {
+  background: var(--color-elevated);
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.logList {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.logEntry {
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  background: var(--color-surface);
+}
+
+.logTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logAction {
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+
+.logMeta {
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  font-size: var(--text-xs);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay, rgba(0, 0, 0, 0.6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.modal {
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--space-5);
+  border: var(--border-normal) solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  width: 360px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--color-text);
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.modalField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modalLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.modalInput {
+  padding: 8px 10px;
+  background: var(--color-elevated);
+  color: var(--color-text);
+  border: var(--border-thin) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.modalError {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.modalButtons {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.centered {
+  text-align: center;
+  margin-top: var(--space-8);
+  color: var(--color-text-secondary);
+}
