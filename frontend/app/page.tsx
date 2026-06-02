@@ -4,7 +4,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
 import { useRouter } from "next/navigation";
-import FloatingToolbox, { type Tool } from "./components/FloatingToolbox";
+import FloatingToolbox, {
+  type Tool,
+  type EraseMode,
+} from "./components/FloatingToolbox";
 import SideButtons, { type PanelSection } from "./components/SideButtons";
 import SidePanel from "./components/SidePanel";
 import MenuPanel from "./components/MenuPanel";
@@ -50,6 +53,8 @@ export default function Home() {
   const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTool, setActiveTool] = useState<Tool>("brush");
+  const [eraseMode, setEraseMode] = useState<EraseMode>("point");
+  const [erasingArea, setErasingArea] = useState(false);
   const pendingZoomRef = useRef<{
     canvasX: number;
     canvasY: number;
@@ -72,6 +77,10 @@ export default function Home() {
 
   const selectionModeRef = useRef(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
+  const activeToolRef = useRef(activeTool);
+  const pixelsRef = useRef(pixels);
+  const nicknameRef = useRef(nickname);
+  const isAdminRef = useRef(isAdmin);
 
   const PALETTES: Record<"FREE" | "PLUS" | "PREMIUM", string[]> = {
     FREE: [
@@ -185,6 +194,59 @@ export default function Home() {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, size, size);
 
+    const eraseAtPoint = (x: number, y: number, key: string) => {
+      if (!tokenRef.current) return; // borrar requiere sesión
+
+      const owner = pixelOwnersRef.current[key];
+      // Solo borras lo tuyo (los admins pueden borrar cualquiera)
+      if (!isAdminRef.current && owner !== nicknameRef.current) return;
+
+      const prevColor = pixelsRef.current[key];
+      if (!prevColor) return; // nada que borrar localmente
+
+      // Optimista: quita el píxel y su dueño
+      setPixels((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      setPixelOwners((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+
+      fetch("http://localhost:3001/erase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenRef.current}`,
+        },
+        body: JSON.stringify({ x, y }),
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!data.success) {
+            setPixels((prev) => ({ ...prev, [key]: prevColor }));
+            if (owner) setPixelOwners((prev) => ({ ...prev, [key]: owner }));
+            return;
+          }
+          if (
+            data.state &&
+            !data.state.isAdmin &&
+            data.state.pixelsLeft !== null
+          ) {
+            setClicksLeft(data.state.pixelsLeft);
+            if (data.state.cooldownSeconds > 0)
+              setCooldown(data.state.cooldownSeconds);
+          }
+        })
+        .catch(() => {
+          setPixels((prev) => ({ ...prev, [key]: prevColor }));
+          if (owner) setPixelOwners((prev) => ({ ...prev, [key]: owner }));
+        });
+    };
+
     const handleClick = (event: MouseEvent) => {
       if (multiTouchRef.current) return;
 
@@ -201,6 +263,10 @@ export default function Home() {
       }
 
       if (selectionModeRef.current) return;
+      if (activeToolRef.current === "eraser") {
+        eraseAtPoint(x, y, key);
+        return;
+      }
       if (cooldownRef.current > 0) return;
       if (clicksRef.current <= 0) return;
 
@@ -636,6 +702,18 @@ export default function Home() {
         }
       },
     );
+    socket.on("erase", (data: { cells: { x: number; y: number }[] }) => {
+      setPixels((prev) => {
+        const next = { ...prev };
+        for (const c of data.cells) delete next[`${c.x},${c.y}`];
+        return next;
+      });
+      setPixelOwners((prev) => {
+        const next = { ...prev };
+        for (const c of data.cells) delete next[`${c.x},${c.y}`];
+        return next;
+      });
+    });
     return () => {
       socket.disconnect();
     };
@@ -647,6 +725,33 @@ export default function Home() {
   useEffect(() => {
     selectionModeRef.current = selectionMode;
   }, [selectionMode]);
+
+  useEffect(() => {
+    activeToolRef.current = activeTool;
+  }, [activeTool]);
+  useEffect(() => {
+    pixelsRef.current = pixels;
+  }, [pixels]);
+  useEffect(() => {
+    nicknameRef.current = nickname;
+  }, [nickname]);
+  useEffect(() => {
+    isAdminRef.current = isAdmin;
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (activeTool === "eraser" && eraseMode === "area") {
+      setSelectionMode(true);
+      setSelection(null);
+    } else if (activeTool === "eraser" && eraseMode === "point") {
+      setSelectionMode(false);
+      setSelection(null);
+    } else if (activeTool !== "eraser") {
+      // Saliste del borrador: limpia cualquier selección de borrado pendiente
+      setSelectionMode(false);
+      setSelection(null);
+    }
+  }, [activeTool, eraseMode]);
 
   const handlePublish = async () => {
     if (!selection || !token) return;
@@ -678,6 +783,42 @@ export default function Home() {
       setPublishError(err instanceof Error ? err.message : "Error al publicar");
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const handleEraseArea = async () => {
+    if (!selection || !token) return;
+    setErasingArea(true);
+    try {
+      const res = await fetch("http://localhost:3001/erase-area", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          x1: selection.x1,
+          y1: selection.y1,
+          x2: selection.x2,
+          y2: selection.y2,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "No se pudo borrar el área");
+        return;
+      }
+      // El evento 'erase' del WebSocket quita los píxeles del lienzo en todos.
+      if (data.state && !data.state.isAdmin && data.state.pixelsLeft !== null) {
+        setClicksLeft(data.state.pixelsLeft);
+        if (data.state.cooldownSeconds > 0)
+          setCooldown(data.state.cooldownSeconds);
+      }
+      setSelection(null);
+    } catch {
+      alert("Error de conexión al borrar el área");
+    } finally {
+      setErasingArea(false);
     }
   };
 
@@ -805,8 +946,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Overlay centro arriba: controles de publicación (temporal) */}
-      {nickname && (
+      {/* Centro arriba: publicación (solo fuera del borrador) */}
+      {nickname && activeTool !== "eraser" && (
         <div style={overlayBoxCenter}>
           {!selectionMode ? (
             <button onClick={() => setSelectionMode(true)} style={navButton}>
@@ -845,6 +986,48 @@ export default function Home() {
         </div>
       )}
 
+      {/* Centro arriba: borrador en área */}
+      {nickname && activeTool === "eraser" && eraseMode === "area" && (
+        <div style={overlayBoxCenter}>
+          <span
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {selection
+              ? `Borrar ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
+              : "Arrastra para seleccionar un área"}
+          </span>
+          <button
+            onClick={handleEraseArea}
+            disabled={!selection || erasingArea}
+            style={navButton}
+          >
+            {erasingArea ? "Borrando..." : "Borrar área"}
+          </button>
+          {selection && (
+            <button onClick={() => setSelection(null)} style={navButton}>
+              Cancelar
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Centro arriba: borrador en punto */}
+      {nickname && activeTool === "eraser" && eraseMode === "point" && (
+        <div style={overlayBoxCenter}>
+          <span
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            Toca tus píxeles para borrarlos
+          </span>
+        </div>
+      )}
+
       {/* Caja de herramientas flotante */}
       <FloatingToolbox
         activeTool={activeTool}
@@ -853,6 +1036,9 @@ export default function Home() {
         onColorChange={setSelectedColor}
         palette={PALETTES[userTier]}
         showCustomColor={userTier === "PREMIUM" || isAdmin}
+        eraseMode={eraseMode}
+        onEraseModeChange={setEraseMode}
+        eraserEnabled={!!nickname}
       />
 
       {/* Tooltip */}

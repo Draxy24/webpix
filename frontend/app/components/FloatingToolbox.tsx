@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./FloatingToolbox.module.css";
 
 export type Tool = "brush" | "eraser" | "publish" | "private";
+export type EraseMode = "point" | "area";
 
 const TOOL_LABELS: Record<Tool, string> = {
   brush: "Pintar",
@@ -14,7 +15,7 @@ const TOOL_LABELS: Record<Tool, string> = {
 
 const TOOL_ENABLED: Record<Tool, boolean> = {
   brush: true,
-  eraser: false,
+  eraser: true,
   publish: false,
   private: false,
 };
@@ -67,6 +68,9 @@ export default function FloatingToolbox({
   onColorChange,
   palette,
   showCustomColor = false,
+  eraseMode = "point",
+  onEraseModeChange,
+  eraserEnabled = false,
 }: {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
@@ -74,6 +78,9 @@ export default function FloatingToolbox({
   onColorChange: (color: string) => void;
   palette: string[];
   showCustomColor?: boolean;
+  eraseMode?: EraseMode;
+  onEraseModeChange?: (mode: EraseMode) => void;
+  eraserEnabled?: boolean;
 }) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
@@ -150,24 +157,31 @@ export default function FloatingToolbox({
     setDragging(true);
   };
 
-  // Contenido compartido (herramientas + paleta), reutilizado en ambos modos
+  // Contenido compartido (herramientas + paneles), reutilizado en ambos modos
   const toolsContent = (
     <>
       <div className={styles.tools}>
-        {(["brush", "eraser", "publish", "private"] as Tool[]).map((tool) => (
-          <button
-            key={tool}
-            className={`${styles.tool} ${activeTool === tool ? styles.toolActive : ""}`}
-            onClick={() => TOOL_ENABLED[tool] && onToolChange(tool)}
-            disabled={!TOOL_ENABLED[tool]}
-          >
-            <ToolIcon tool={tool} />
-            <span className={styles.tooltip}>
-              {TOOL_LABELS[tool]}
-              {!TOOL_ENABLED[tool] && " (próximamente)"}
-            </span>
-          </button>
-        ))}
+        {(["brush", "eraser", "publish", "private"] as Tool[]).map((tool) => {
+          const enabled =
+            TOOL_ENABLED[tool] && (tool !== "eraser" || eraserEnabled);
+          return (
+            <button
+              key={tool}
+              className={`${styles.tool} ${activeTool === tool ? styles.toolActive : ""}`}
+              onClick={() => enabled && onToolChange(tool)}
+              disabled={!enabled}
+            >
+              <ToolIcon tool={tool} />
+              <span className={styles.tooltip}>
+                {TOOL_LABELS[tool]}
+                {!TOOL_ENABLED[tool] && " (próximamente)"}
+                {tool === "eraser" && TOOL_ENABLED.eraser && !eraserEnabled
+                  ? " (inicia sesión)"
+                  : ""}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {activeTool === "brush" && (
@@ -194,6 +208,30 @@ export default function FloatingToolbox({
               <span className={styles.customLabel}>Color personalizado</span>
             </div>
           )}
+        </div>
+      )}
+
+      {activeTool === "eraser" && (
+        <div className={styles.panel}>
+          <div className={styles.eraseModes}>
+            <button
+              className={`${styles.eraseModeBtn} ${eraseMode === "point" ? styles.eraseModeActive : ""}`}
+              onClick={() => onEraseModeChange?.("point")}
+            >
+              Punto
+            </button>
+            <button
+              className={`${styles.eraseModeBtn} ${eraseMode === "area" ? styles.eraseModeActive : ""}`}
+              onClick={() => onEraseModeChange?.("area")}
+            >
+              Área
+            </button>
+          </div>
+          <p className={styles.eraseHint}>
+            {eraseMode === "point"
+              ? "Borra tus píxeles uno por uno."
+              : "Selecciona un área para borrar tus píxeles."}
+          </p>
         </div>
       )}
     </>

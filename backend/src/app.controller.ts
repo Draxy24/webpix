@@ -10,6 +10,8 @@ import {
 import { PrismaService } from './prisma/prisma.service';
 import { PixelService } from './pixel/pixel.service';
 import { OptionalJwtGuard } from './auth/optional-jwt.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { NotBannedGuard } from './auth/not-banned.guard';
 
 @Controller()
 export class AppController {
@@ -65,6 +67,30 @@ export class AppController {
       userId,
       nickname,
       ip,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
+  @Post('erase')
+  async erasePixel(
+    @Request() req: { user: { id: number } },
+    @Body() body: { x: number; y: number },
+  ) {
+    return this.pixelService.eraseOne(req.user.id, body.x, body.y);
+  }
+
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
+  @Post('erase-area')
+  async eraseAreaEndpoint(
+    @Request() req: { user: { id: number } },
+    @Body() body: { x1: number; y1: number; x2: number; y2: number },
+  ) {
+    return this.pixelService.eraseArea(
+      req.user.id,
+      body.x1,
+      body.y1,
+      body.x2,
+      body.y2,
     );
   }
 }

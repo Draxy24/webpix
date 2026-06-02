@@ -9,4 +9,8 @@ export class PixelGateway {
   broadcastPixel(x: number, y: number, color: string, nickname: string | null) {
     this.server.emit('pixel', { x, y, color, nickname });
   }
+
+  broadcastErase(cells: { x: number; y: number }[]) {
+    this.server.emit('erase', { cells });
+  }
 }
