@@ -8,6 +8,7 @@ import { FriendshipsModule } from './friendships/friendships.module';
 import { PublicationsModule } from './publications/publications.module';
 import { RankingsModule } from './rankings/rankings.module';
 import { ModerationModule } from './moderation/moderation.module';
+import { PrivateSpacesModule } from './private-spaces/private-spaces.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ModerationModule } from './moderation/moderation.module';
     PublicationsModule,
     RankingsModule,
     ModerationModule,
+    PrivateSpacesModule,
   ],
   controllers: [AppController],
   providers: [],

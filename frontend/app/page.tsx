@@ -55,6 +55,33 @@ export default function Home() {
   const [activeTool, setActiveTool] = useState<Tool>("brush");
   const [eraseMode, setEraseMode] = useState<EraseMode>("point");
   const [erasingArea, setErasingArea] = useState(false);
+  type PrivateSpaceBox = {
+    id: number;
+    name: string | null;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    accessMode: string;
+    owner: string;
+  };
+  const [privateSpaces, setPrivateSpaces] = useState<PrivateSpaceBox[]>([]);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [purchaseType, setPurchaseType] = useState<"MONTHLY" | "PERMANENT">(
+    "MONTHLY",
+  );
+  const [accessMode, setAccessMode] = useState<
+    "OWNER_ONLY" | "FRIENDS" | "SPECIFIC"
+  >("OWNER_ONLY");
+  const [memberInput, setMemberInput] = useState("");
+  const [quote, setQuote] = useState<{
+    pixels: number;
+    priceCents: number;
+  } | null>(null);
+  const [quoteError, setQuoteError] = useState("");
+  const [purchasing, setPurchasing] = useState(false);
+  const [purchaseError, setPurchaseError] = useState("");
+  const [notice, setNotice] = useState("");
   const pendingZoomRef = useRef<{
     canvasX: number;
     canvasY: number;
@@ -302,6 +329,7 @@ export default function Home() {
             });
             setClicksLeft((prev) => prev + 1);
             if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
+            else if (data.message) setNotice(data.message);
             return;
           }
           if (data.state) {
@@ -743,15 +771,65 @@ export default function Home() {
     if (activeTool === "eraser" && eraseMode === "area") {
       setSelectionMode(true);
       setSelection(null);
-    } else if (activeTool === "eraser" && eraseMode === "point") {
-      setSelectionMode(false);
+    } else if (activeTool === "private") {
+      setSelectionMode(true);
       setSelection(null);
-    } else if (activeTool !== "eraser") {
-      // Saliste del borrador: limpia cualquier selección de borrado pendiente
+    } else {
+      // brush o borrador en punto: sin selección
       setSelectionMode(false);
       setSelection(null);
     }
   }, [activeTool, eraseMode]);
+
+  // Cargar zonas privadas activas para dibujar sus bordes
+  useEffect(() => {
+    fetch("http://localhost:3001/private-spaces/canvas")
+      .then((res) => res.json())
+      .then((data) => setPrivateSpaces(data))
+      .catch(() => {});
+  }, []);
+
+  // Cotización en vivo mientras el modal de compra está abierto
+  useEffect(() => {
+    if (!showPurchaseModal || !selection || !token) return;
+    let cancelled = false;
+    fetch("http://localhost:3001/private-spaces/quote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        x1: selection.x1,
+        y1: selection.y1,
+        x2: selection.x2,
+        y2: selection.y2,
+        purchaseType,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.priceCents != null) {
+          setQuote({ pixels: data.pixels, priceCents: data.priceCents });
+          setQuoteError("");
+        } else {
+          setQuote(null);
+          setQuoteError(data.message || "Área inválida");
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [showPurchaseModal, selection, purchaseType, token]);
+
+  // Auto-ocultar avisos
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(""), 3000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   const handlePublish = async () => {
     if (!selection || !token) return;
@@ -819,6 +897,52 @@ export default function Home() {
       alert("Error de conexión al borrar el área");
     } finally {
       setErasingArea(false);
+    }
+  };
+
+  const handlePurchase = async () => {
+    if (!selection || !token) return;
+    setPurchasing(true);
+    setPurchaseError("");
+    try {
+      const memberNicknames =
+        accessMode === "SPECIFIC"
+          ? memberInput
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined;
+      const res = await fetch("http://localhost:3001/private-spaces", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          x1: selection.x1,
+          y1: selection.y1,
+          x2: selection.x2,
+          y2: selection.y2,
+          accessMode,
+          purchaseType,
+          memberNicknames,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "No se pudo comprar el espacio");
+      }
+      const r = await fetch("http://localhost:3001/private-spaces/canvas");
+      setPrivateSpaces(await r.json());
+      setShowPurchaseModal(false);
+      setSelection(null);
+      setMemberInput("");
+      setAccessMode("OWNER_ONLY");
+      alert("¡Espacio privado comprado!");
+    } catch (err) {
+      setPurchaseError(err instanceof Error ? err.message : "Error al comprar");
+    } finally {
+      setPurchasing(false);
     }
   };
 
@@ -902,6 +1026,40 @@ export default function Home() {
               }}
             />
           )}
+          {privateSpaces.map((sp) => (
+            <div
+              key={sp.id}
+              style={{
+                position: "absolute",
+                left: `${sp.x1 * zoom}px`,
+                top: `${sp.y1 * zoom}px`,
+                width: `${(sp.x2 - sp.x1 + 1) * zoom}px`,
+                height: `${(sp.y2 - sp.y1 + 1) * zoom}px`,
+                border: "2px dashed #8B5CF6",
+                background: "rgba(139, 92, 246, 0.08)",
+                pointerEvents: "none",
+                boxSizing: "border-box",
+                zIndex: 5,
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  transform: "translateY(-100%)",
+                  background: "#8B5CF6",
+                  color: "#fff",
+                  fontSize: "10px",
+                  padding: "1px 4px",
+                  whiteSpace: "nowrap",
+                  borderRadius: "var(--radius-sm) var(--radius-sm) 0 0",
+                }}
+              >
+                🔒 {sp.name || sp.owner}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -946,8 +1104,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Centro arriba: publicación (solo fuera del borrador) */}
-      {nickname && activeTool !== "eraser" && (
+      {/* Centro arriba: publicación (solo con el pincel) */}
+      {nickname && activeTool === "brush" && (
         <div style={overlayBoxCenter}>
           {!selectionMode ? (
             <button onClick={() => setSelectionMode(true)} style={navButton}>
@@ -1028,6 +1186,34 @@ export default function Home() {
         </div>
       )}
 
+      {/* Centro arriba: comprar espacio privado */}
+      {nickname && activeTool === "private" && (
+        <div style={overlayBoxCenter}>
+          <span
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {selection
+              ? `Espacio ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
+              : "Arrastra para seleccionar un área"}
+          </span>
+          <button
+            onClick={() => setShowPurchaseModal(true)}
+            disabled={!selection}
+            style={navButton}
+          >
+            Comprar espacio
+          </button>
+          {selection && (
+            <button onClick={() => setSelection(null)} style={navButton}>
+              Cancelar
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Caja de herramientas flotante */}
       <FloatingToolbox
         activeTool={activeTool}
@@ -1039,6 +1225,7 @@ export default function Home() {
         eraseMode={eraseMode}
         onEraseModeChange={setEraseMode}
         eraserEnabled={!!nickname}
+        privateEnabled={!!nickname}
       />
 
       {/* Tooltip */}
@@ -1153,6 +1340,181 @@ export default function Home() {
         </div>
       )}
 
+      {/* Modal de compra de espacio privado */}
+      {showPurchaseModal && selection && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "var(--color-overlay)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--color-surface)",
+              padding: "var(--space-6)",
+              borderRadius: "var(--radius-lg)",
+              border: "var(--border-normal) solid var(--color-border-strong)",
+              maxWidth: "420px",
+              width: "90%",
+            }}
+          >
+            <h2 style={{ marginTop: 0 }}>Comprar espacio privado</h2>
+            <p
+              style={{
+                fontSize: "var(--text-sm)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              Área: {selection.x2 - selection.x1 + 1} ×{" "}
+              {selection.y2 - selection.y1 + 1} (
+              {(selection.x2 - selection.x1 + 1) *
+                (selection.y2 - selection.y1 + 1)}{" "}
+              px)
+            </p>
+
+            <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
+              Tipo de compra
+            </p>
+            <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+              <button
+                onClick={() => setPurchaseType("MONTHLY")}
+                style={toggleButton(purchaseType === "MONTHLY")}
+              >
+                Mensual
+              </button>
+              <button
+                onClick={() => setPurchaseType("PERMANENT")}
+                style={toggleButton(purchaseType === "PERMANENT")}
+              >
+                Permanente
+              </button>
+            </div>
+
+            <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
+              Quién puede pintar
+            </p>
+            <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+              <button
+                onClick={() => setAccessMode("OWNER_ONLY")}
+                style={toggleButton(accessMode === "OWNER_ONLY")}
+              >
+                Solo yo
+              </button>
+              <button
+                onClick={() => setAccessMode("FRIENDS")}
+                style={toggleButton(accessMode === "FRIENDS")}
+              >
+                Amigos
+              </button>
+              <button
+                onClick={() => setAccessMode("SPECIFIC")}
+                style={toggleButton(accessMode === "SPECIFIC")}
+              >
+                Específicos
+              </button>
+            </div>
+
+            {accessMode === "SPECIFIC" && (
+              <input
+                type="text"
+                placeholder="Nicknames separados por coma"
+                value={memberInput}
+                onChange={(e) => setMemberInput(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  marginBottom: "12px",
+                  boxSizing: "border-box",
+                }}
+              />
+            )}
+
+            <div style={{ fontSize: "var(--text-base)", marginBottom: "12px" }}>
+              {quote ? (
+                <span>
+                  Precio:{" "}
+                  <strong style={{ color: "var(--color-brand)" }}>
+                    ${(quote.priceCents / 100).toFixed(2)}
+                  </strong>
+                  {purchaseType === "MONTHLY" ? " / mes" : " (único pago)"}
+                </span>
+              ) : (
+                <span style={{ color: "var(--color-danger)" }}>
+                  {quoteError || "Calculando..."}
+                </span>
+              )}
+            </div>
+
+            {purchaseError && (
+              <p
+                style={{
+                  color: "var(--color-danger)",
+                  fontSize: "var(--text-sm)",
+                  marginTop: 0,
+                }}
+              >
+                {purchaseError}
+              </p>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowPurchaseModal(false);
+                  setPurchaseError("");
+                }}
+                style={{ padding: "8px 16px", cursor: "pointer" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePurchase}
+                disabled={purchasing || !quote}
+                style={{
+                  padding: "8px 16px",
+                  cursor: purchasing || !quote ? "not-allowed" : "pointer",
+                }}
+              >
+                {purchasing ? "Comprando..." : "Confirmar compra"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aviso transitorio */}
+      {notice && (
+        <div
+          style={{
+            position: "absolute",
+            top: "64px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "var(--color-surface)",
+            border: "var(--border-normal) solid var(--color-danger)",
+            color: "var(--color-text)",
+            padding: "var(--space-2) var(--space-4)",
+            borderRadius: "var(--radius-md)",
+            fontSize: "var(--text-sm)",
+            boxShadow: "var(--shadow-soft-md)",
+            zIndex: 1500,
+          }}
+        >
+          {notice}
+        </div>
+      )}
+
       <SideButtons
         activeSection={panelSection}
         onSelect={(s) => setPanelSection((prev) => (prev === s ? null : s))}
@@ -1263,3 +1625,18 @@ const navButton: React.CSSProperties = {
   color: "var(--color-text)",
   padding: "4px 8px",
 };
+
+function toggleButton(active: boolean): React.CSSProperties {
+  return {
+    flex: 1,
+    padding: "6px 8px",
+    fontSize: "var(--text-sm)",
+    cursor: "pointer",
+    borderRadius: "var(--radius-sm)",
+    border: `var(--border-normal) solid ${
+      active ? "var(--color-brand)" : "var(--color-border-strong)"
+    }`,
+    background: active ? "var(--color-elevated)" : "transparent",
+    color: active ? "var(--color-brand)" : "var(--color-text)",
+  };
+}

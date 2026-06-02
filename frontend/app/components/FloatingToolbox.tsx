@@ -17,7 +17,7 @@ const TOOL_ENABLED: Record<Tool, boolean> = {
   brush: true,
   eraser: true,
   publish: false,
-  private: false,
+  private: true,
 };
 
 function ToolIcon({ tool }: { tool: Tool }) {
@@ -71,6 +71,7 @@ export default function FloatingToolbox({
   eraseMode = "point",
   onEraseModeChange,
   eraserEnabled = false,
+  privateEnabled = false,
 }: {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
@@ -81,6 +82,7 @@ export default function FloatingToolbox({
   eraseMode?: EraseMode;
   onEraseModeChange?: (mode: EraseMode) => void;
   eraserEnabled?: boolean;
+  privateEnabled?: boolean;
 }) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
@@ -163,7 +165,9 @@ export default function FloatingToolbox({
       <div className={styles.tools}>
         {(["brush", "eraser", "publish", "private"] as Tool[]).map((tool) => {
           const enabled =
-            TOOL_ENABLED[tool] && (tool !== "eraser" || eraserEnabled);
+            TOOL_ENABLED[tool] &&
+            (tool !== "eraser" || eraserEnabled) &&
+            (tool !== "private" || privateEnabled);
           return (
             <button
               key={tool}
@@ -176,6 +180,9 @@ export default function FloatingToolbox({
                 {TOOL_LABELS[tool]}
                 {!TOOL_ENABLED[tool] && " (próximamente)"}
                 {tool === "eraser" && TOOL_ENABLED.eraser && !eraserEnabled
+                  ? " (inicia sesión)"
+                  : ""}
+                {tool === "private" && TOOL_ENABLED.private && !privateEnabled
                   ? " (inicia sesión)"
                   : ""}
               </span>
@@ -231,6 +238,14 @@ export default function FloatingToolbox({
             {eraseMode === "point"
               ? "Borra tus píxeles uno por uno."
               : "Selecciona un área para borrar tus píxeles."}
+          </p>
+        </div>
+      )}
+
+      {activeTool === "private" && (
+        <div className={styles.panel}>
+          <p className={styles.eraseHint}>
+            Selecciona un área del lienzo para comprarla como espacio privado.
           </p>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PixelGateway } from './pixel.gateway';
+import { PrivateSpacesService } from '../private-spaces/private-spaces.service';
 import { SubscriptionTier } from '@prisma/client';
 
 const TIER_LIMITS: Record<
@@ -45,6 +46,7 @@ export class PixelService {
   constructor(
     private prisma: PrismaService,
     private gateway: PixelGateway,
+    private privateSpaces: PrivateSpacesService,
   ) {}
 
   async checkAndPaint(
@@ -77,6 +79,56 @@ export class PixelService {
         message: 'Usuario no encontrado',
       };
 
+    // ¿Cae dentro de un espacio privado?
+    const access = await this.privateSpaces.checkPaintAccess(userId, x, y);
+    if (access.inSpace) {
+      const canPaintHere = access.allowed || user.isAdmin;
+      if (!canPaintHere) {
+        return {
+          success: false,
+          cooldownSeconds: 0,
+          message: 'Este píxel pertenece a un espacio privado',
+        };
+      }
+
+      // Pintado libre dentro de un espacio con acceso: no consume cuota ni cooldown
+      const now = new Date();
+      if (!user.isAdmin && user.cooldownUntil && user.cooldownUntil <= now) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { pixelsUsed: 0, cooldownUntil: null },
+        });
+        user.pixelsUsed = 0;
+        user.cooldownUntil = null;
+      }
+
+      await this.prisma.pixel.upsert({
+        where: { x_y: { x, y } },
+        update: { color, userId, paintedAt: new Date() },
+        create: { x, y, color, userId },
+      });
+      this.gateway.broadcastPixel(x, y, color, nickname);
+
+      const limit = TIER_LIMITS[user.subscriptionTier];
+      const cooldownActive = user.cooldownUntil && user.cooldownUntil > now;
+      const cooldownSeconds = cooldownActive
+        ? Math.ceil((user.cooldownUntil!.getTime() - now.getTime()) / 1000)
+        : 0;
+
+      return {
+        success: true,
+        state: {
+          isAdmin: user.isAdmin,
+          pixelsLeft:
+            user.isAdmin || limit.pixels === Infinity
+              ? null
+              : Math.max(limit.pixels - user.pixelsUsed, 0),
+          cooldownSeconds,
+        },
+      };
+    }
+
+    // ----- Flujo normal (fuera de espacios privados) -----
     if (!user.isAdmin) {
       const limit = TIER_LIMITS[user.subscriptionTier];
       const now = new Date();
@@ -165,6 +217,16 @@ export class PixelService {
     color: string,
     ip: string,
   ): Promise<PaintResult> {
+    // Los anónimos no pueden pintar dentro de espacios privados
+    const access = await this.privateSpaces.checkPaintAccess(null, x, y);
+    if (access.inSpace) {
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Este píxel pertenece a un espacio privado',
+      };
+    }
+
     const now = new Date();
     const state = anonymousCooldowns.get(ip) ?? {
       pixelsUsed: 0,
@@ -213,6 +275,7 @@ export class PixelService {
       },
     };
   }
+
   getAnonymousState(ip: string): {
     pixelsLeft: number;
     cooldownSeconds: number;
@@ -253,7 +316,6 @@ export class PixelService {
     let cooldownUntil = user.cooldownUntil;
 
     if (cooldownUntil && cooldownUntil <= now) {
-      // El cooldown ya expiró: se resetea (recupera todo)
       pixelsUsed = 0;
       cooldownUntil = null;
       await this.prisma.user.update({
@@ -261,14 +323,12 @@ export class PixelService {
         data: { pixelsUsed: 0, cooldownUntil: null },
       });
     } else if (!cooldownUntil) {
-      // No está en cooldown: recupera un slot por cada píxel borrado
       pixelsUsed = Math.max(pixelsUsed - count, 0);
       await this.prisma.user.update({
         where: { id: userId },
         data: { pixelsUsed },
       });
     }
-    // Si está en cooldown activo (cooldownUntil > now): NO se toca pixelsUsed
 
     const cooldownActive = cooldownUntil && cooldownUntil > now;
     const cooldownSeconds = cooldownActive
@@ -295,7 +355,30 @@ export class PixelService {
     if (!pixel)
       return { success: false, message: 'No hay nada que borrar aquí' };
 
-    if (!user.isAdmin && pixel.userId !== userId) {
+    // Admin borra cualquier cosa (moderación), sin reembolso
+    if (user.isAdmin) {
+      await this.prisma.pixel.delete({ where: { x_y: { x, y } } });
+      this.gateway.broadcastErase([{ x, y }]);
+      return { success: true, erased: 1, state: null };
+    }
+
+    // ¿Dentro de un espacio privado?
+    const access = await this.privateSpaces.checkPaintAccess(userId, x, y);
+    if (access.inSpace) {
+      if (!access.allowed) {
+        return {
+          success: false,
+          message: 'Este píxel pertenece a un espacio privado',
+        };
+      }
+      // Con acceso: puedes borrar, pero sin reembolso (pintar ahí fue gratis)
+      await this.prisma.pixel.delete({ where: { x_y: { x, y } } });
+      this.gateway.broadcastErase([{ x, y }]);
+      return { success: true, erased: 1, state: null };
+    }
+
+    // Fuera de espacios privados: solo tus propios píxeles, con reembolso
+    if (pixel.userId !== userId) {
       return {
         success: false,
         message: 'Solo puedes borrar tus propios píxeles',
@@ -304,8 +387,7 @@ export class PixelService {
 
     await this.prisma.pixel.delete({ where: { x_y: { x, y } } });
     this.gateway.broadcastErase([{ x, y }]);
-
-    const state = user.isAdmin ? null : await this.applyRefund(userId, 1);
+    const state = await this.applyRefund(userId, 1);
     return { success: true, erased: 1, state };
   }
 
@@ -324,6 +406,23 @@ export class PixelService {
     const minY = Math.min(y1, y2);
     const maxY = Math.max(y1, y2);
 
+    // Los no-admin no pueden borrar en área sobre espacios privados (usen modo punto ahí)
+    if (!user.isAdmin) {
+      const overlaps = await this.privateSpaces.overlapsActiveSpace(
+        minX,
+        maxX,
+        minY,
+        maxY,
+      );
+      if (overlaps) {
+        return {
+          success: false,
+          message:
+            'El área toca un espacio privado. Usa el modo punto dentro de espacios privados.',
+        };
+      }
+    }
+
     const pixels = await this.prisma.pixel.findMany({
       where: { x: { gte: minX, lte: maxX }, y: { gte: minY, lte: maxY } },
     });
@@ -338,13 +437,11 @@ export class PixelService {
     let cells: { x: number; y: number }[];
 
     if (user.isAdmin) {
-      // Admin: borra todo el área (moderación)
       cells = pixels.map((p) => ({ x: p.x, y: p.y }));
       await this.prisma.pixel.deleteMany({
         where: { x: { gte: minX, lte: maxX }, y: { gte: minY, lte: maxY } },
       });
     } else {
-      // Si hay píxeles de OTRO usuario, se bloquea todo
       const foreign = pixels.some(
         (p) => p.userId !== null && p.userId !== userId,
       );
@@ -355,7 +452,6 @@ export class PixelService {
             'El área contiene píxeles de otro usuario. Píntalos primero para reclamarlos.',
         };
       }
-      // Borra solo los tuyos (los anónimos/vacíos se quedan)
       const mine = pixels.filter((p) => p.userId === userId);
       if (mine.length === 0) {
         return {
