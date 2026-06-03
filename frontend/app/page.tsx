@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import FloatingToolbox, {
   type Tool,
   type EraseMode,
+  type PrivateMode,
 } from "./components/FloatingToolbox";
 import SideButtons, { type PanelSection } from "./components/SideButtons";
 import SidePanel from "./components/SidePanel";
@@ -14,6 +15,7 @@ import MenuPanel from "./components/MenuPanel";
 import { useSettings } from "./context/settings";
 import SettingsPanel from "./components/SettingsPanel";
 import BugReportView from "./components/BugReportView";
+import PrivateSpacesView from "./components/PrivateSpacesView";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -54,6 +56,8 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTool, setActiveTool] = useState<Tool>("brush");
   const [eraseMode, setEraseMode] = useState<EraseMode>("point");
+  const [privateMode, setPrivateMode] = useState<PrivateMode>("buy");
+  const [showManageModal, setShowManageModal] = useState(false);
   const [erasingArea, setErasingArea] = useState(false);
   type PrivateSpaceBox = {
     id: number;
@@ -771,15 +775,15 @@ export default function Home() {
     if (activeTool === "eraser" && eraseMode === "area") {
       setSelectionMode(true);
       setSelection(null);
-    } else if (activeTool === "private") {
+    } else if (activeTool === "private" && privateMode === "buy") {
       setSelectionMode(true);
       setSelection(null);
     } else {
-      // brush o borrador en punto: sin selección
+      // brush, borrador en punto, o gestionar espacios: sin selección
       setSelectionMode(false);
       setSelection(null);
     }
-  }, [activeTool, eraseMode]);
+  }, [activeTool, eraseMode, privateMode]);
 
   // Cargar zonas privadas activas para dibujar sus bordes
   useEffect(() => {
@@ -1187,7 +1191,7 @@ export default function Home() {
       )}
 
       {/* Centro arriba: comprar espacio privado */}
-      {nickname && activeTool === "private" && (
+      {nickname && activeTool === "private" && privateMode === "buy" && (
         <div style={overlayBoxCenter}>
           <span
             style={{
@@ -1226,6 +1230,11 @@ export default function Home() {
         onEraseModeChange={setEraseMode}
         eraserEnabled={!!nickname}
         privateEnabled={!!nickname}
+        privateMode={privateMode}
+        onPrivateModeChange={(mode) => {
+          setPrivateMode(mode);
+          if (mode === "manage") setShowManageModal(true);
+        }}
       />
 
       {/* Tooltip */}
@@ -1512,6 +1521,68 @@ export default function Home() {
           }}
         >
           {notice}
+        </div>
+      )}
+
+      {/* Modal de gestión de espacios privados */}
+      {showManageModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "var(--color-overlay)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--color-surface)",
+              padding: "var(--space-6)",
+              borderRadius: "var(--radius-lg)",
+              border: "var(--border-normal) solid var(--color-border-strong)",
+              maxWidth: "440px",
+              width: "90%",
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "var(--space-4)",
+              }}
+            >
+              <h2 style={{ margin: 0 }}>Mis espacios privados</h2>
+              <button
+                onClick={() => {
+                  setShowManageModal(false);
+                  setPrivateMode("buy");
+                  // refrescar bordes por si liberó o cambió algo
+                  fetch("http://localhost:3001/private-spaces/canvas")
+                    .then((res) => res.json())
+                    .then((data) => setPrivateSpaces(data))
+                    .catch(() => {});
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--color-text-secondary)",
+                  fontSize: "var(--text-xl)",
+                  cursor: "pointer",
+                  lineHeight: 1,
+                }}
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <PrivateSpacesView />
+          </div>
         </div>
       )}
 

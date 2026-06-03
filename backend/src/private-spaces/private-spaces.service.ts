@@ -27,18 +27,19 @@ export class PrivateSpacesService {
   private validateSize(minX: number, maxX: number, minY: number, maxY: number) {
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
-    const { MIN_SIDE, MAX_SIDE } = PRIVATE_SPACE_CONFIG;
-    if (width < MIN_SIDE || height < MIN_SIDE) {
+    const pixels = width * height;
+    const { MIN_PIXELS, MAX_SIDE } = PRIVATE_SPACE_CONFIG;
+    if (pixels < MIN_PIXELS) {
       throw new BadRequestException(
-        `El espacio debe medir al menos ${MIN_SIDE}×${MIN_SIDE} píxeles`,
+        `El espacio debe tener al menos ${MIN_PIXELS} píxeles de área`,
       );
     }
     if (width > MAX_SIDE || height > MAX_SIDE) {
       throw new BadRequestException(
-        `El espacio no puede exceder ${MAX_SIDE} píxeles por lado`,
+        `Ningún lado puede exceder ${MAX_SIDE} píxeles`,
       );
     }
-    return width * height;
+    return pixels;
   }
 
   private activeWhere(now: Date): Prisma.PrivateSpaceWhereInput {

@@ -5,6 +5,7 @@ import styles from "./FloatingToolbox.module.css";
 
 export type Tool = "brush" | "eraser" | "publish" | "private";
 export type EraseMode = "point" | "area";
+export type PrivateMode = "buy" | "manage";
 
 const TOOL_LABELS: Record<Tool, string> = {
   brush: "Pintar",
@@ -72,6 +73,8 @@ export default function FloatingToolbox({
   onEraseModeChange,
   eraserEnabled = false,
   privateEnabled = false,
+  privateMode = "buy",
+  onPrivateModeChange,
 }: {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
@@ -83,6 +86,8 @@ export default function FloatingToolbox({
   onEraseModeChange?: (mode: EraseMode) => void;
   eraserEnabled?: boolean;
   privateEnabled?: boolean;
+  privateMode?: PrivateMode;
+  onPrivateModeChange?: (mode: PrivateMode) => void;
 }) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
@@ -244,8 +249,24 @@ export default function FloatingToolbox({
 
       {activeTool === "private" && (
         <div className={styles.panel}>
+          <div className={styles.eraseModes}>
+            <button
+              className={`${styles.eraseModeBtn} ${privateMode === "buy" ? styles.eraseModeActive : ""}`}
+              onClick={() => onPrivateModeChange?.("buy")}
+            >
+              Comprar
+            </button>
+            <button
+              className={`${styles.eraseModeBtn} ${privateMode === "manage" ? styles.eraseModeActive : ""}`}
+              onClick={() => onPrivateModeChange?.("manage")}
+            >
+              Gestionar
+            </button>
+          </div>
           <p className={styles.eraseHint}>
-            Selecciona un área del lienzo para comprarla como espacio privado.
+            {privateMode === "buy"
+              ? "Selecciona un área del lienzo para comprarla."
+              : "Administra tus espacios comprados."}
           </p>
         </div>
       )}
