@@ -17,7 +17,7 @@ const TOOL_LABELS: Record<Tool, string> = {
 const TOOL_ENABLED: Record<Tool, boolean> = {
   brush: true,
   eraser: true,
-  publish: false,
+  publish: true,
   private: true,
 };
 
@@ -73,6 +73,7 @@ export default function FloatingToolbox({
   onEraseModeChange,
   eraserEnabled = false,
   privateEnabled = false,
+  publishEnabled = false,
   privateMode = "buy",
   onPrivateModeChange,
 }: {
@@ -86,6 +87,7 @@ export default function FloatingToolbox({
   onEraseModeChange?: (mode: EraseMode) => void;
   eraserEnabled?: boolean;
   privateEnabled?: boolean;
+  publishEnabled?: boolean;
   privateMode?: PrivateMode;
   onPrivateModeChange?: (mode: PrivateMode) => void;
 }) {
@@ -172,7 +174,8 @@ export default function FloatingToolbox({
           const enabled =
             TOOL_ENABLED[tool] &&
             (tool !== "eraser" || eraserEnabled) &&
-            (tool !== "private" || privateEnabled);
+            (tool !== "private" || privateEnabled) &&
+            (tool !== "publish" || publishEnabled);
           return (
             <button
               key={tool}
@@ -188,6 +191,9 @@ export default function FloatingToolbox({
                   ? " (inicia sesión)"
                   : ""}
                 {tool === "private" && TOOL_ENABLED.private && !privateEnabled
+                  ? " (inicia sesión)"
+                  : ""}
+                {tool === "publish" && TOOL_ENABLED.publish && !publishEnabled
                   ? " (inicia sesión)"
                   : ""}
               </span>
@@ -243,6 +249,14 @@ export default function FloatingToolbox({
             {eraseMode === "point"
               ? "Borra tus píxeles uno por uno."
               : "Selecciona un área para borrar tus píxeles."}
+          </p>
+        </div>
+      )}
+
+      {activeTool === "publish" && (
+        <div className={styles.panel}>
+          <p className={styles.eraseHint}>
+            Selecciona tu creación en el lienzo para publicarla.
           </p>
         </div>
       )}

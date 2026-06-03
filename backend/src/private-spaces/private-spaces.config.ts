@@ -1,4 +1,5 @@
 export const PRIVATE_SPACE_CONFIG = {
+  MIN_SIDE: 4,
   MIN_PIXELS: 64, // mínimo 8 px por lado
   MAX_SIDE: 100, // máximo 100 px por lado (100×100 = 10,000 px máx por espacio)
   MAX_SPACES_PER_USER: 3, // máximo de espacios activos por usuario

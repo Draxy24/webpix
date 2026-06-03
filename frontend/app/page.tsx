@@ -778,6 +778,9 @@ export default function Home() {
     } else if (activeTool === "private" && privateMode === "buy") {
       setSelectionMode(true);
       setSelection(null);
+    } else if (activeTool === "publish") {
+      setSelectionMode(true);
+      setSelection(null);
     } else {
       // brush, borrador en punto, o gestionar espacios: sin selección
       setSelectionMode(false);
@@ -857,7 +860,6 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al publicar");
       setShowPublishModal(false);
-      setSelectionMode(false);
       setSelection(null);
       setPublishTitle("");
       alert("¡Publicación creada exitosamente!");
@@ -1108,42 +1110,30 @@ export default function Home() {
         </div>
       )}
 
-      {/* Centro arriba: publicación (solo con el pincel) */}
-      {nickname && activeTool === "brush" && (
+      {/* Centro arriba: publicar creación */}
+      {nickname && activeTool === "publish" && (
         <div style={overlayBoxCenter}>
-          {!selectionMode ? (
-            <button onClick={() => setSelectionMode(true)} style={navButton}>
-              Publicar creación
+          <span
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {selection
+              ? `Publicar ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
+              : "Arrastra para seleccionar tu creación"}
+          </span>
+          <button
+            onClick={() => setShowPublishModal(true)}
+            disabled={!selection}
+            style={navButton}
+          >
+            Publicar
+          </button>
+          {selection && (
+            <button onClick={() => setSelection(null)} style={navButton}>
+              Cancelar
             </button>
-          ) : (
-            <>
-              <span
-                style={{
-                  fontSize: "var(--text-sm)",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                {selection
-                  ? `${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
-                  : "Arrastra sobre el lienzo"}
-              </span>
-              <button
-                onClick={() => setShowPublishModal(true)}
-                disabled={!selection}
-                style={navButton}
-              >
-                Publicar
-              </button>
-              <button
-                onClick={() => {
-                  setSelectionMode(false);
-                  setSelection(null);
-                }}
-                style={navButton}
-              >
-                Cancelar
-              </button>
-            </>
           )}
         </div>
       )}
@@ -1230,6 +1220,7 @@ export default function Home() {
         onEraseModeChange={setEraseMode}
         eraserEnabled={!!nickname}
         privateEnabled={!!nickname}
+        publishEnabled={!!nickname}
         privateMode={privateMode}
         onPrivateModeChange={(mode) => {
           setPrivateMode(mode);

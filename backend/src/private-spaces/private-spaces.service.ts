@@ -28,7 +28,12 @@ export class PrivateSpacesService {
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
     const pixels = width * height;
-    const { MIN_PIXELS, MAX_SIDE } = PRIVATE_SPACE_CONFIG;
+    const { MIN_SIDE, MIN_PIXELS, MAX_SIDE } = PRIVATE_SPACE_CONFIG;
+    if (width < MIN_SIDE || height < MIN_SIDE) {
+      throw new BadRequestException(
+        `Ningún lado puede ser menor a ${MIN_SIDE} píxeles`,
+      );
+    }
     if (pixels < MIN_PIXELS) {
       throw new BadRequestException(
         `El espacio debe tener al menos ${MIN_PIXELS} píxeles de área`,
