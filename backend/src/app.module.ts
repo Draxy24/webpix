@@ -10,6 +10,8 @@ import { RankingsModule } from './rankings/rankings.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { PrivateSpacesModule } from './private-spaces/private-spaces.module';
 import { RewardsModule } from './rewards/rewards.module';
+import { AchievementsModule } from './achievements/achievements.module';
+import { WeeklyTasksModule } from './weekly-tasks/weekly-tasks.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { RewardsModule } from './rewards/rewards.module';
     ModerationModule,
     PrivateSpacesModule,
     RewardsModule,
+    AchievementsModule,
+    WeeklyTasksModule,
   ],
   controllers: [AppController],
   providers: [],

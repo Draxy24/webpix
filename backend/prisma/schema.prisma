@@ -28,6 +28,9 @@ model User {
   bits  Int @default(0)
   xp    Int @default(0)
   level Int @default(1)
+  pixelsPlaced        Int @default(0)
+  publicationsCreated Int @default(0)
+  likesReceived       Int @default(0)
 
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")
@@ -38,6 +41,8 @@ model User {
   privateSpaces      PrivateSpace[]
   privateSpaceAccess PrivateSpaceMember[]
   cosmetics UserCosmetic[]
+  achievements UserAchievement[]
+  weeklyTasks UserWeeklyTask[]
 }
 
 model Pixel {
@@ -255,4 +260,69 @@ enum CosmeticSource {
   RANKING
   EVENT
   SHOP
+}
+
+model Achievement {
+  id                Int               @id @default(autoincrement())
+  key               String            @unique
+  name              String
+  description       String?
+  metric            AchievementMetric
+  threshold         Int
+  rewardXp          Int               @default(0)
+  rewardBits        Int               @default(0)
+  rewardCosmeticKey String?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+
+  unlocks           UserAchievement[]
+}
+
+model UserAchievement {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  achievementId Int
+  completedAt   DateTime @default(now())
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}
+
+enum AchievementMetric {
+  PIXELS_PLACED
+  PUBLICATIONS_CREATED
+  LIKES_RECEIVED
+}
+
+model WeeklyTask {
+  id                Int               @id @default(autoincrement())
+  key               String            @unique
+  name              String
+  description       String?
+  metric            AchievementMetric
+  threshold         Int
+  rewardXp          Int               @default(0)
+  rewardBits        Int               @default(0)
+  rewardCosmeticKey String?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+
+  progress          UserWeeklyTask[]
+}
+
+model UserWeeklyTask {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  weeklyTaskId Int
+  weekKey      String
+  progress     Int       @default(0)
+  completed    Boolean   @default(false)
+  completedAt  DateTime?
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weeklyTask   WeeklyTask @relation(fields: [weeklyTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weeklyTaskId, weekKey])
 }

@@ -16,6 +16,8 @@ import { useSettings } from "./context/settings";
 import SettingsPanel from "./components/SettingsPanel";
 import BugReportView from "./components/BugReportView";
 import PrivateSpacesView from "./components/PrivateSpacesView";
+import AchievementsView from "./components/AchievementsView";
+import WeeklyTasksView from "./components/WeeklyTasksView";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -1619,16 +1621,8 @@ export default function Home() {
             showCustomColor={userTier === "PREMIUM" || isAdmin}
           />
         )}
-        {panelSection === "achievements" && (
-          <p style={{ color: "var(--color-text-secondary)" }}>
-            Logros próximamente.
-          </p>
-        )}
-        {panelSection === "tasks" && (
-          <p style={{ color: "var(--color-text-secondary)" }}>
-            Tareas semanales próximamente.
-          </p>
-        )}
+        {panelSection === "achievements" && <AchievementsView />}
+        {panelSection === "tasks" && <WeeklyTasksView />}
         {panelSection === "bug" && <BugReportView />}
       </SidePanel>
     </main>

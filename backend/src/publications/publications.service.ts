@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { AchievementsService } from '../achievements/achievements.service';
 
 const MIN_AREA = 64; // equivalente a 8x8 en superficie total
 const MIN_SIDE = 4; // evita líneas absurdamente delgadas (ej. 64x1)
@@ -16,7 +17,10 @@ const MAX_TITLE_LENGTH = 60;
 
 @Injectable()
 export class PublicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private achievements: AchievementsService,
+  ) {}
 
   async create(
     userId: number,
@@ -71,7 +75,7 @@ export class PublicationsService {
       pixelData[`${pixel.x},${pixel.y}`] = pixel.color;
     }
 
-    return this.prisma.publication.create({
+    const publication = await this.prisma.publication.create({
       data: {
         userId,
         title: data.title || null,
@@ -82,6 +86,10 @@ export class PublicationsService {
         pixelData: pixelData as Prisma.InputJsonValue,
       },
     });
+
+    await this.achievements.track(userId, 'PUBLICATIONS_CREATED');
+
+    return publication;
   }
 
   async listByUser(nickname: string) {
@@ -180,24 +188,29 @@ export class PublicationsService {
       where: { publicationId_userId: { publicationId, userId } },
     });
 
+    let result: { reaction: 'LIKE' | 'DISLIKE' | null };
     if (existing) {
       if (existing.type === type) {
         await this.prisma.publicationReaction.delete({
           where: { id: existing.id },
         });
-        return { reaction: null };
+        result = { reaction: null };
+      } else {
+        await this.prisma.publicationReaction.update({
+          where: { id: existing.id },
+          data: { type },
+        });
+        result = { reaction: type };
       }
-      await this.prisma.publicationReaction.update({
-        where: { id: existing.id },
-        data: { type },
+    } else {
+      await this.prisma.publicationReaction.create({
+        data: { publicationId, userId, type },
       });
-      return { reaction: type };
+      result = { reaction: type };
     }
 
-    await this.prisma.publicationReaction.create({
-      data: { publicationId, userId, type },
-    });
-    return { reaction: type };
+    await this.achievements.recountLikes(publication.userId);
+    return result;
   }
 
   async addComment(publicationId: number, userId: number, content: string) {

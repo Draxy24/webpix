@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PixelGateway } from './pixel.gateway';
 import { PrivateSpacesService } from '../private-spaces/private-spaces.service';
 import { SubscriptionTier } from '@prisma/client';
+import { AchievementsService } from '../achievements/achievements.service';
 
 const TIER_LIMITS: Record<
   SubscriptionTier,
@@ -47,6 +48,7 @@ export class PixelService {
     private prisma: PrismaService,
     private gateway: PixelGateway,
     private privateSpaces: PrivateSpacesService,
+    private achievements: AchievementsService,
   ) {}
 
   async checkAndPaint(
@@ -176,6 +178,8 @@ export class PixelService {
         data: { pixelsUsed: { increment: 1 } },
       });
     }
+
+    await this.achievements.track(userId, 'PIXELS_PLACED');
 
     const updated = await this.prisma.user.findUnique({
       where: { id: userId },
