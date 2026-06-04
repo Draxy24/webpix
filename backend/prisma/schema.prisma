@@ -25,6 +25,9 @@ model User {
   bannedUntil  DateTime?
   banPermanent Boolean   @default(false)
   banReason    String?
+  bits  Int @default(0)
+  xp    Int @default(0)
+  level Int @default(1)
 
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")
@@ -34,6 +37,7 @@ model User {
   publicationComments  PublicationComment[]
   privateSpaces      PrivateSpace[]
   privateSpaceAccess PrivateSpaceMember[]
+  cosmetics UserCosmetic[]
 }
 
 model Pixel {
@@ -210,4 +214,45 @@ enum PrivateSpaceAccess {
 enum PurchaseType {
   MONTHLY
   PERMANENT
+}
+
+model Cosmetic {
+  id          Int            @id @default(autoincrement())
+  type        CosmeticType
+  key         String         @unique
+  name        String
+  description String?
+  source      CosmeticSource
+  priceBits   Int?
+  data        Json?
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+
+  unlocks     UserCosmetic[]
+}
+
+model UserCosmetic {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  cosmeticId Int
+  equipped   Boolean  @default(false)
+  unlockedAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cosmeticId])
+}
+
+enum CosmeticType {
+  TITLE
+  BADGE
+}
+
+enum CosmeticSource {
+  ACHIEVEMENT
+  TASK
+  RANKING
+  EVENT
+  SHOP
 }

@@ -9,6 +9,7 @@ import { PublicationsModule } from './publications/publications.module';
 import { RankingsModule } from './rankings/rankings.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { PrivateSpacesModule } from './private-spaces/private-spaces.module';
+import { RewardsModule } from './rewards/rewards.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PrivateSpacesModule } from './private-spaces/private-spaces.module';
     RankingsModule,
     ModerationModule,
     PrivateSpacesModule,
+    RewardsModule,
   ],
   controllers: [AppController],
   providers: [],

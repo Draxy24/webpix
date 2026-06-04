@@ -10,6 +10,7 @@ import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import RankingsView from "./RankingsView";
 import FriendsView from "./FriendsView";
+import RewardsView from "./RewardsView";
 
 export default function MenuPanel({
   nickname,
@@ -146,60 +147,65 @@ export default function MenuPanel({
               </Button>
             </div>
           ) : (
-            <div className={styles.box}>
-              <div
-                className={styles.avatar}
-                style={
-                  profilePic
-                    ? {
-                        backgroundImage: `url(${profilePic})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
-                    : undefined
-                }
-              >
-                {!profilePic && nickname.charAt(0).toUpperCase()}
-              </div>
-              <div className={styles.nameRow}>
-                <span className={styles.nickname}>{nickname}</span>
-                {country && <Flag code={country} />}
-              </div>
-              <div className={styles.tier}>{isAdmin ? "Admin" : userTier}</div>
-              {stats && (
-                <div className={styles.stats}>
-                  <span>
-                    <strong>{stats.pixelCount}</strong> píxeles pintados
-                  </span>
-                  <span>
-                    Miembro desde{" "}
-                    {new Date(stats.createdAt).toLocaleDateString("es-MX")}
-                  </span>
+            <>
+              <div className={styles.box}>
+                <div
+                  className={styles.avatar}
+                  style={
+                    profilePic
+                      ? {
+                          backgroundImage: `url(${profilePic})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
+                      : undefined
+                  }
+                >
+                  {!profilePic && nickname.charAt(0).toUpperCase()}
                 </div>
-              )}
-              <Button variant="secondary" fullWidth onClick={startEdit}>
-                Editar perfil
-              </Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => onNavigate(`/profile/${nickname}`)}
-              >
-                Ver publicaciones
-              </Button>
-              {isAdmin && (
+                <div className={styles.nameRow}>
+                  <span className={styles.nickname}>{nickname}</span>
+                  {country && <Flag code={country} />}
+                </div>
+                <div className={styles.tier}>
+                  {isAdmin ? "Admin" : userTier}
+                </div>
+                {stats && (
+                  <div className={styles.stats}>
+                    <span>
+                      <strong>{stats.pixelCount}</strong> píxeles pintados
+                    </span>
+                    <span>
+                      Miembro desde{" "}
+                      {new Date(stats.createdAt).toLocaleDateString("es-MX")}
+                    </span>
+                  </div>
+                )}
+                <Button variant="secondary" fullWidth onClick={startEdit}>
+                  Editar perfil
+                </Button>
                 <Button
                   variant="secondary"
                   fullWidth
-                  onClick={() => onNavigate("/admin")}
+                  onClick={() => onNavigate(`/profile/${nickname}`)}
                 >
-                  Panel de moderación
+                  Ver publicaciones
                 </Button>
-              )}
-              <Button variant="ghost" fullWidth onClick={onLogout}>
-                Cerrar sesión
-              </Button>
-            </div>
+                {isAdmin && (
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => onNavigate("/admin")}
+                  >
+                    Panel de moderación
+                  </Button>
+                )}
+                <Button variant="ghost" fullWidth onClick={onLogout}>
+                  Cerrar sesión
+                </Button>
+              </div>
+              <RewardsView />
+            </>
           )
         ) : (
           <div className={styles.box}>
