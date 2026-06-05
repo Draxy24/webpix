@@ -11,6 +11,15 @@ export const PROGRESSION_CONFIG = {
   LEVEL_UP_BITS: 50, // Bits otorgados por cada nivel ganado
 };
 
+export const LAUNCH_REWARD = {
+  cosmeticKey: 'title_og',
+  // AJUSTA estas fechas al mes real de lanzamiento.
+  // Para PROBAR ahora, pon un rango amplio (start en el pasado, end en el futuro)
+  // para que tu cuenta califique.
+  start: new Date('2026-07-01'),
+  end: new Date('2026-08-01'),
+};
+
 export function levelInfo(xp: number) {
   const { BASE_XP, GROWTH, MAX_LEVEL } = PROGRESSION_CONFIG;
   let level = 1;
@@ -77,5 +86,13 @@ export const STARTER_COSMETICS: StarterCosmetic[] = [
     description: 'Terminaste en el Top 10 mundial.',
     source: 'RANKING',
     data: { icon: 'crown' },
+  },
+  {
+    key: 'title_og',
+    type: 'TITLE',
+    name: 'OG',
+    description: 'Estuviste desde el lanzamiento.',
+    source: 'EVENT',
+    data: { color: '#FFD700' },
   },
 ];

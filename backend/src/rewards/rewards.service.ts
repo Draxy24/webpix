@@ -10,6 +10,7 @@ import {
   CURRENCY_NAME_PLURAL,
   PROGRESSION_CONFIG,
   STARTER_COSMETICS,
+  LAUNCH_REWARD,
   levelInfo,
 } from './rewards.config';
 
@@ -20,6 +21,8 @@ export class RewardsService {
   async getProgression(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    await this.maybeGrantLaunchReward(user.id, user.createdAt);
 
     const info = levelInfo(user.xp);
     const equipped = await this.prisma.userCosmetic.findMany({
@@ -150,6 +153,16 @@ export class RewardsService {
       data: { userId, cosmeticId: cosmetic.id },
     });
     return { granted: true };
+  }
+
+  private async maybeGrantLaunchReward(userId: number, createdAt: Date) {
+    if (createdAt < LAUNCH_REWARD.start || createdAt >= LAUNCH_REWARD.end)
+      return;
+    const cosmetic = await this.prisma.cosmetic.findUnique({
+      where: { key: LAUNCH_REWARD.cosmeticKey },
+    });
+    if (!cosmetic) return; // catálogo aún no sembrado: no pasa nada
+    await this.grantCosmetic(userId, LAUNCH_REWARD.cosmeticKey);
   }
 
   // ---- Helper temporal de desarrollo: siembra el catálogo y da datos de prueba al admin ----

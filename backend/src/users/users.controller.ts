@@ -11,6 +11,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { levelInfo } from '../rewards/rewards.config';
 
 @Controller('users')
 export class UsersController {
@@ -28,12 +29,26 @@ export class UsersController {
       where: { userId: user.id },
     });
 
+    const equipped = await this.prisma.userCosmetic.findMany({
+      where: { userId: user.id, equipped: true },
+      include: { cosmetic: true },
+    });
+    const titleCos = equipped.find(
+      (e) => e.cosmetic.type === 'TITLE',
+    )?.cosmetic;
+    const badgeCos = equipped.find(
+      (e) => e.cosmetic.type === 'BADGE',
+    )?.cosmetic;
+
     return {
       nickname: user.nickname,
       profilePic: user.profilePic,
       country: user.country,
       createdAt: user.createdAt,
       pixelCount,
+      level: levelInfo(user.xp).level,
+      title: titleCos ? { name: titleCos.name, data: titleCos.data } : null,
+      badge: badgeCos ? { name: badgeCos.name, data: badgeCos.data } : null,
     };
   }
 

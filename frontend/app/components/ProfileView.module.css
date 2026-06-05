@@ -158,3 +158,14 @@
   margin-top: var(--space-8);
   color: var(--color-text-secondary);
 }
+
+.equippedBadge {
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+.equippedTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+}

@@ -25,7 +25,7 @@ type Cosmetic = {
   type: "TITLE" | "BADGE";
   name: string;
   description: string | null;
-  data: { icon?: string } | null;
+  data: { icon?: string; color?: string } | null;
   equipped: boolean;
 };
 
@@ -50,15 +50,13 @@ export default function RewardsView() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [pRes, cRes] = await Promise.all([
-        fetch("http://localhost:3001/rewards/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:3001/rewards/cosmetics", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const pRes = await fetch("http://localhost:3001/rewards/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setProg(await pRes.json());
+      const cRes = await fetch("http://localhost:3001/rewards/cosmetics", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setCosmetics(await cRes.json());
     } catch {
       // noop
@@ -137,6 +135,11 @@ export default function RewardsView() {
                 onClick={() => toggle(c)}
                 disabled={busy}
                 title={c.description ?? undefined}
+                style={
+                  c.data?.color
+                    ? { color: c.data.color, borderColor: c.data.color }
+                    : undefined
+                }
               >
                 {c.name}
               </button>
