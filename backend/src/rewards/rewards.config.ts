@@ -6,7 +6,7 @@ export const CURRENCY_NAME_PLURAL = 'Bits';
 
 export const PROGRESSION_CONFIG = {
   BASE_XP: 100, // XP para subir del nivel 1 al 2
-  GROWTH: 1.4, // cada nivel pide ~40% más que el anterior
+  GROWTH: 1.068, // ~1,000,000 XP acumulados para el nivel 100
   MAX_LEVEL: 100,
   LEVEL_UP_BITS: 50, // Bits otorgados por cada nivel ganado
 };
@@ -36,6 +36,15 @@ export function levelInfo(xp: number) {
   const xpForNext =
     level < MAX_LEVEL ? Math.round(BASE_XP * Math.pow(GROWTH, level - 1)) : 0;
   return { level, xpIntoLevel: xp - consumed, xpForNext };
+}
+
+// XP que otorga cada pixel pintado en el lienzo público, según el nivel.
+// Sube en bandas para que los niveles altos no sean imposibles.
+export function xpPerPixelForLevel(level: number): number {
+  if (level < 25) return 1;
+  if (level < 50) return 2;
+  if (level < 75) return 3;
+  return 4;
 }
 
 // Catálogo inicial para poder probar (se siembra con el endpoint admin/seed)

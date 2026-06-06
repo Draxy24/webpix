@@ -17,6 +17,8 @@ interface Profile {
   level: number;
   title: { name: string; data: { color?: string } | null } | null;
   badge: { name: string; data: { icon?: string } | null } | null;
+  frame: { name: string; data: { ring?: string } | null } | null;
+  background: { name: string; data: { background?: string } | null } | null;
 }
 
 interface PublicationSummary {
@@ -169,15 +171,31 @@ export default function ProfileView({
 
   return (
     <Wrapper className={styles.main}>
-      <div className={styles.header}>
+      <div
+        className={styles.header}
+        style={
+          profile.background?.data?.background
+            ? { background: profile.background.data.background }
+            : undefined
+        }
+      >
         <div
-          className={styles.avatar}
+          className={styles.avatarFrame}
           style={
-            profile.profilePic
-              ? { backgroundImage: `url(${profile.profilePic})` }
+            profile.frame?.data?.ring
+              ? { background: profile.frame.data.ring }
               : undefined
           }
-        />
+        >
+          <div
+            className={styles.avatar}
+            style={
+              profile.profilePic
+                ? { backgroundImage: `url(${profile.profilePic})` }
+                : undefined
+            }
+          />
+        </div>
         <div className={styles.nameRow}>
           <h1 className={styles.nickname}>{profile.nickname}</h1>
           {profile.country && <Flag code={profile.country} />}

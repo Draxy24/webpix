@@ -19,10 +19,12 @@ import PrivateSpacesView from "./components/PrivateSpacesView";
 import AchievementsView from "./components/AchievementsView";
 import WeeklyTasksView from "./components/WeeklyTasksView";
 import { useProfileModal } from "./components/ProfileModalContext";
+import { useShopModal } from "./components/ShopModalContext";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
   const { openProfile } = useProfileModal();
+  const { openShop } = useShopModal();
   const tokenRef = useRef(token);
   const openProfileRef = useRef(openProfile);
 
@@ -1589,6 +1591,8 @@ export default function Home() {
       <SideButtons
         activeSection={panelSection}
         onSelect={(s) => setPanelSection((prev) => (prev === s ? null : s))}
+        onReportBug={() => router.push("/report-bug")}
+        onOpenShop={openShop}
         panelOpen={panelSection !== null}
       />
 

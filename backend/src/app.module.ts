@@ -12,6 +12,7 @@ import { PrivateSpacesModule } from './private-spaces/private-spaces.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { WeeklyTasksModule } from './weekly-tasks/weekly-tasks.module';
+import { ShopModule } from './shop/shop.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { WeeklyTasksModule } from './weekly-tasks/weekly-tasks.module';
     RewardsModule,
     AchievementsModule,
     WeeklyTasksModule,
+    ShopModule,
   ],
   controllers: [AppController],
   providers: [],

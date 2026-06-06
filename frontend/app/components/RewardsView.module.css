@@ -108,3 +108,21 @@
   font-size: var(--text-sm);
   margin: 0;
 }
+
+.ringSwatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.bgSwatch {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 6px;
+  border: var(--border-thin) solid var(--color-border);
+}

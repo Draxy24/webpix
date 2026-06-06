@@ -229,6 +229,7 @@ model Cosmetic {
   description String?
   source      CosmeticSource
   priceBits   Int?
+  rarity      CosmeticRarity?
   data        Json?
   active      Boolean        @default(true)
   createdAt   DateTime       @default(now())
@@ -252,6 +253,8 @@ model UserCosmetic {
 enum CosmeticType {
   TITLE
   BADGE
+  FRAME
+  BACKGROUND
 }
 
 enum CosmeticSource {
@@ -325,4 +328,10 @@ model UserWeeklyTask {
   weeklyTask   WeeklyTask @relation(fields: [weeklyTaskId], references: [id], onDelete: Cascade)
 
   @@unique([userId, weeklyTaskId, weekKey])
+}
+
+enum CosmeticRarity {
+  COMMON
+  RARE
+  PREMIUM
 }

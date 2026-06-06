@@ -48,6 +48,7 @@ export default function MenuPanel({
   const [countryInput, setCountryInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [frameRing, setFrameRing] = useState<string | null>(null);
 
   useEffect(() => {
     if (!nickname) return;
@@ -57,6 +58,7 @@ export default function MenuPanel({
         setProfilePic(data.profilePic ?? "");
         setCountry(data.country ?? "");
         setStats({ pixelCount: data.pixelCount, createdAt: data.createdAt });
+        setFrameRing(data.frame?.data?.ring ?? null);
       })
       .catch(() => {});
   }, [nickname]);
@@ -156,18 +158,23 @@ export default function MenuPanel({
             <>
               <div className={styles.box}>
                 <div
-                  className={styles.avatar}
-                  style={
-                    profilePic
-                      ? {
-                          backgroundImage: `url(${profilePic})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
-                      : undefined
-                  }
+                  className={styles.avatarFrame}
+                  style={frameRing ? { background: frameRing } : undefined}
                 >
-                  {!profilePic && nickname.charAt(0).toUpperCase()}
+                  <div
+                    className={styles.avatar}
+                    style={
+                      profilePic
+                        ? {
+                            backgroundImage: `url(${profilePic})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }
+                        : undefined
+                    }
+                  >
+                    {!profilePic && nickname.charAt(0).toUpperCase()}
+                  </div>
                 </div>
                 <div className={styles.nameRow}>
                   <span className={styles.nickname}>{nickname}</span>

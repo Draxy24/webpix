@@ -95,3 +95,10 @@
   font-size: var(--text-sm);
   box-sizing: border-box;
 }
+
+.avatarFrame {
+  align-self: center;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  line-height: 0;
+}

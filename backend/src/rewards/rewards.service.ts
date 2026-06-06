@@ -31,6 +31,10 @@ export class RewardsService {
     });
     const title = equipped.find((e) => e.cosmetic.type === 'TITLE')?.cosmetic;
     const badge = equipped.find((e) => e.cosmetic.type === 'BADGE')?.cosmetic;
+    const frame = equipped.find((e) => e.cosmetic.type === 'FRAME')?.cosmetic;
+    const background = equipped.find(
+      (e) => e.cosmetic.type === 'BACKGROUND',
+    )?.cosmetic;
 
     return {
       bits: user.bits,
@@ -45,6 +49,17 @@ export class RewardsService {
         : null,
       equippedBadge: badge
         ? { id: badge.id, key: badge.key, name: badge.name, data: badge.data }
+        : null,
+      equippedFrame: frame
+        ? { id: frame.id, key: frame.key, name: frame.name, data: frame.data }
+        : null,
+      equippedBackground: background
+        ? {
+            id: background.id,
+            key: background.key,
+            name: background.name,
+            data: background.data,
+          }
         : null,
     };
   }

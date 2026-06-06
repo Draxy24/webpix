@@ -39,6 +39,10 @@ export class UsersController {
     const badgeCos = equipped.find(
       (e) => e.cosmetic.type === 'BADGE',
     )?.cosmetic;
+    const frame = equipped.find((e) => e.cosmetic.type === 'FRAME')?.cosmetic;
+    const background = equipped.find(
+      (e) => e.cosmetic.type === 'BACKGROUND',
+    )?.cosmetic;
 
     return {
       nickname: user.nickname,
@@ -49,6 +53,10 @@ export class UsersController {
       level: levelInfo(user.xp).level,
       title: titleCos ? { name: titleCos.name, data: titleCos.data } : null,
       badge: badgeCos ? { name: badgeCos.name, data: badgeCos.data } : null,
+      frame: frame ? { name: frame.name, data: frame.data } : null,
+      background: background
+        ? { name: background.name, data: background.data }
+        : null,
     };
   }
 

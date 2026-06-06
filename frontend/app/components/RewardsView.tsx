@@ -22,10 +22,15 @@ type Progression = {
 type Cosmetic = {
   cosmeticId: number;
   key: string;
-  type: "TITLE" | "BADGE";
+  type: "TITLE" | "BADGE" | "FRAME" | "BACKGROUND";
   name: string;
   description: string | null;
-  data: { icon?: string; color?: string } | null;
+  data: {
+    icon?: string;
+    color?: string;
+    ring?: string;
+    background?: string;
+  } | null;
   equipped: boolean;
 };
 
@@ -95,6 +100,8 @@ export default function RewardsView() {
 
   const titles = cosmetics.filter((c) => c.type === "TITLE");
   const badges = cosmetics.filter((c) => c.type === "BADGE");
+  const frames = cosmetics.filter((c) => c.type === "FRAME");
+  const backgrounds = cosmetics.filter((c) => c.type === "BACKGROUND");
   const pct =
     prog.xpForNext > 0
       ? Math.min(100, Math.round((prog.xpIntoLevel / prog.xpForNext) * 100))
@@ -163,6 +170,59 @@ export default function RewardsView() {
                 title={c.description ?? undefined}
               >
                 {badgeIcon(c.data?.icon)} {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Marcos</h4>
+        {frames.length === 0 ? (
+          <p className={styles.muted}>Aún no tienes marcos.</p>
+        ) : (
+          <div className={styles.chips}>
+            {frames.map((c) => (
+              <button
+                key={c.cosmeticId}
+                className={`${styles.chip} ${c.equipped ? styles.chipActive : ""}`}
+                onClick={() => toggle(c)}
+                disabled={busy}
+                title={c.description ?? undefined}
+              >
+                <span
+                  className={styles.ringSwatch}
+                  style={c.data?.ring ? { background: c.data.ring } : undefined}
+                />
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Fondos</h4>
+        {backgrounds.length === 0 ? (
+          <p className={styles.muted}>Aún no tienes fondos.</p>
+        ) : (
+          <div className={styles.chips}>
+            {backgrounds.map((c) => (
+              <button
+                key={c.cosmeticId}
+                className={`${styles.chip} ${c.equipped ? styles.chipActive : ""}`}
+                onClick={() => toggle(c)}
+                disabled={busy}
+                title={c.description ?? undefined}
+              >
+                <span
+                  className={styles.bgSwatch}
+                  style={
+                    c.data?.background
+                      ? { background: c.data.background }
+                      : undefined
+                  }
+                />
+                {c.name}
               </button>
             ))}
           </div>

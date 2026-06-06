@@ -9,7 +9,7 @@ export type PanelSection =
   | "tasks"
   | "bug";
 
-function Icon({ section }: { section: PanelSection | "bug" }) {
+function Icon({ section }: { section: PanelSection | "bug" | "cart" }) {
   switch (section) {
     case "menu":
       return (
@@ -69,16 +69,29 @@ function Icon({ section }: { section: PanelSection | "bug" }) {
           <rect x="11" y="9" width="3" height="2" />
         </svg>
       );
+    case "cart":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="6" y="2" width="4" height="2" />
+          <rect x="5" y="3" width="2" height="2" />
+          <rect x="9" y="3" width="2" height="2" />
+          <rect x="3" y="5" width="10" height="9" />
+        </svg>
+      );
   }
 }
 
 export default function SideButtons({
   activeSection,
   onSelect,
+  onReportBug,
+  onOpenShop,
   panelOpen,
 }: {
   activeSection: PanelSection | null;
   onSelect: (section: PanelSection) => void;
+  onReportBug: () => void;
+  onOpenShop: () => void;
   panelOpen: boolean;
 }) {
   const sections: { key: PanelSection; label: string }[] = [
@@ -100,9 +113,12 @@ export default function SideButtons({
           <Icon section={s.key} />
         </button>
       ))}
+      <button className={styles.button} onClick={onOpenShop} title="Tienda">
+        <Icon section="cart" />
+      </button>
       <button
-        className={`${styles.button} ${activeSection === "bug" ? styles.buttonActive : ""}`}
-        onClick={() => onSelect("bug")}
+        className={styles.button}
+        onClick={onReportBug}
         title="Reportar bug"
       >
         <Icon section="bug" />

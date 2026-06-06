@@ -4,6 +4,7 @@ import { RewardsService } from '../rewards/rewards.service';
 import { Achievement, AchievementMetric, Prisma } from '@prisma/client';
 import { STARTER_ACHIEVEMENTS } from './achievements.config';
 import { WeeklyTasksService } from '../weekly-tasks/weekly-tasks.service';
+import { xpPerPixelForLevel } from '../rewards/rewards.config';
 
 type CounterField = 'pixelsPlaced' | 'publicationsCreated' | 'likesReceived';
 
@@ -51,6 +52,14 @@ export class AchievementsService {
       data: { [field]: { increment } } as Prisma.UserUpdateInput,
     });
     const value = user[field] as number;
+
+    // XP por pixel pintado en el lienzo público (escala con el nivel)
+    if (metric === 'PIXELS_PLACED') {
+      await this.rewards.addXp(
+        userId,
+        xpPerPixelForLevel(user.level) * increment,
+      );
+    }
 
     const candidates = await this.prisma.achievement.findMany({
       where: {

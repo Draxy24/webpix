@@ -179,3 +179,10 @@
   border: var(--border-normal) solid var(--color-border-strong);
   border-radius: var(--radius-full);
 }
+
+.avatarFrame {
+  align-self: center;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  line-height: 0;
+}
