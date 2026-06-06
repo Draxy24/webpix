@@ -2,6 +2,7 @@ import "./globals.css";
 import { Inter, Press_Start_2P } from "next/font/google";
 import { AuthProvider } from "./context/auth";
 import { SettingsProvider } from "./context/settings";
+import { ProfileModalProvider } from "./components/ProfileModalContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +31,9 @@ export default function RootLayout({
     <html lang="es" className={`${inter.variable} ${pressStart.variable}`}>
       <body>
         <AuthProvider>
-          <SettingsProvider>{children}</SettingsProvider>
+          <SettingsProvider>
+            <ProfileModalProvider>{children}</ProfileModalProvider>
+          </SettingsProvider>
         </AuthProvider>
       </body>
     </html>

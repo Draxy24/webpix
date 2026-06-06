@@ -12,7 +12,11 @@ interface RankingEntry {
   count: number;
 }
 
-export default function RankingsView() {
+export default function RankingsView({
+  onOpenProfile,
+}: {
+  onOpenProfile?: (nickname: string) => void;
+}) {
   const [metric, setMetric] = useState<"pixels" | "creators">("pixels");
   const [scope, setScope] = useState<"global" | "national">("global");
   const [country, setCountry] = useState("MX");
@@ -104,6 +108,12 @@ export default function RankingsView() {
               <a
                 href={`/profile/${entry.nickname}`}
                 className={styles.nameLink}
+                onClick={(e) => {
+                  if (onOpenProfile) {
+                    e.preventDefault();
+                    onOpenProfile(entry.nickname);
+                  }
+                }}
               >
                 {entry.country && <Flag code={entry.country} />}
                 <span className={styles.nameText}>{entry.nickname}</span>

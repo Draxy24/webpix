@@ -23,7 +23,11 @@ interface OutgoingRequest {
   createdAt: string;
 }
 
-export default function FriendsView() {
+export default function FriendsView({
+  onOpenProfile,
+}: {
+  onOpenProfile?: (nickname: string) => void;
+}) {
   const { token } = useAuth();
   const [tab, setTab] = useState<"friends" | "incoming" | "outgoing">(
     "friends",
@@ -99,7 +103,16 @@ export default function FriendsView() {
             : undefined
         }
       />
-      <a href={`/profile/${user.nickname}`} className={styles.nameLink}>
+      <a
+        href={`/profile/${user.nickname}`}
+        className={styles.nameLink}
+        onClick={(e) => {
+          if (onOpenProfile) {
+            e.preventDefault();
+            onOpenProfile(user.nickname);
+          }
+        }}
+      >
         {user.nickname}
       </a>
       <div className={styles.actions}>{actions}</div>

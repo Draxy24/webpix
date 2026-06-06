@@ -11,6 +11,7 @@ import RegisterForm from "./RegisterForm";
 import RankingsView from "./RankingsView";
 import FriendsView from "./FriendsView";
 import RewardsView from "./RewardsView";
+import { useProfileModal } from "./ProfileModalContext";
 
 export default function MenuPanel({
   nickname,
@@ -28,6 +29,11 @@ export default function MenuPanel({
   onClose: () => void;
 }) {
   const { token } = useAuth();
+  const { openProfile } = useProfileModal();
+  const goToProfile = (nick: string) => {
+    openProfile(nick);
+    onClose();
+  };
   const [tab, setTab] = useState<"profile" | "rankings" | "friends">("profile");
 
   const [profilePic, setProfilePic] = useState("");
@@ -187,7 +193,7 @@ export default function MenuPanel({
                 <Button
                   variant="secondary"
                   fullWidth
-                  onClick={() => onNavigate(`/profile/${nickname}`)}
+                  onClick={() => goToProfile(nickname)}
                 >
                   Ver publicaciones
                 </Button>
@@ -220,11 +226,11 @@ export default function MenuPanel({
           </div>
         ))}
 
-      {tab === "rankings" && <RankingsView />}
+      {tab === "rankings" && <RankingsView onOpenProfile={goToProfile} />}
 
       {tab === "friends" &&
         (nickname ? (
-          <FriendsView />
+          <FriendsView onOpenProfile={goToProfile} />
         ) : (
           <p className={styles.muted}>Inicia sesión para tener amigos.</p>
         ))}

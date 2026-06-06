@@ -18,10 +18,13 @@ import BugReportView from "./components/BugReportView";
 import PrivateSpacesView from "./components/PrivateSpacesView";
 import AchievementsView from "./components/AchievementsView";
 import WeeklyTasksView from "./components/WeeklyTasksView";
+import { useProfileModal } from "./components/ProfileModalContext";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
+  const { openProfile } = useProfileModal();
   const tokenRef = useRef(token);
+  const openProfileRef = useRef(openProfile);
 
   const [clicksLeft, setClicksLeft] = useState(30);
   const [cooldown, setCooldown] = useState(0);
@@ -291,7 +294,7 @@ export default function Home() {
       const key = `${x},${y}`;
 
       if (event.ctrlKey && pixelOwnersRef.current[key]) {
-        routerRef.current.push(`/profile/${pixelOwnersRef.current[key]}`);
+        openProfileRef.current(pixelOwnersRef.current[key]);
         return;
       }
 
@@ -600,6 +603,10 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(interval);
   }, [cooldown]);
+
+  useEffect(() => {
+    openProfileRef.current = openProfile;
+  }, [openProfile]);
 
   useEffect(() => {
     clicksRef.current = clicksLeft;

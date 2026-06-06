@@ -51,9 +51,16 @@ function badgeIcon(icon?: string) {
   }
 }
 
-export default function ProfileView({ nickname }: { nickname: string }) {
+export default function ProfileView({
+  nickname,
+  onOpenPublication,
+}: {
+  nickname: string;
+  onOpenPublication?: (id: number) => void;
+}) {
   const { nickname: myNickname, token } = useAuth();
   const isOwnProfile = myNickname === nickname;
+  const inModal = !!onOpenPublication;
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -154,12 +161,14 @@ export default function ProfileView({ nickname }: { nickname: string }) {
     if (res.ok) setFriendStatus({ status: "NONE" });
   };
 
-  if (loading) return <main className={styles.centered}>Cargando...</main>;
+  if (loading) return <div className={styles.centered}>Cargando...</div>;
   if (!profile)
-    return <main className={styles.centered}>Perfil no encontrado</main>;
+    return <div className={styles.centered}>Perfil no encontrado</div>;
+
+  const Wrapper: ElementType = inModal ? "div" : "main";
 
   return (
-    <main className={styles.main}>
+    <Wrapper className={styles.main}>
       <div className={styles.header}>
         <div
           className={styles.avatar}
@@ -171,23 +180,30 @@ export default function ProfileView({ nickname }: { nickname: string }) {
         />
         <div className={styles.nameRow}>
           <h1 className={styles.nickname}>{profile.nickname}</h1>
-          {profile.badge && (
-            <span className={styles.equippedBadge} title={profile.badge.name}>
-              {badgeIcon(profile.badge.data?.icon)}
-            </span>
-          )}
           {profile.country && <Flag code={profile.country} />}
         </div>
-        {profile.title && (
-          <div
-            className={styles.equippedTitle}
-            style={
-              profile.title.data?.color
-                ? { color: profile.title.data.color }
-                : undefined
-            }
-          >
-            {profile.title.name}
+        {(profile.title || profile.badge) && (
+          <div className={styles.cosmeticRow}>
+            {profile.title && (
+              <span
+                className={styles.cosmeticPill}
+                style={
+                  profile.title.data?.color
+                    ? {
+                        color: profile.title.data.color,
+                        borderColor: profile.title.data.color,
+                      }
+                    : undefined
+                }
+              >
+                {profile.title.name}
+              </span>
+            )}
+            {profile.badge && (
+              <span className={styles.cosmeticPill}>
+                {badgeIcon(profile.badge.data?.icon)} {profile.badge.name}
+              </span>
+            )}
           </div>
         )}
         <div className={styles.stats}>
@@ -252,6 +268,12 @@ export default function ProfileView({ nickname }: { nickname: string }) {
                   key={pub.id}
                   href={`/publication/${pub.id}`}
                   className={styles.pubCard}
+                  onClick={(e) => {
+                    if (onOpenPublication) {
+                      e.preventDefault();
+                      onOpenPublication(pub.id);
+                    }
+                  }}
                 >
                   <PublicationCanvas
                     pixelData={pub.pixelData}
@@ -275,9 +297,11 @@ export default function ProfileView({ nickname }: { nickname: string }) {
           )}
         </div>
 
-        <a href="/" className={styles.backLink}>
-          ← Volver al lienzo
-        </a>
+        {!inModal && (
+          <a href="/" className={styles.backLink}>
+            ← Volver al lienzo
+          </a>
+        )}
 
         {showReport && (
           <ReportModal
@@ -287,6 +311,6 @@ export default function ProfileView({ nickname }: { nickname: string }) {
           />
         )}
       </div>
-    </main>
+    </Wrapper>
   );
 }
