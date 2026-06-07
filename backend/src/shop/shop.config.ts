@@ -122,4 +122,81 @@ export const SHOP_COSMETICS: ShopCosmetic[] = [
     priceBits: 1300,
     data: { background: 'linear-gradient(160deg,#0f1030,#1a1040)' },
   },
+  // Colores exóticos
+  {
+    key: 'color_tornasol_fuego',
+    type: 'COLOR',
+    name: 'Tornasol Fuego',
+    description: 'Degradado ardiente.',
+    rarity: 'RARE',
+    priceBits: 200,
+    data: {
+      token: 'fade:#FF3B3B,#FFD93B',
+      swatch: 'linear-gradient(135deg,#FF3B3B,#FFD93B)',
+    },
+  },
+  {
+    key: 'color_tornasol_oceano',
+    type: 'COLOR',
+    name: 'Tornasol Océano',
+    description: 'Del turquesa al azul profundo.',
+    rarity: 'RARE',
+    priceBits: 200,
+    data: {
+      token: 'fade:#22D3EE,#3B5BFF',
+      swatch: 'linear-gradient(135deg,#22D3EE,#3B5BFF)',
+    },
+  },
+  {
+    key: 'color_plata',
+    type: 'COLOR',
+    name: 'Plata',
+    description: 'Brillo metálico plateado.',
+    rarity: 'RARE',
+    priceBits: 250,
+    data: {
+      token: 'fade:#FFFFFF,#8A8F94',
+      swatch: 'linear-gradient(135deg,#FFFFFF,#C0C0C0,#8A8F94)',
+    },
+  },
+  {
+    key: 'color_oro',
+    type: 'COLOR',
+    name: 'Oro',
+    description: 'Brillo metálico dorado.',
+    rarity: 'PREMIUM',
+    priceBits: 300,
+    data: {
+      token: 'fade:#FFF3B0,#B8860B',
+      swatch: 'linear-gradient(135deg,#FFF3B0,#FFD700,#B8860B)',
+    },
+  },
+  {
+    key: 'color_arcoiris',
+    type: 'COLOR',
+    name: 'Arcoíris',
+    description: 'Todo el espectro.',
+    rarity: 'PREMIUM',
+    priceBits: 350,
+    data: {
+      token: 'rainbow',
+      swatch: 'linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f)',
+    },
+  },
+];
+
+export const COLOR_PALETTES = [
+  {
+    key: 'palette_exotica',
+    name: 'Paleta Exótica',
+    description: 'Los cinco colores exóticos, con descuento.',
+    bundlePriceBits: 950,
+    colorKeys: [
+      'color_tornasol_fuego',
+      'color_tornasol_oceano',
+      'color_plata',
+      'color_oro',
+      'color_arcoiris',
+    ],
+  },
 ];

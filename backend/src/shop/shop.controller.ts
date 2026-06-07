@@ -34,4 +34,19 @@ export class ShopController {
   seed(@Request() req: { user: { id: number } }) {
     return this.shop.seedCatalog(req.user.id);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('palettes')
+  listPalettes(@Request() req: { user: { id: number } }) {
+    return this.shop.listPalettesForUser(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('buy-palette')
+  buyPalette(
+    @Request() req: { user: { id: number } },
+    @Body() body: { paletteKey: string },
+  ) {
+    return this.shop.buyPalette(req.user.id, body.paletteKey);
+  }
 }

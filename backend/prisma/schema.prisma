@@ -255,6 +255,7 @@ enum CosmeticType {
   BADGE
   FRAME
   BACKGROUND
+  COLOR
 }
 
 enum CosmeticSource {

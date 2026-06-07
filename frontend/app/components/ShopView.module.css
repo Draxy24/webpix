@@ -169,3 +169,28 @@
   border-radius: var(--radius-sm);
   border: var(--border-thin) solid var(--color-border);
 }
+
+.colorPreview {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: var(--border-thin) solid var(--color-border);
+}
+.paletteSwatches {
+  height: 40px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+.paletteSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: var(--border-thin) solid var(--color-border);
+}
+.paletteProgress {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+}

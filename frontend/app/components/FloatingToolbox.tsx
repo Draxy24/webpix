@@ -76,6 +76,7 @@ export default function FloatingToolbox({
   publishEnabled = false,
   privateMode = "buy",
   onPrivateModeChange,
+  exoticColors = [],
 }: {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
@@ -90,6 +91,7 @@ export default function FloatingToolbox({
   publishEnabled?: boolean;
   privateMode?: PrivateMode;
   onPrivateModeChange?: (mode: PrivateMode) => void;
+  exoticColors?: { token: string; swatch: string; name: string }[];
 }) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
@@ -167,6 +169,10 @@ export default function FloatingToolbox({
   };
 
   // Contenido compartido (herramientas + paneles), reutilizado en ambos modos
+  const colorDotBg = color.startsWith("#")
+    ? color
+    : (exoticColors.find((ec) => ec.token === color)?.swatch ?? color);
+
   const toolsContent = (
     <>
       <div className={styles.tools}>
@@ -220,11 +226,29 @@ export default function FloatingToolbox({
             <div className={styles.customColorRow}>
               <input
                 type="color"
-                value={color}
+                value={color.startsWith("#") ? color : "#000000"}
                 onChange={(e) => onColorChange(e.target.value)}
               />
               <span className={styles.customLabel}>Color personalizado</span>
             </div>
+          )}
+
+          {exoticColors.length > 0 && (
+            <>
+              <div className={styles.exoticLabel}>Exóticos</div>
+              <div className={styles.paletteGrid}>
+                {exoticColors.map((ec) => (
+                  <button
+                    key={ec.token}
+                    className={`${styles.swatch} ${color === ec.token ? styles.swatchActive : ""}`}
+                    style={{ background: ec.swatch }}
+                    onClick={() => onColorChange(ec.token)}
+                    title={ec.name}
+                    aria-label={ec.name}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -298,7 +322,10 @@ export default function FloatingToolbox({
           aria-label="Herramientas"
         >
           <ToolIcon tool={activeTool} />
-          <span className={styles.colorDot} style={{ background: color }} />
+          <span
+            className={styles.colorDot}
+            style={{ background: colorDotBg }}
+          />
         </button>
       </div>
     );

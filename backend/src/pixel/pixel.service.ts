@@ -42,6 +42,10 @@ const anonymousCooldowns = new Map<
   { pixelsUsed: number; cooldownUntil: Date | null }
 >();
 
+function isHexColor(color: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color);
+}
+
 @Injectable()
 export class PixelService {
   constructor(
@@ -80,6 +84,15 @@ export class PixelService {
         cooldownSeconds: 0,
         message: 'Usuario no encontrado',
       };
+
+    // Color exótico (token): el usuario debe poseerlo
+    if (!isHexColor(color) && !(await this.userOwnsColorToken(userId, color))) {
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'No posees este color exótico',
+      };
+    }
 
     // ¿Cae dentro de un espacio privado?
     const access = await this.privateSpaces.checkPaintAccess(userId, x, y);
@@ -221,6 +234,14 @@ export class PixelService {
     color: string,
     ip: string,
   ): Promise<PaintResult> {
+    // Los anónimos no pueden usar colores exóticos
+    if (!isHexColor(color)) {
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Inicia sesión para usar colores exóticos',
+      };
+    }
     // Los anónimos no pueden pintar dentro de espacios privados
     const access = await this.privateSpaces.checkPaintAccess(null, x, y);
     if (access.inSpace) {
@@ -479,5 +500,19 @@ export class PixelService {
       ? null
       : await this.applyRefund(userId, cells.length);
     return { success: true, erased: cells.length, state };
+  }
+
+  private async userOwnsColorToken(
+    userId: number,
+    token: string,
+  ): Promise<boolean> {
+    const owned = await this.prisma.userCosmetic.findMany({
+      where: { userId, cosmetic: { type: 'COLOR' } },
+      include: { cosmetic: true },
+    });
+    return owned.some((uc) => {
+      const data = uc.cosmetic.data as { token?: string } | null;
+      return data?.token === token;
+    });
   }
 }

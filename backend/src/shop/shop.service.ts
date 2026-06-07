@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SHOP_COSMETICS } from './shop.config';
+import { COLOR_PALETTES } from './shop.config';
 
 @Injectable()
 export class ShopService {
@@ -113,5 +114,77 @@ export class ShopService {
       });
     }
     return { success: true, seeded: SHOP_COSMETICS.length };
+  }
+  async listPalettesForUser(userId: number) {
+    const owned = await this.prisma.userCosmetic.findMany({
+      where: { userId },
+      select: { cosmeticId: true },
+    });
+    const ownedIds = new Set(owned.map((o) => o.cosmeticId));
+
+    return Promise.all(
+      COLOR_PALETTES.map(async (palette) => {
+        const colors = await this.prisma.cosmetic.findMany({
+          where: { key: { in: palette.colorKeys } },
+        });
+        const mapped = colors.map((c) => ({
+          id: c.id,
+          key: c.key,
+          name: c.name,
+          rarity: c.rarity,
+          priceBits: c.priceBits,
+          data: c.data,
+          owned: ownedIds.has(c.id),
+        }));
+        const ownedCount = mapped.filter((m) => m.owned).length;
+        return {
+          key: palette.key,
+          name: palette.name,
+          description: palette.description,
+          bundlePriceBits: palette.bundlePriceBits,
+          colors: mapped,
+          ownedCount,
+          total: mapped.length,
+          fullyOwned: ownedCount === mapped.length,
+        };
+      }),
+    );
+  }
+
+  async buyPalette(userId: number, paletteKey: string) {
+    const palette = COLOR_PALETTES.find((p) => p.key === paletteKey);
+    if (!palette) throw new NotFoundException('Paleta no encontrada');
+
+    const colors = await this.prisma.cosmetic.findMany({
+      where: { key: { in: palette.colorKeys } },
+    });
+    if (colors.length === 0)
+      throw new BadRequestException('Paleta sin colores');
+
+    const owned = await this.prisma.userCosmetic.findMany({
+      where: { userId, cosmeticId: { in: colors.map((c) => c.id) } },
+      select: { cosmeticId: true },
+    });
+    const ownedIds = new Set(owned.map((o) => o.cosmeticId));
+    const toGrant = colors.filter((c) => !ownedIds.has(c.id));
+
+    if (toGrant.length === 0)
+      throw new BadRequestException('Ya tienes toda esta paleta');
+
+    // Cobro atómico (evita saldo negativo)
+    const charged = await this.prisma.user.updateMany({
+      where: { id: userId, bits: { gte: palette.bundlePriceBits } },
+      data: { bits: { decrement: palette.bundlePriceBits } },
+    });
+    if (charged.count === 0)
+      throw new BadRequestException('No tienes suficientes Bits');
+
+    await this.prisma.userCosmetic.createMany({
+      data: toGrant.map((c) => ({ userId, cosmeticId: c.id })),
+      skipDuplicates: true,
+    });
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    return { success: true, granted: toGrant.length, bits: user?.bits ?? 0 };
   }
 }

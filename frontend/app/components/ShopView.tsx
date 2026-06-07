@@ -7,7 +7,7 @@ import styles from "./ShopView.module.css";
 type ShopItem = {
   id: number;
   key: string;
-  type: "TITLE" | "BADGE" | "FRAME" | "BACKGROUND";
+  type: "TITLE" | "BADGE" | "FRAME" | "BACKGROUND" | "COLOR";
   name: string;
   description: string | null;
   rarity: "COMMON" | "RARE" | "PREMIUM" | null;
@@ -17,11 +17,30 @@ type ShopItem = {
     color?: string;
     ring?: string;
     background?: string;
+    token?: string;
+    swatch?: string;
   } | null;
   owned: boolean;
 };
 
 type ShopData = { bits: number; items: ShopItem[] };
+
+type PaletteColor = {
+  id: number;
+  name: string;
+  data: { swatch?: string } | null;
+  owned: boolean;
+};
+type Palette = {
+  key: string;
+  name: string;
+  description: string;
+  bundlePriceBits: number;
+  colors: PaletteColor[];
+  ownedCount: number;
+  total: number;
+  fullyOwned: boolean;
+};
 
 const RARITY_ORDER: ("COMMON" | "RARE" | "PREMIUM")[] = [
   "COMMON",
@@ -46,14 +65,19 @@ export default function ShopView() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [palettes, setPalettes] = useState<Palette[]>([]);
+  const [busyPalette, setBusyPalette] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:3001/shop", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setData(await res.json());
+      const headers = { Authorization: `Bearer ${token}` };
+      const [shopRes, palRes] = await Promise.all([
+        fetch("http://localhost:3001/shop", { headers }),
+        fetch("http://localhost:3001/shop/palettes", { headers }),
+      ]);
+      setData(await shopRes.json());
+      setPalettes(await palRes.json());
     } catch {
       // noop
     } finally {
@@ -83,12 +107,41 @@ export default function ShopView() {
         setMessage(result.message || "No se pudo completar la compra");
       } else {
         setMessage(`¡Compraste "${item.name}"!`);
+        window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }
     } catch {
       setMessage("Error de conexión");
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const buyPalette = async (p: Palette) => {
+    if (!token || busyPalette) return;
+    setBusyPalette(p.key);
+    setMessage(null);
+    try {
+      const res = await fetch("http://localhost:3001/shop/buy-palette", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ paletteKey: p.key }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setMessage(result.message || "No se pudo comprar la paleta");
+      } else {
+        setMessage(`¡Compraste la ${p.name}!`);
+        window.dispatchEvent(new Event("cosmetics-updated"));
+        await load();
+      }
+    } catch {
+      setMessage("Error de conexión");
+    } finally {
+      setBusyPalette(null);
     }
   };
 
@@ -110,6 +163,62 @@ export default function ShopView() {
       </div>
 
       {message && <div className={styles.message}>{message}</div>}
+
+      {palettes.length > 0 && (
+        <section className={styles.section}>
+          <h3 className={`${styles.sectionTitle} ${styles.rarity_PREMIUM}`}>
+            Paletas
+          </h3>
+          <div className={styles.grid}>
+            {palettes.map((p) => {
+              const canAfford = data.bits >= p.bundlePriceBits;
+              return (
+                <div key={p.key} className={styles.card}>
+                  <div className={styles.paletteSwatches}>
+                    {p.colors.map((c) => (
+                      <span
+                        key={c.id}
+                        className={styles.paletteSwatch}
+                        style={
+                          c.data?.swatch
+                            ? { background: c.data.swatch }
+                            : undefined
+                        }
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                  <div className={styles.cardName}>{p.name}</div>
+                  <div className={styles.cardDesc}>{p.description}</div>
+                  <div className={styles.paletteProgress}>
+                    {p.ownedCount}/{p.total} adquiridos
+                  </div>
+                  <div className={styles.cardFooter}>
+                    <span className={styles.price}>
+                      {p.bundlePriceBits} Bits
+                    </span>
+                    {p.fullyOwned ? (
+                      <span className={styles.owned}>Completa</span>
+                    ) : (
+                      <button
+                        className={styles.buyBtn}
+                        onClick={() => buyPalette(p)}
+                        disabled={!canAfford || busyPalette === p.key}
+                      >
+                        {busyPalette === p.key
+                          ? "..."
+                          : canAfford
+                            ? "Comprar paleta"
+                            : "Sin Bits"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {RARITY_ORDER.map((rarity) => {
         const items = data.items.filter((i) => i.rarity === rarity);
@@ -146,6 +255,15 @@ export default function ShopView() {
                           style={
                             item.data?.background
                               ? { background: item.data.background }
+                              : undefined
+                          }
+                        />
+                      ) : item.type === "COLOR" ? (
+                        <span
+                          className={styles.colorPreview}
+                          style={
+                            item.data?.swatch
+                              ? { background: item.data.swatch }
                               : undefined
                           }
                         />

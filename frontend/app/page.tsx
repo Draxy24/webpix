@@ -110,6 +110,10 @@ export default function Home() {
   const [publishTitle, setPublishTitle] = useState("");
   const [publishError, setPublishError] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const [exoticColors, setExoticColors] = useState<
+    { token: string; swatch: string; name: string }[]
+  >([]);
+  const [colorRefresh, setColorRefresh] = useState(0);
   const zoomRef = useRef(zoom);
   const multiTouchRef = useRef(false);
 
@@ -308,7 +312,7 @@ export default function Home() {
       if (cooldownRef.current > 0) return;
       if (clicksRef.current <= 0) return;
 
-      ctx.fillStyle = colorRef.current;
+      ctx.fillStyle = resolveColor(colorRef.current, x, y);
       ctx.fillRect(x, y, 1, 1);
 
       const color = colorRef.current;
@@ -466,7 +470,7 @@ export default function Home() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (const key in pixels) {
       const [x, y] = key.split(",").map(Number);
-      ctx.fillStyle = pixels[key];
+      ctx.fillStyle = resolveColor(pixels[key], x, y);
       ctx.fillRect(x, y, 1, 1);
     }
   }, [pixels, zoom]);
@@ -841,6 +845,43 @@ export default function Home() {
       cancelled = true;
     };
   }, [showPurchaseModal, selection, purchaseType, token]);
+
+  useEffect(() => {
+    if (!token) {
+      setExoticColors([]);
+      return;
+    }
+    fetch("http://localhost:3001/rewards/cosmetics", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then(
+        (
+          data: {
+            type: string;
+            name: string;
+            data: { token?: string; swatch?: string } | null;
+          }[],
+        ) => {
+          setExoticColors(
+            data
+              .filter((c) => c.type === "COLOR" && c.data?.token)
+              .map((c) => ({
+                token: c.data!.token!,
+                swatch: c.data!.swatch ?? "#000",
+                name: c.name,
+              })),
+          );
+        },
+      )
+      .catch(() => {});
+  }, [token, colorRefresh]);
+
+  useEffect(() => {
+    const handler = () => setColorRefresh((n) => n + 1);
+    window.addEventListener("cosmetics-updated", handler);
+    return () => window.removeEventListener("cosmetics-updated", handler);
+  }, []);
 
   // Auto-ocultar avisos
   useEffect(() => {
@@ -1226,6 +1267,7 @@ export default function Home() {
         color={selectedColor}
         onColorChange={setSelectedColor}
         palette={PALETTES[userTier]}
+        exoticColors={exoticColors}
         showCustomColor={userTier === "PREMIUM" || isAdmin}
         eraseMode={eraseMode}
         onEraseModeChange={setEraseMode}
@@ -1661,6 +1703,38 @@ function overlayBox(
     alignItems: "center",
     gap: "var(--space-3)",
   };
+}
+
+const RAINBOW_DENSITY = 6;
+const FADE_FREQ = 0.15;
+
+function lerpHex(a: string, b: string, t: number): string {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ar = (pa >> 16) & 255,
+    ag = (pa >> 8) & 255,
+    ab = pa & 255;
+  const br = (pb >> 16) & 255,
+    bg = (pb >> 8) & 255,
+    bb = pb & 255;
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `rgb(${r}, ${g}, ${bl})`;
+}
+
+function resolveColor(color: string, x: number, y: number): string {
+  if (!color || color[0] === "#") return color;
+  if (color === "rainbow") {
+    const hue = ((((x + y) * RAINBOW_DENSITY) % 360) + 360) % 360;
+    return `hsl(${hue}, 85%, 55%)`;
+  }
+  if (color.startsWith("fade:")) {
+    const [a, b] = color.slice(5).split(",");
+    const t = (Math.sin((x + y) * FADE_FREQ) + 1) / 2;
+    return lerpHex(a, b, t);
+  }
+  return color;
 }
 
 const overlayBoxCenter: React.CSSProperties = {
