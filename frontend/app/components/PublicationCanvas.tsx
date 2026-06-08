@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { resolveColor } from "../lib/colors";
 
 interface PublicationCanvasProps {
   pixelData: Record<string, string>;
@@ -29,7 +30,7 @@ export default function PublicationCanvas({ pixelData, x1, y1, x2, y2, maxSize }
 
     for (const key in pixelData) {
       const [x, y] = key.split(",").map(Number);
-      ctx.fillStyle = pixelData[key];
+      ctx.fillStyle = resolveColor(pixelData[key], x, y);
       ctx.fillRect(x - x1, y - y1, 1, 1);
     }
   }, [pixelData, x1, y1, width, height]);

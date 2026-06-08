@@ -211,7 +211,8 @@ export default function ShopView() {
             {packages.map((pkg) => (
               <div key={pkg.key} className={styles.card}>
                 <div className={styles.bitsAmount}>
-                  🪙 {pkg.total.toLocaleString("es-MX")}
+                  <span className={styles.coin}>B</span>
+                  {pkg.total.toLocaleString("es-MX")}
                 </div>
                 <div className={styles.cardName}>{pkg.name}</div>
                 {pkg.bonus > 0 && (
