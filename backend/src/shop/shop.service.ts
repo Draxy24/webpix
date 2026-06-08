@@ -100,6 +100,7 @@ export class ShopService {
           rarity: c.rarity,
           priceBits: c.priceBits,
           data: c.data ?? undefined,
+          theme: c.theme ?? null,
           active: true,
         },
         create: {
@@ -111,6 +112,7 @@ export class ShopService {
           rarity: c.rarity,
           priceBits: c.priceBits,
           data: c.data ?? undefined,
+          theme: c.theme ?? null,
         },
       });
     }

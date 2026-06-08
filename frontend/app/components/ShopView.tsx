@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./ShopView.module.css";
+import { badgeIcon } from "../lib/badges";
 
 type ShopItem = {
   id: number;
@@ -61,12 +62,6 @@ const RARITY_LABEL: Record<string, string> = {
   RARE: "Raros",
   PREMIUM: "Premium",
 };
-
-function badgeIcon(icon?: string) {
-  if (icon === "crown") return "👑";
-  if (icon === "star") return "⭐";
-  return "🏅";
-}
 
 export default function ShopView() {
   const { token } = useAuth();

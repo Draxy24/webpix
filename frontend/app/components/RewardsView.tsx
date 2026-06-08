@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./RewardsView.module.css";
+import { badgeIcon } from "../lib/badges";
 
 type Progression = {
   bits: number;
@@ -33,17 +34,6 @@ type Cosmetic = {
   } | null;
   equipped: boolean;
 };
-
-function badgeIcon(icon?: string) {
-  switch (icon) {
-    case "crown":
-      return "👑";
-    case "star":
-      return "⭐";
-    default:
-      return "🏅";
-  }
-}
 
 export default function RewardsView() {
   const { token } = useAuth();

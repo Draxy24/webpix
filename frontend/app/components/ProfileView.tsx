@@ -7,6 +7,7 @@ import Flag from "./Flag";
 import ReportModal from "./ReportModal";
 import Button from "./Button";
 import styles from "./ProfileView.module.css";
+import { badgeIcon } from "../lib/badges";
 
 interface Profile {
   nickname: string;
@@ -41,17 +42,6 @@ type FriendStatus =
   | "REQUEST_SENT"
   | "REQUEST_RECEIVED"
   | "SELF";
-
-function badgeIcon(icon?: string) {
-  switch (icon) {
-    case "crown":
-      return "👑";
-    case "star":
-      return "⭐";
-    default:
-      return "🏅";
-  }
-}
 
 export default function ProfileView({
   nickname,

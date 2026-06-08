@@ -233,6 +233,7 @@ model Cosmetic {
   data        Json?
   active      Boolean        @default(true)
   createdAt   DateTime       @default(now())
+  theme String?
 
   unlocks     UserCosmetic[]
 }
