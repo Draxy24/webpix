@@ -194,3 +194,15 @@
   color: var(--color-text-secondary);
   text-align: center;
 }
+
+.bitsAmount {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-brand);
+  text-align: center;
+}
+.bitsBonus {
+  font-size: var(--text-xs);
+  color: var(--color-success);
+  text-align: center;
+}

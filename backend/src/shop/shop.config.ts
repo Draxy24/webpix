@@ -200,3 +200,41 @@ export const COLOR_PALETTES = [
     ],
   },
 ];
+
+export const BIT_PACKAGES = [
+  {
+    key: 'bits_punado',
+    name: 'Puñado de Bits',
+    bits: 100,
+    bonus: 0,
+    priceCents: 99,
+  },
+  {
+    key: 'bits_bolsa',
+    name: 'Bolsa de Bits',
+    bits: 550,
+    bonus: 50,
+    priceCents: 499,
+  },
+  {
+    key: 'bits_cofre',
+    name: 'Cofre de Bits',
+    bits: 1200,
+    bonus: 200,
+    priceCents: 999,
+  },
+  {
+    key: 'bits_baul',
+    name: 'Baúl de Bits',
+    bits: 2600,
+    bonus: 600,
+    priceCents: 1999,
+  },
+  {
+    key: 'bits_tesoro',
+    name: 'Tesoro de Bits',
+    bits: 7000,
+    bonus: 2000,
+    priceCents: 4999,
+  },
+];

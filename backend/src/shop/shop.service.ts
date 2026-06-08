@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { SHOP_COSMETICS } from './shop.config';
 import { COLOR_PALETTES } from './shop.config';
+import { BIT_PACKAGES } from './shop.config';
 
 @Injectable()
 export class ShopService {
@@ -186,5 +187,30 @@ export class ShopService {
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     return { success: true, granted: toGrant.length, bits: user?.bits ?? 0 };
+  }
+
+  listBitPackages() {
+    return BIT_PACKAGES.map((p) => ({
+      key: p.key,
+      name: p.name,
+      bits: p.bits,
+      bonus: p.bonus,
+      total: p.bits + p.bonus,
+      priceCents: p.priceCents,
+    }));
+  }
+
+  // STUB: otorga los Bits sin cobro real. Reemplazar por checkout + webhook de Stripe antes del lanzamiento.
+  async buyBits(userId: number, packageKey: string) {
+    const pkg = BIT_PACKAGES.find((p) => p.key === packageKey);
+    if (!pkg) throw new NotFoundException('Paquete no encontrado');
+
+    const total = pkg.bits + pkg.bonus;
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { bits: { increment: total } },
+    });
+
+    return { success: true, granted: total, bits: user.bits };
   }
 }

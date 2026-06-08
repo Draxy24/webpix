@@ -49,4 +49,19 @@ export class ShopController {
   ) {
     return this.shop.buyPalette(req.user.id, body.paletteKey);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('bit-packages')
+  bitPackages() {
+    return this.shop.listBitPackages();
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('buy-bits')
+  buyBits(
+    @Request() req: { user: { id: number } },
+    @Body() body: { packageKey: string },
+  ) {
+    return this.shop.buyBits(req.user.id, body.packageKey);
+  }
 }

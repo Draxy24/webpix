@@ -42,6 +42,15 @@ type Palette = {
   fullyOwned: boolean;
 };
 
+type BitPackage = {
+  key: string;
+  name: string;
+  bits: number;
+  bonus: number;
+  total: number;
+  priceCents: number;
+};
+
 const RARITY_ORDER: ("COMMON" | "RARE" | "PREMIUM")[] = [
   "COMMON",
   "RARE",
@@ -67,17 +76,21 @@ export default function ShopView() {
   const [message, setMessage] = useState<string | null>(null);
   const [palettes, setPalettes] = useState<Palette[]>([]);
   const [busyPalette, setBusyPalette] = useState<string | null>(null);
+  const [packages, setPackages] = useState<BitPackage[]>([]);
+  const [busyPackage, setBusyPackage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [shopRes, palRes] = await Promise.all([
+      const [shopRes, palRes, pkgRes] = await Promise.all([
         fetch("http://localhost:3001/shop", { headers }),
         fetch("http://localhost:3001/shop/palettes", { headers }),
+        fetch("http://localhost:3001/shop/bit-packages", { headers }),
       ]);
       setData(await shopRes.json());
       setPalettes(await palRes.json());
+      setPackages(await pkgRes.json());
     } catch {
       // noop
     } finally {
@@ -145,6 +158,33 @@ export default function ShopView() {
     }
   };
 
+  const buyBits = async (pkg: BitPackage) => {
+    if (!token || busyPackage) return;
+    setBusyPackage(pkg.key);
+    setMessage(null);
+    try {
+      const res = await fetch("http://localhost:3001/shop/buy-bits", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ packageKey: pkg.key }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setMessage(result.message || "No se pudo completar la compra");
+      } else {
+        setMessage(`¡Recibiste ${result.granted} Bits!`);
+        await load();
+      }
+    } catch {
+      setMessage("Error de conexión");
+    } finally {
+      setBusyPackage(null);
+    }
+  };
+
   if (!token)
     return (
       <div className={styles.empty}>
@@ -163,6 +203,39 @@ export default function ShopView() {
       </div>
 
       {message && <div className={styles.message}>{message}</div>}
+
+      {packages.length > 0 && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Consigue Bits</h3>
+          <div className={styles.grid}>
+            {packages.map((pkg) => (
+              <div key={pkg.key} className={styles.card}>
+                <div className={styles.bitsAmount}>
+                  🪙 {pkg.total.toLocaleString("es-MX")}
+                </div>
+                <div className={styles.cardName}>{pkg.name}</div>
+                {pkg.bonus > 0 && (
+                  <div className={styles.bitsBonus}>
+                    +{pkg.bonus.toLocaleString("es-MX")} de bonus
+                  </div>
+                )}
+                <div className={styles.cardFooter}>
+                  <span className={styles.price}>
+                    ${(pkg.priceCents / 100).toFixed(2)}
+                  </span>
+                  <button
+                    className={styles.buyBtn}
+                    onClick={() => buyBits(pkg)}
+                    disabled={busyPackage === pkg.key}
+                  >
+                    {busyPackage === pkg.key ? "..." : "Comprar"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {palettes.length > 0 && (
         <section className={styles.section}>
