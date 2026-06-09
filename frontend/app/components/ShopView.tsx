@@ -22,10 +22,15 @@ type ShopItem = {
     swatch?: string;
     image?: string;
   } | null;
+  theme?: string | null;
   owned: boolean;
 };
 
-type ShopData = { bits: number; items: ShopItem[] };
+type ShopData = {
+  bits: number;
+  season: { label: string; themes: string[] } | null;
+  items: ShopItem[];
+};
 
 type PaletteColor = {
   id: number;
@@ -229,6 +234,11 @@ export default function ShopView() {
     )
     .slice(0, 6);
 
+  const season = data.season;
+  const seasonItems = season
+    ? data.items.filter((i) => !!i.theme && season.themes.includes(i.theme))
+    : [];
+
   const renderCard = (item: ShopItem) => {
     const canAfford = (data?.bits ?? 0) >= item.priceBits;
     return (
@@ -397,6 +407,15 @@ export default function ShopView() {
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Destacados</h3>
               <div className={styles.grid}>{featured.map(renderCard)}</div>
+            </section>
+          )}
+
+          {season && seasonItems.length > 0 && (
+            <section className={styles.section}>
+              <h3 className={`${styles.sectionTitle} ${styles.seasonTitle}`}>
+                ✨ {season.label}
+              </h3>
+              <div className={styles.grid}>{seasonItems.map(renderCard)}</div>
             </section>
           )}
 

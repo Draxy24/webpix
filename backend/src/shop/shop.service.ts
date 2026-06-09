@@ -9,11 +9,15 @@ import { SHOP_COSMETICS } from './shop.config';
 import { COLOR_PALETTES } from './shop.config';
 import { BIT_PACKAGES } from './shop.config';
 import { Cosmetic } from '@prisma/client';
-import { SEASON_WINDOWS } from './shop.config';
+import { SEASON_WINDOWS, SEASON_LABEL_PRIORITY } from './shop.config';
+import { AchievementsService } from '../achievements/achievements.service';
 
 @Injectable()
 export class ShopService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private achievements: AchievementsService,
+  ) {}
 
   async listForUser(userId: number) {
     const RARITY_ORDER = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
@@ -29,9 +33,11 @@ export class ShopService {
     });
     const ownedSet = new Set(owned.map((o) => o.cosmeticId));
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const season = this.getActiveSeason();
 
     return {
       bits: user?.bits ?? 0,
+      season,
       items: cosmetics.map((c) => ({
         id: c.id,
         key: c.key,
@@ -41,6 +47,7 @@ export class ShopService {
         rarity: c.rarity,
         priceBits: c.priceBits,
         data: c.data,
+        theme: c.theme,
         owned: ownedSet.has(c.id),
       })),
     };
@@ -85,6 +92,8 @@ export class ShopService {
       });
       throw new BadRequestException('No se pudo completar la compra');
     }
+
+    await this.achievements.checkCollection(userId);
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     return {
@@ -197,6 +206,8 @@ export class ShopService {
       skipDuplicates: true,
     });
 
+    await this.achievements.checkCollection(userId);
+
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     return { success: true, granted: toGrant.length, bits: user?.bits ?? 0 };
   }
@@ -259,6 +270,18 @@ export class ShopService {
     const w = SEASON_WINDOWS[theme];
     if (!w) return true; // estéticas/memes/elementos: siempre disponibles
     return w.months.includes(date.getUTCMonth() + 1);
+  }
+
+  private getActiveSeason(
+    date: Date = new Date(),
+  ): { themes: string[]; label: string } | null {
+    const month = date.getUTCMonth() + 1;
+    const themes = Object.keys(SEASON_WINDOWS).filter((k) =>
+      SEASON_WINDOWS[k].months.includes(month),
+    );
+    if (themes.length === 0) return null;
+    const labelKey = SEASON_LABEL_PRIORITY.find((k) => themes.includes(k));
+    return { themes, label: SEASON_WINDOWS[labelKey ?? themes[0]].label };
   }
 
   // Selección determinista del día (igual para todos, cambia a medianoche UTC)

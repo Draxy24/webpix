@@ -47,6 +47,15 @@ export const STARTER_WEEKLY_TASKS: SeedWeeklyTask[] = [
     rewardBits: 80,
   },
   {
+    key: 'weekly_pixels_1000',
+    name: 'Maratón semanal',
+    description: 'Pinta 1 000 píxeles esta semana.',
+    metric: 'PIXELS_PLACED',
+    threshold: 1000,
+    rewardXp: 250,
+    rewardBits: 150,
+  },
+  {
     key: 'weekly_pub_1',
     name: 'Obra semanal',
     description: 'Crea una publicación esta semana.',
@@ -54,5 +63,14 @@ export const STARTER_WEEKLY_TASKS: SeedWeeklyTask[] = [
     threshold: 1,
     rewardXp: 60,
     rewardBits: 30,
+  },
+  {
+    key: 'weekly_pub_3',
+    name: 'Trío creativo',
+    description: 'Crea 3 publicaciones esta semana.',
+    metric: 'PUBLICATIONS_CREATED',
+    threshold: 3,
+    rewardXp: 150,
+    rewardBits: 90,
   },
 ];

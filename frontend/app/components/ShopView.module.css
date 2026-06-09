@@ -292,3 +292,7 @@
 .subSection {
   margin-bottom: var(--space-3);
 }
+
+.seasonTitle {
+  color: var(--color-brand);
+}

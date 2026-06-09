@@ -5,8 +5,13 @@ import { Achievement, AchievementMetric, Prisma } from '@prisma/client';
 import { STARTER_ACHIEVEMENTS } from './achievements.config';
 import { WeeklyTasksService } from '../weekly-tasks/weekly-tasks.service';
 import { xpPerPixelForLevel } from '../rewards/rewards.config';
+import { COLOR_PALETTES } from '../shop/shop.config';
 
 type CounterField = 'pixelsPlaced' | 'publicationsCreated' | 'likesReceived';
+type CounterMetric =
+  | 'PIXELS_PLACED'
+  | 'PUBLICATIONS_CREATED'
+  | 'LIKES_RECEIVED';
 
 @Injectable()
 export class AchievementsService {
@@ -16,7 +21,7 @@ export class AchievementsService {
     private weeklyTasks: WeeklyTasksService,
   ) {}
 
-  private readonly metricField: Record<AchievementMetric, CounterField> = {
+  private readonly metricField: Record<CounterMetric, CounterField> = {
     PIXELS_PLACED: 'pixelsPlaced',
     PUBLICATIONS_CREATED: 'publicationsCreated',
     LIKES_RECEIVED: 'likesReceived',
@@ -45,7 +50,8 @@ export class AchievementsService {
   // Sube un contador de por vida y revisa logros de esa métrica
   async track(userId: number, metric: AchievementMetric, increment = 1) {
     if (increment === 0) return [];
-    const field = this.metricField[metric];
+    const field = this.metricField[metric as CounterMetric];
+    if (!field) return [];
 
     const user = await this.prisma.user.update({
       where: { id: userId },
@@ -71,6 +77,7 @@ export class AchievementsService {
     });
     const completed = await this.awardCompleted(userId, candidates);
     await this.weeklyTasks.track(userId, metric, increment);
+    await this.checkLevel(userId);
     return completed;
   }
 
@@ -94,18 +101,108 @@ export class AchievementsService {
     return this.awardCompleted(ownerId, candidates);
   }
 
+  // Revisa los logros de nivel contra el nivel actual del usuario
+  async checkLevel(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return [];
+    const candidates = await this.prisma.achievement.findMany({
+      where: {
+        metric: 'LEVEL_REACHED',
+        active: true,
+        threshold: { lte: user.level },
+        unlocks: { none: { userId } },
+      },
+    });
+    return this.awardCompleted(userId, candidates);
+  }
+
+  // Revisa los logros de colección contra cuántos cosméticos posee el usuario
+  async checkCosmeticsOwned(userId: number) {
+    const count = await this.prisma.userCosmetic.count({ where: { userId } });
+    const candidates = await this.prisma.achievement.findMany({
+      where: {
+        metric: 'COSMETICS_OWNED',
+        active: true,
+        threshold: { lte: count },
+        unlocks: { none: { userId } },
+      },
+    });
+    return this.awardCompleted(userId, candidates);
+  }
+
+  // Otorga logros de una métrica comparando su umbral contra un valor ya calculado
+  private async awardByMetric(
+    userId: number,
+    metric: AchievementMetric,
+    value: number,
+  ) {
+    const candidates = await this.prisma.achievement.findMany({
+      where: {
+        metric,
+        active: true,
+        threshold: { lte: value },
+        unlocks: { none: { userId } },
+      },
+    });
+    return this.awardCompleted(userId, candidates);
+  }
+
+  // Cuántas paletas completas posee el usuario (tiene todos sus colores)
+  private async palettesCompleted(userId: number): Promise<number> {
+    const owned = await this.prisma.userCosmetic.findMany({
+      where: { userId },
+      select: { cosmetic: { select: { key: true } } },
+    });
+    const ownedKeys = new Set(owned.map((o) => o.cosmetic.key));
+    return COLOR_PALETTES.filter((p) =>
+      p.colorKeys.every((k) => ownedKeys.has(k)),
+    ).length;
+  }
+
+  // Revisa todos los logros de colección (cantidad, rareza y paletas) tras una compra
+  async checkCollection(userId: number) {
+    await this.checkCosmeticsOwned(userId);
+
+    const legendary = await this.prisma.userCosmetic.count({
+      where: { userId, cosmetic: { rarity: 'LEGENDARY' } },
+    });
+    const mythic = await this.prisma.userCosmetic.count({
+      where: { userId, cosmetic: { rarity: 'MYTHIC' } },
+    });
+    const palettes = await this.palettesCompleted(userId);
+
+    await this.awardByMetric(userId, 'LEGENDARY_OWNED', legendary);
+    await this.awardByMetric(userId, 'MYTHIC_OWNED', mythic);
+    await this.awardByMetric(userId, 'PALETTE_COMPLETED', palettes);
+
+    await this.checkLevel(userId);
+  }
+
   async listForUser(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return [];
+
+    const cosmeticsOwned = await this.prisma.userCosmetic.count({
+      where: { userId },
+    });
+    const legendaryOwned = await this.prisma.userCosmetic.count({
+      where: { userId, cosmetic: { rarity: 'LEGENDARY' } },
+    });
+    const mythicOwned = await this.prisma.userCosmetic.count({
+      where: { userId, cosmetic: { rarity: 'MYTHIC' } },
+    });
+    const palettesComplete = await this.palettesCompleted(userId);
 
     const achievements = await this.prisma.achievement.findMany({
       where: { active: true },
       orderBy: [{ metric: 'asc' }, { threshold: 'asc' }],
     });
+
     const done = await this.prisma.userAchievement.findMany({
       where: { userId },
       select: { achievementId: true, completedAt: true },
     });
+
     const doneMap = new Map(done.map((d) => [d.achievementId, d.completedAt]));
 
     const valueFor = (metric: AchievementMetric): number => {
@@ -116,6 +213,16 @@ export class AchievementsService {
           return user.publicationsCreated;
         case 'LIKES_RECEIVED':
           return user.likesReceived;
+        case 'LEVEL_REACHED':
+          return user.level;
+        case 'COSMETICS_OWNED':
+          return cosmeticsOwned;
+        case 'LEGENDARY_OWNED':
+          return legendaryOwned;
+        case 'MYTHIC_OWNED':
+          return mythicOwned;
+        case 'PALETTE_COMPLETED':
+          return palettesComplete;
         default:
           return 0;
       }

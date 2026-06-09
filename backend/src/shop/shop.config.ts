@@ -1211,16 +1211,34 @@ export const BIT_PACKAGES = [
   },
 ];
 
-export const SEASON_WINDOWS: Record<string, { months: number[] }> = {
-  san_valentin: { months: [2] },
-  carnaval: { months: [2, 3] },
-  primavera: { months: [3, 4, 5] },
-  verano: { months: [6, 7, 8] },
-  otono: { months: [9, 10, 11] },
-  halloween: { months: [10] },
-  dia_muertos: { months: [10, 11] },
-  invierno: { months: [12, 1, 2] },
-  navidad: { months: [12] },
-  ano_nuevo: { months: [12, 1] },
-  ano_lunar: { months: [1, 2] },
+export const SEASON_WINDOWS: Record<
+  string,
+  { months: number[]; label: string }
+> = {
+  san_valentin: { months: [2], label: 'San Valentín' },
+  carnaval: { months: [2, 3], label: 'Carnaval' },
+  primavera: { months: [3, 4, 5], label: 'Primavera' },
+  verano: { months: [6, 7, 8], label: 'Verano' },
+  otono: { months: [9, 10, 11], label: 'Otoño' },
+  halloween: { months: [10], label: 'Halloween' },
+  dia_muertos: { months: [10, 11], label: 'Día de Muertos' },
+  invierno: { months: [12, 1, 2], label: 'Invierno' },
+  navidad: { months: [12], label: 'Navidad' },
+  ano_nuevo: { months: [12, 1], label: 'Año Nuevo' },
+  ano_lunar: { months: [1, 2], label: 'Año Lunar' },
 };
+
+// Cuando varias temporadas se solapan (ej. octubre), esta es la que da nombre a la sección
+export const SEASON_LABEL_PRIORITY: string[] = [
+  'navidad',
+  'halloween',
+  'dia_muertos',
+  'san_valentin',
+  'ano_nuevo',
+  'ano_lunar',
+  'carnaval',
+  'primavera',
+  'verano',
+  'otono',
+  'invierno',
+];
