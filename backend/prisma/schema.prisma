@@ -304,6 +304,7 @@ enum AchievementMetric {
   LEGENDARY_OWNED
   MYTHIC_OWNED
   PALETTE_COMPLETED
+  FRIENDS
 }
 
 model WeeklyTask {

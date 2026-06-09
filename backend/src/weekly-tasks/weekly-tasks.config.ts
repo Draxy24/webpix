@@ -73,4 +73,13 @@ export const STARTER_WEEKLY_TASKS: SeedWeeklyTask[] = [
     rewardXp: 150,
     rewardBits: 90,
   },
+  {
+    key: 'weekly_likes_25',
+    name: 'Aplausos de la semana',
+    description: 'Recibe 25 likes esta semana.',
+    metric: 'LIKES_RECEIVED',
+    threshold: 25,
+    rewardXp: 120,
+    rewardBits: 70,
+  },
 ];

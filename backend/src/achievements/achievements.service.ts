@@ -101,6 +101,11 @@ export class AchievementsService {
     return this.awardCompleted(ownerId, candidates);
   }
 
+  // Suma 1 al progreso semanal de likes del autor (al recibir un like nuevo)
+  async trackWeeklyLike(ownerId: number) {
+    await this.weeklyTasks.track(ownerId, 'LIKES_RECEIVED', 1);
+  }
+
   // Revisa los logros de nivel contra el nivel actual del usuario
   async checkLevel(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -178,6 +183,17 @@ export class AchievementsService {
     await this.checkLevel(userId);
   }
 
+  // Revisa los logros de amigos contra el número de amistades aceptadas
+  async checkFriends(userId: number) {
+    const count = await this.prisma.friendship.count({
+      where: {
+        status: 'ACCEPTED',
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+    });
+    return this.awardByMetric(userId, 'FRIENDS', count);
+  }
+
   async listForUser(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return [];
@@ -192,6 +208,12 @@ export class AchievementsService {
       where: { userId, cosmetic: { rarity: 'MYTHIC' } },
     });
     const palettesComplete = await this.palettesCompleted(userId);
+    const friendsCount = await this.prisma.friendship.count({
+      where: {
+        status: 'ACCEPTED',
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+    });
 
     const achievements = await this.prisma.achievement.findMany({
       where: { active: true },
@@ -223,6 +245,8 @@ export class AchievementsService {
           return mythicOwned;
         case 'PALETTE_COMPLETED':
           return palettesComplete;
+        case 'FRIENDS':
+          return friendsCount;
         default:
           return 0;
       }

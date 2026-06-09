@@ -210,6 +210,9 @@ export class PublicationsService {
     }
 
     await this.achievements.recountLikes(publication.userId);
+    if (result.reaction === 'LIKE') {
+      await this.achievements.trackWeeklyLike(publication.userId);
+    }
     return result;
   }
 

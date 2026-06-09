@@ -279,4 +279,23 @@ export const STARTER_ACHIEVEMENTS: SeedAchievement[] = [
     rewardXp: 150,
     rewardBits: 250,
   },
+  // Amigos
+  {
+    key: 'friends_1',
+    name: 'Primer amigo',
+    description: 'Haz tu primer amigo.',
+    metric: 'FRIENDS',
+    threshold: 1,
+    rewardXp: 50,
+    rewardBits: 50,
+  },
+  {
+    key: 'friends_10',
+    name: 'Círculo social',
+    description: 'Llega a 10 amigos.',
+    metric: 'FRIENDS',
+    threshold: 10,
+    rewardXp: 200,
+    rewardBits: 200,
+  },
 ];
