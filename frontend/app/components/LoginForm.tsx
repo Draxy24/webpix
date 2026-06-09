@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./AuthForm.module.css";
+import { API_URL } from "@/app/lib/api";
 
 export default function LoginForm({
   onSuccess,
@@ -31,7 +32,7 @@ export default function LoginForm({
     setBanInfo(null);
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/auth/login", {
+      const res = await fetch(API_URL + "/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailOrPhone, password }),

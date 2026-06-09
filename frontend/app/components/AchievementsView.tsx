@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./AchievementsView.module.css";
+import { API_URL } from "@/app/lib/api";
 
 type Achievement = {
   key: string;
@@ -28,7 +29,7 @@ export default function AchievementsView() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:3001/achievements/me", {
+      const res = await fetch(API_URL + "/achievements/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setItems(await res.json());

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
 import Button from "../components/Button";
+import { API_URL } from "@/app/lib/api";
 
 export default function BannedPage() {
   const { token, loading, logout } = useAuth();
@@ -21,7 +22,7 @@ export default function BannedPage() {
       router.push("/login");
       return;
     }
-    fetch("http://localhost:3001/auth/me", {
+    fetch(API_URL + "/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

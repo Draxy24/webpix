@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./FriendsView.module.css";
+import { API_URL } from "@/app/lib/api";
 
 interface User {
   id: number;
@@ -39,19 +40,19 @@ export default function FriendsView({
   useEffect(() => {
     if (!token) return;
     const headers = { Authorization: `Bearer ${token}` };
-    fetch("http://localhost:3001/friendships", { headers })
+    fetch(API_URL + "/friendships", { headers })
       .then((r) => r.json())
       .then(setFriends);
-    fetch("http://localhost:3001/friendships/incoming", { headers })
+    fetch(API_URL + "/friendships/incoming", { headers })
       .then((r) => r.json())
       .then(setIncoming);
-    fetch("http://localhost:3001/friendships/outgoing", { headers })
+    fetch(API_URL + "/friendships/outgoing", { headers })
       .then((r) => r.json())
       .then(setOutgoing);
   }, [token]);
 
   const handleAccept = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/friendships/${id}/accept`, {
+    const res = await fetch(`${API_URL}/friendships/${id}/accept`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -68,7 +69,7 @@ export default function FriendsView({
   };
 
   const handleDecline = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/friendships/${id}/decline`, {
+    const res = await fetch(`${API_URL}/friendships/${id}/decline`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -77,7 +78,7 @@ export default function FriendsView({
   };
 
   const handleCancel = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/friendships/${id}`, {
+    const res = await fetch(`${API_URL}/friendships/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -86,7 +87,7 @@ export default function FriendsView({
   };
 
   const handleRemoveFriend = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/friendships/${id}`, {
+    const res = await fetch(`${API_URL}/friendships/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

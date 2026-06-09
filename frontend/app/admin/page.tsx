@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
 import Button from "../components/Button";
 import styles from "./admin.module.css";
+import { API_URL } from "@/app/lib/api";
 
 type Report = {
   id: number;
@@ -86,7 +87,7 @@ function BanModal({
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:3001/moderation/ban", {
+      const res = await fetch(API_URL + "/moderation/ban", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -193,7 +194,7 @@ export default function AdminPage() {
       router.push("/login");
       return;
     }
-    fetch("http://localhost:3001/auth/me", {
+    fetch(API_URL + "/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -214,7 +215,7 @@ export default function AdminPage() {
     if (statusFilter) params.set("status", statusFilter);
     if (typeFilter) params.set("type", typeFilter);
     const res = await fetch(
-      `http://localhost:3001/moderation/reports?${params.toString()}`,
+      `${API_URL}/moderation/reports?${params.toString()}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -227,7 +228,7 @@ export default function AdminPage() {
   const loadLog = useCallback(async () => {
     if (!token) return;
     setLoadingLog(true);
-    const res = await fetch("http://localhost:3001/moderation/log", {
+    const res = await fetch(API_URL + "/moderation/log", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -244,7 +245,7 @@ export default function AdminPage() {
   }, [authorized, tab, loadLog]);
 
   const action = async (url: string, method: string) => {
-    await fetch(`http://localhost:3001${url}`, {
+    await fetch(`${API_URL}${url}`, {
       method,
       headers: { Authorization: `Bearer ${token}` },
     });

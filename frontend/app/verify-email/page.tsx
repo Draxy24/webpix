@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
+import { API_URL } from "@/app/lib/api";
 
 function VerifyEmailInner() {
   const searchParams = useSearchParams();
@@ -19,7 +20,7 @@ function VerifyEmailInner() {
       return;
     }
     const verify = async () => {
-      const res = await fetch("http://localhost:3001/auth/verify-email", {
+      const res = await fetch(API_URL + "/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./RewardsView.module.css";
 import { badgeIcon } from "../lib/badges";
+import { API_URL } from "@/app/lib/api";
 
 type Progression = {
   bits: number;
@@ -46,11 +47,11 @@ export default function RewardsView() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const pRes = await fetch("http://localhost:3001/rewards/me", {
+      const pRes = await fetch(API_URL + "/rewards/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProg(await pRes.json());
-      const cRes = await fetch("http://localhost:3001/rewards/cosmetics", {
+      const cRes = await fetch(API_URL + "/rewards/cosmetics", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCosmetics(await cRes.json());
@@ -70,7 +71,7 @@ export default function RewardsView() {
     setBusy(true);
     try {
       const endpoint = c.equipped ? "unequip" : "equip";
-      await fetch(`http://localhost:3001/rewards/${endpoint}`, {
+      await fetch(`${API_URL}/rewards/${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

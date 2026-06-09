@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./ShopView.module.css";
 import { badgeIcon } from "../lib/badges";
+import { API_URL } from "@/app/lib/api";
 
 type ShopItem = {
   id: number;
@@ -115,9 +116,9 @@ export default function ShopView() {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const [shopRes, palRes, pkgRes] = await Promise.all([
-        fetch("http://localhost:3001/shop", { headers }),
-        fetch("http://localhost:3001/shop/palettes", { headers }),
-        fetch("http://localhost:3001/shop/bit-packages", { headers }),
+        fetch(API_URL + "/shop", { headers }),
+        fetch(API_URL + "/shop/palettes", { headers }),
+        fetch(API_URL + "/shop/bit-packages", { headers }),
       ]);
       setData(await shopRes.json());
       setPalettes(await palRes.json());
@@ -138,7 +139,7 @@ export default function ShopView() {
     setBusyId(item.id);
     setMessage(null);
     try {
-      const res = await fetch("http://localhost:3001/shop/buy", {
+      const res = await fetch(API_URL + "/shop/buy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -166,7 +167,7 @@ export default function ShopView() {
     setBusyPalette(p.key);
     setMessage(null);
     try {
-      const res = await fetch("http://localhost:3001/shop/buy-palette", {
+      const res = await fetch(API_URL + "/shop/buy-palette", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -194,7 +195,7 @@ export default function ShopView() {
     setBusyPackage(pkg.key);
     setMessage(null);
     try {
-      const res = await fetch("http://localhost:3001/shop/buy-bits", {
+      const res = await fetch(API_URL + "/shop/buy-bits", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -12,6 +12,7 @@ import RankingsView from "./RankingsView";
 import FriendsView from "./FriendsView";
 import RewardsView from "./RewardsView";
 import { useProfileModal } from "./ProfileModalContext";
+import { API_URL } from "@/app/lib/api";
 
 export default function MenuPanel({
   nickname,
@@ -53,7 +54,7 @@ export default function MenuPanel({
 
   useEffect(() => {
     if (!nickname) return;
-    fetch(`http://localhost:3001/users/${nickname}`)
+    fetch(`${API_URL}/users/${nickname}`)
       .then((res) => res.json())
       .then((data) => {
         setProfilePic(data.profilePic ?? "");
@@ -74,7 +75,7 @@ export default function MenuPanel({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:3001/users/me", {
+      const res = await fetch(API_URL + "/users/me", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

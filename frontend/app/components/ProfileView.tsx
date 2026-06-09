@@ -8,6 +8,7 @@ import ReportModal from "./ReportModal";
 import Button from "./Button";
 import styles from "./ProfileView.module.css";
 import { badgeIcon } from "../lib/badges";
+import { API_URL } from "@/app/lib/api";
 
 interface Profile {
   nickname: string;
@@ -69,7 +70,7 @@ export default function ProfileView({
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/users/${nickname}`);
+        const res = await fetch(`${API_URL}/users/${nickname}`);
         if (!res.ok) throw new Error("Perfil no encontrado");
         const data = await res.json();
         setProfile(data);
@@ -84,7 +85,7 @@ export default function ProfileView({
 
   useEffect(() => {
     if (!token || isOwnProfile || !profile) return;
-    fetch(`http://localhost:3001/friendships/status/${nickname}`, {
+    fetch(`${API_URL}/friendships/status/${nickname}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -93,13 +94,13 @@ export default function ProfileView({
 
   useEffect(() => {
     if (!profile) return;
-    fetch(`http://localhost:3001/publications/user/${nickname}`)
+    fetch(`${API_URL}/publications/user/${nickname}`)
       .then((res) => res.json())
       .then(setPublications);
   }, [profile, nickname]);
 
   const sendRequest = async () => {
-    const res = await fetch("http://localhost:3001/friendships", {
+    const res = await fetch(API_URL + "/friendships", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export default function ProfileView({
   const acceptRequest = async () => {
     if (!friendStatus?.friendshipId) return;
     const res = await fetch(
-      `http://localhost:3001/friendships/${friendStatus.friendshipId}/accept`,
+      `${API_URL}/friendships/${friendStatus.friendshipId}/accept`,
       {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
@@ -135,7 +136,7 @@ export default function ProfileView({
   const declineRequest = async () => {
     if (!friendStatus?.friendshipId) return;
     const res = await fetch(
-      `http://localhost:3001/friendships/${friendStatus.friendshipId}/decline`,
+      `${API_URL}/friendships/${friendStatus.friendshipId}/decline`,
       {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
@@ -147,7 +148,7 @@ export default function ProfileView({
   const removeFriend = async () => {
     if (!friendStatus?.friendshipId) return;
     const res = await fetch(
-      `http://localhost:3001/friendships/${friendStatus.friendshipId}`,
+      `${API_URL}/friendships/${friendStatus.friendshipId}`,
       {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },

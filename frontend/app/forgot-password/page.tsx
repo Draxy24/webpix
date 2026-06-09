@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
 import styles from "../components/AuthForm.module.css";
+import { API_URL } from "@/app/lib/api";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await fetch("http://localhost:3001/auth/forgot-password", {
+    await fetch(API_URL + "/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ emailOrPhone }),

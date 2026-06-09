@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "../context/auth";
+import { API_URL } from "@/app/lib/api";
 
 type ReportType = "USER" | "PUBLICATION" | "COMMENT";
 
@@ -53,7 +54,7 @@ export default function ReportModal({
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:3001/reports", {
+      const res = await fetch(API_URL + "/reports", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -7,6 +7,7 @@ import { COUNTRIES } from "../lib/countries";
 import PhoneCountrySelect from "./PhoneCountrySelect";
 import Button from "./Button";
 import styles from "./AuthForm.module.css";
+import { API_URL } from "@/app/lib/api";
 
 export default function RegisterForm({
   switchToLogin,
@@ -44,7 +45,7 @@ export default function RegisterForm({
           country: country || undefined,
         };
       }
-      const res = await fetch("http://localhost:3001/auth/register", {
+      const res = await fetch(API_URL + "/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

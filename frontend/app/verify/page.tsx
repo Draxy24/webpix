@@ -6,6 +6,7 @@ import { useAuth } from "../context/auth";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
 import styles from "../components/AuthForm.module.css";
+import { API_URL } from "@/app/lib/api";
 
 export default function VerifyPage() {
   const { token, loading } = useAuth();
@@ -20,7 +21,7 @@ export default function VerifyPage() {
 
   const checkStatus = useCallback(async () => {
     if (!token) return;
-    const res = await fetch("http://localhost:3001/auth/me", {
+    const res = await fetch(API_URL + "/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -45,7 +46,7 @@ export default function VerifyPage() {
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:3001/auth/verify-phone", {
+      const res = await fetch(API_URL + "/auth/verify-phone", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +67,7 @@ export default function VerifyPage() {
   const handleResend = async () => {
     setError("");
     setInfo("");
-    const res = await fetch("http://localhost:3001/auth/resend-verification", {
+    const res = await fetch(API_URL + "/auth/resend-verification", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

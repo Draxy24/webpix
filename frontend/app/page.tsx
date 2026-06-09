@@ -21,6 +21,7 @@ import WeeklyTasksView from "./components/WeeklyTasksView";
 import { useProfileModal } from "./components/ProfileModalContext";
 import { useShopModal } from "./components/ShopModalContext";
 import { resolveColor } from "./lib/colors";
+import { API_URL } from "@/app/lib/api";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -259,7 +260,7 @@ export default function Home() {
         return next;
       });
 
-      fetch("http://localhost:3001/erase", {
+      fetch(API_URL + "/erase", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -330,7 +331,7 @@ export default function Home() {
       if (tokenRef.current)
         headers["Authorization"] = `Bearer ${tokenRef.current}`;
 
-      fetch("http://localhost:3001/pixel", {
+      fetch(API_URL + "/pixel", {
         method: "POST",
         headers,
         body: JSON.stringify({ x, y, color }),
@@ -482,7 +483,7 @@ export default function Home() {
 
   useEffect(() => {
     const loadPixels = async () => {
-      const res = await fetch("http://localhost:3001/pixels");
+      const res = await fetch(API_URL + "/pixels");
       const data = await res.json();
       setPixels(data.colors);
       setPixelOwners(data.owners);
@@ -494,7 +495,7 @@ export default function Home() {
     if (!token) {
       setUserTier("FREE");
       setIsAdmin(false);
-      fetch("http://localhost:3001/anonymous-state")
+      fetch(API_URL + "/anonymous-state")
         .then((res) => res.json())
         .then((data) => {
           setClicksLeft(data.pixelsLeft);
@@ -504,7 +505,7 @@ export default function Home() {
     }
 
     const fetchUserState = async () => {
-      const res = await fetch("http://localhost:3001/auth/me", {
+      const res = await fetch(API_URL + "/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -589,7 +590,7 @@ export default function Home() {
       setCooldown((prev) => {
         if (prev <= 1) {
           if (tokenRef.current) {
-            fetch("http://localhost:3001/auth/me", {
+            fetch(API_URL + "/auth/me", {
               headers: { Authorization: `Bearer ${tokenRef.current}` },
             })
               .then((res) => res.json())
@@ -734,7 +735,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const socket = io("http://localhost:3001");
+    const socket = io(API_URL + "");
     socket.on(
       "pixel",
       (data: {
@@ -806,7 +807,7 @@ export default function Home() {
 
   // Cargar zonas privadas activas para dibujar sus bordes
   useEffect(() => {
-    fetch("http://localhost:3001/private-spaces/canvas")
+    fetch(API_URL + "/private-spaces/canvas")
       .then((res) => res.json())
       .then((data) => setPrivateSpaces(data))
       .catch(() => {});
@@ -816,7 +817,7 @@ export default function Home() {
   useEffect(() => {
     if (!showPurchaseModal || !selection || !token) return;
     let cancelled = false;
-    fetch("http://localhost:3001/private-spaces/quote", {
+    fetch(API_URL + "/private-spaces/quote", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -852,7 +853,7 @@ export default function Home() {
       setExoticColors([]);
       return;
     }
-    fetch("http://localhost:3001/rewards/cosmetics", {
+    fetch(API_URL + "/rewards/cosmetics", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -896,7 +897,7 @@ export default function Home() {
     setPublishing(true);
     setPublishError("");
     try {
-      const res = await fetch("http://localhost:3001/publications", {
+      const res = await fetch(API_URL + "/publications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -927,7 +928,7 @@ export default function Home() {
     if (!selection || !token) return;
     setErasingArea(true);
     try {
-      const res = await fetch("http://localhost:3001/erase-area", {
+      const res = await fetch(API_URL + "/erase-area", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -971,7 +972,7 @@ export default function Home() {
               .map((s) => s.trim())
               .filter(Boolean)
           : undefined;
-      const res = await fetch("http://localhost:3001/private-spaces", {
+      const res = await fetch(API_URL + "/private-spaces", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -991,7 +992,7 @@ export default function Home() {
       if (!res.ok || !data.success) {
         throw new Error(data.message || "No se pudo comprar el espacio");
       }
-      const r = await fetch("http://localhost:3001/private-spaces/canvas");
+      const r = await fetch(API_URL + "/private-spaces/canvas");
       setPrivateSpaces(await r.json());
       setShowPurchaseModal(false);
       setSelection(null);
@@ -1608,7 +1609,7 @@ export default function Home() {
                   setShowManageModal(false);
                   setPrivateMode("buy");
                   // refrescar bordes por si liberó o cambió algo
-                  fetch("http://localhost:3001/private-spaces/canvas")
+                  fetch(API_URL + "/private-spaces/canvas")
                     .then((res) => res.json())
                     .then((data) => setPrivateSpaces(data))
                     .catch(() => {});

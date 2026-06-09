@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./BugReportView.module.css";
+import { API_URL } from "@/app/lib/api";
 
 export default function BugReportView() {
   const { token } = useAuth();
@@ -18,7 +19,7 @@ export default function BugReportView() {
     setError("");
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:3001/reports", {
+      const res = await fetch(API_URL + "/reports", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

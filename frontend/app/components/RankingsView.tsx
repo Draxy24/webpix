@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { COUNTRIES } from "../lib/countries";
 import Flag from "./Flag";
 import styles from "./RankingsView.module.css";
+import { API_URL } from "@/app/lib/api";
 
 interface RankingEntry {
   nickname: string;
@@ -28,8 +29,8 @@ export default function RankingsView({
       setLoading(true);
       const url =
         scope === "global"
-          ? `http://localhost:3001/rankings/${metric}/global`
-          : `http://localhost:3001/rankings/${metric}/national/${country}`;
+          ? `${API_URL}/rankings/${metric}/global`
+          : `${API_URL}/rankings/${metric}/national/${country}`;
       const res = await fetch(url);
       const data = await res.json();
       setEntries(data);

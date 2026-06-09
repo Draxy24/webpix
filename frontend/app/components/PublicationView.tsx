@@ -6,6 +6,7 @@ import ReportModal from "./ReportModal";
 import Button from "./Button";
 import styles from "./PublicationView.module.css";
 import { useEffect, useState, useCallback, type ElementType } from "react";
+import { API_URL } from "@/app/lib/api";
 
 interface Comment {
   id: number;
@@ -50,7 +51,7 @@ export default function PublicationView({
   const fetchPublication = useCallback(async () => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
-    const res = await fetch(`http://localhost:3001/publications/${id}`, {
+    const res = await fetch(`${API_URL}/publications/${id}`, {
       headers,
     });
     if (res.ok) {
@@ -67,7 +68,7 @@ export default function PublicationView({
   const handleReact = async (type: "LIKE" | "DISLIKE") => {
     if (!token || !pub) return;
     const res = await fetch(
-      `http://localhost:3001/publications/${pub.id}/react`,
+      `${API_URL}/publications/${pub.id}/react`,
       {
         method: "POST",
         headers: {
@@ -84,7 +85,7 @@ export default function PublicationView({
     if (!token || !pub || !newComment.trim()) return;
     setSubmittingComment(true);
     const res = await fetch(
-      `http://localhost:3001/publications/${pub.id}/comments`,
+      `${API_URL}/publications/${pub.id}/comments`,
       {
         method: "POST",
         headers: {
@@ -107,7 +108,7 @@ export default function PublicationView({
   const handleDeleteComment = async (commentId: number) => {
     if (!token) return;
     const res = await fetch(
-      `http://localhost:3001/publications/comments/${commentId}`,
+      `${API_URL}/publications/comments/${commentId}`,
       {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -128,7 +129,7 @@ export default function PublicationView({
   const handleDeletePublication = async () => {
     if (!token || !pub) return;
     if (!confirm("¿Estás seguro de eliminar esta publicación?")) return;
-    const res = await fetch(`http://localhost:3001/publications/${pub.id}`, {
+    const res = await fetch(`${API_URL}/publications/${pub.id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

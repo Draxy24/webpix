@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import styles from "./WeeklyTasksView.module.css";
+import { API_URL } from "@/app/lib/api";
 
 type WeeklyTask = {
   key: string;
@@ -27,7 +28,7 @@ export default function WeeklyTasksView() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:3001/weekly-tasks/me", {
+      const res = await fetch(API_URL + "/weekly-tasks/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setItems(await res.json());

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./PrivateSpacesView.module.css";
+import { API_URL } from "@/app/lib/api";
 
 type Space = {
   id: number;
@@ -34,7 +35,7 @@ export default function PrivateSpacesView() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:3001/private-spaces/mine", {
+      const res = await fetch(API_URL + "/private-spaces/mine", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -89,7 +90,7 @@ function SpaceCard({
     setError("");
     try {
       const res = await fetch(
-        `http://localhost:3001/private-spaces/${space.id}/access`,
+        `${API_URL}/private-spaces/${space.id}/access`,
         {
           method: "PATCH",
           headers: {
@@ -139,7 +140,7 @@ function SpaceCard({
     setError("");
     try {
       const res = await fetch(
-        `http://localhost:3001/private-spaces/${space.id}`,
+        `${API_URL}/private-spaces/${space.id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
