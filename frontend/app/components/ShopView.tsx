@@ -11,7 +11,7 @@ type ShopItem = {
   type: "TITLE" | "BADGE" | "FRAME" | "BACKGROUND" | "COLOR";
   name: string;
   description: string | null;
-  rarity: "COMMON" | "RARE" | "PREMIUM" | null;
+  rarity: "COMMON" | "RARE" | "EPIC" | "LEGENDARY" | "MYTHIC" | null;
   priceBits: number;
   data: {
     icon?: string;
@@ -20,6 +20,7 @@ type ShopItem = {
     background?: string;
     token?: string;
     swatch?: string;
+    image?: string;
   } | null;
   owned: boolean;
 };
@@ -52,16 +53,42 @@ type BitPackage = {
   priceCents: number;
 };
 
-const RARITY_ORDER: ("COMMON" | "RARE" | "PREMIUM")[] = [
+const RARITY_ORDER: ("COMMON" | "RARE" | "EPIC" | "LEGENDARY" | "MYTHIC")[] = [
   "COMMON",
   "RARE",
-  "PREMIUM",
+  "EPIC",
+  "LEGENDARY",
+  "MYTHIC",
 ];
 const RARITY_LABEL: Record<string, string> = {
   COMMON: "Comunes",
   RARE: "Raros",
-  PREMIUM: "Premium",
+  EPIC: "Épicos",
+  LEGENDARY: "Legendarios",
+  MYTHIC: "Míticos",
 };
+const RARITY_RANK: Record<string, number> = {
+  COMMON: 0,
+  RARE: 1,
+  EPIC: 2,
+  LEGENDARY: 3,
+  MYTHIC: 4,
+};
+const CATEGORY_ORDER: ShopItem["type"][] = [
+  "TITLE",
+  "BADGE",
+  "FRAME",
+  "BACKGROUND",
+  "COLOR",
+];
+const CATEGORY_LABEL: Record<string, string> = {
+  TITLE: "Títulos",
+  BADGE: "Insignias",
+  FRAME: "Marcos",
+  BACKGROUND: "Fondos",
+  COLOR: "Colores",
+};
+const HOME_SAMPLE = 4;
 
 export default function ShopView() {
   const { token } = useAuth();
@@ -73,6 +100,10 @@ export default function ShopView() {
   const [busyPalette, setBusyPalette] = useState<string | null>(null);
   const [packages, setPackages] = useState<BitPackage[]>([]);
   const [busyPackage, setBusyPackage] = useState<string | null>(null);
+  const [tab, setTab] = useState<"shop" | "bits">("shop");
+  const [categoryView, setCategoryView] = useState<ShopItem["type"] | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -190,6 +221,85 @@ export default function ShopView() {
   if (!data || data.items.length === 0)
     return <div className={styles.empty}>La tienda está vacía por ahora.</div>;
 
+  const featured = [...data.items]
+    .sort(
+      (a, b) =>
+        (RARITY_RANK[b.rarity ?? "COMMON"] ?? 0) -
+        (RARITY_RANK[a.rarity ?? "COMMON"] ?? 0),
+    )
+    .slice(0, 6);
+
+  const renderCard = (item: ShopItem) => {
+    const canAfford = (data?.bits ?? 0) >= item.priceBits;
+    return (
+      <div key={item.id} className={styles.card}>
+        <div className={styles.cardIcon}>
+          {item.type === "BADGE" ? (
+            <span className={styles.badgeIcon}>
+              {badgeIcon(item.data?.icon)}
+            </span>
+          ) : item.type === "FRAME" ? (
+            item.data?.image ? (
+              <img
+                src={item.data.image}
+                alt=""
+                className={styles.framePreviewImg}
+              />
+            ) : (
+              <span
+                className={styles.framePreview}
+                style={
+                  item.data?.ring ? { background: item.data.ring } : undefined
+                }
+              />
+            )
+          ) : item.type === "BACKGROUND" ? (
+            <span
+              className={styles.bgPreview}
+              style={
+                item.data?.background
+                  ? { background: item.data.background }
+                  : undefined
+              }
+            />
+          ) : item.type === "COLOR" ? (
+            <span
+              className={styles.colorPreview}
+              style={
+                item.data?.swatch ? { background: item.data.swatch } : undefined
+              }
+            />
+          ) : (
+            <span
+              className={styles.titleSample}
+              style={item.data?.color ? { color: item.data.color } : undefined}
+            >
+              {item.name}
+            </span>
+          )}
+        </div>
+        <div className={styles.cardName}>{item.name}</div>
+        {item.description && (
+          <div className={styles.cardDesc}>{item.description}</div>
+        )}
+        <div className={styles.cardFooter}>
+          <span className={styles.price}>{item.priceBits} Bits</span>
+          {item.owned ? (
+            <span className={styles.owned}>Adquirido</span>
+          ) : (
+            <button
+              className={styles.buyBtn}
+              onClick={() => buy(item)}
+              disabled={!canAfford || busyId === item.id}
+            >
+              {busyId === item.id ? "..." : canAfford ? "Comprar" : "Sin Bits"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.balance}>
@@ -197,9 +307,27 @@ export default function ShopView() {
         <span className={styles.balanceValue}>{data.bits} Bits</span>
       </div>
 
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tab} ${tab === "shop" ? styles.tabActive : ""}`}
+          onClick={() => {
+            setTab("shop");
+            setCategoryView(null);
+          }}
+        >
+          Tienda
+        </button>
+        <button
+          className={`${styles.tab} ${tab === "bits" ? styles.tabActive : ""}`}
+          onClick={() => setTab("bits")}
+        >
+          Bits
+        </button>
+      </div>
+
       {message && <div className={styles.message}>{message}</div>}
 
-      {packages.length > 0 && (
+      {tab === "bits" && (
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Consigue Bits</h3>
           <div className={styles.grid}>
@@ -233,153 +361,129 @@ export default function ShopView() {
         </section>
       )}
 
-      {palettes.length > 0 && (
-        <section className={styles.section}>
-          <h3 className={`${styles.sectionTitle} ${styles.rarity_PREMIUM}`}>
-            Paletas
+      {tab === "shop" && categoryView && (
+        <div>
+          <button
+            className={styles.backBtn}
+            onClick={() => setCategoryView(null)}
+          >
+            ← Volver
+          </button>
+          <h3 className={styles.sectionTitle}>
+            {CATEGORY_LABEL[categoryView]}
           </h3>
-          <div className={styles.grid}>
-            {palettes.map((p) => {
-              const canAfford = data.bits >= p.bundlePriceBits;
-              return (
-                <div key={p.key} className={styles.card}>
-                  <div className={styles.paletteSwatches}>
-                    {p.colors.map((c) => (
-                      <span
-                        key={c.id}
-                        className={styles.paletteSwatch}
-                        style={
-                          c.data?.swatch
-                            ? { background: c.data.swatch }
-                            : undefined
-                        }
-                        title={c.name}
-                      />
-                    ))}
-                  </div>
-                  <div className={styles.cardName}>{p.name}</div>
-                  <div className={styles.cardDesc}>{p.description}</div>
-                  <div className={styles.paletteProgress}>
-                    {p.ownedCount}/{p.total} adquiridos
-                  </div>
-                  <div className={styles.cardFooter}>
-                    <span className={styles.price}>
-                      {p.bundlePriceBits} Bits
-                    </span>
-                    {p.fullyOwned ? (
-                      <span className={styles.owned}>Completa</span>
-                    ) : (
-                      <button
-                        className={styles.buyBtn}
-                        onClick={() => buyPalette(p)}
-                        disabled={!canAfford || busyPalette === p.key}
-                      >
-                        {busyPalette === p.key
-                          ? "..."
-                          : canAfford
-                            ? "Comprar paleta"
-                            : "Sin Bits"}
-                      </button>
-                    )}
-                  </div>
+          {RARITY_ORDER.map((rarity) => {
+            const items = data.items.filter(
+              (i) => i.type === categoryView && i.rarity === rarity,
+            );
+            if (items.length === 0) return null;
+            return (
+              <div key={rarity} className={styles.subSection}>
+                <div
+                  className={`${styles.raritySub} ${styles[`rarity_${rarity}`]}`}
+                >
+                  {RARITY_LABEL[rarity]}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+                <div className={styles.grid}>{items.map(renderCard)}</div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {RARITY_ORDER.map((rarity) => {
-        const items = data.items.filter((i) => i.rarity === rarity);
-        if (items.length === 0) return null;
-        return (
-          <section key={rarity} className={styles.section}>
-            <h3
-              className={`${styles.sectionTitle} ${styles[`rarity_${rarity}`]}`}
-            >
-              {RARITY_LABEL[rarity]}
-            </h3>
-            <div className={styles.grid}>
-              {items.map((item) => {
-                const canAfford = data.bits >= item.priceBits;
-                return (
-                  <div key={item.id} className={styles.card}>
-                    <div className={styles.cardIcon}>
-                      {item.type === "BADGE" ? (
-                        <span className={styles.badgeIcon}>
-                          {badgeIcon(item.data?.icon)}
+      {tab === "shop" && !categoryView && (
+        <>
+          {featured.length > 0 && (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Destacados</h3>
+              <div className={styles.grid}>{featured.map(renderCard)}</div>
+            </section>
+          )}
+
+          {CATEGORY_ORDER.map((type) => {
+            const items = data.items.filter((i) => i.type === type);
+            if (items.length === 0) return null;
+            return (
+              <section key={type} className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>
+                    {CATEGORY_LABEL[type]}
+                  </h3>
+                  {items.length > HOME_SAMPLE && (
+                    <button
+                      className={styles.seeAll}
+                      onClick={() => setCategoryView(type)}
+                    >
+                      Ver todo ({items.length})
+                    </button>
+                  )}
+                </div>
+                <div className={styles.grid}>
+                  {items.slice(0, HOME_SAMPLE).map(renderCard)}
+                </div>
+              </section>
+            );
+          })}
+
+          {palettes.length > 0 && (
+            <section className={styles.section}>
+              <h3
+                className={`${styles.sectionTitle} ${styles.rarity_LEGENDARY}`}
+              >
+                Paletas
+              </h3>
+              <div className={styles.grid}>
+                {palettes.map((p) => {
+                  const canAfford = data.bits >= p.bundlePriceBits;
+                  return (
+                    <div key={p.key} className={styles.card}>
+                      <div className={styles.paletteSwatches}>
+                        {p.colors.map((c) => (
+                          <span
+                            key={c.id}
+                            className={styles.paletteSwatch}
+                            style={
+                              c.data?.swatch
+                                ? { background: c.data.swatch }
+                                : undefined
+                            }
+                            title={c.name}
+                          />
+                        ))}
+                      </div>
+                      <div className={styles.cardName}>{p.name}</div>
+                      <div className={styles.cardDesc}>{p.description}</div>
+                      <div className={styles.paletteProgress}>
+                        {p.ownedCount}/{p.total} adquiridos
+                      </div>
+                      <div className={styles.cardFooter}>
+                        <span className={styles.price}>
+                          {p.bundlePriceBits} Bits
                         </span>
-                      ) : item.type === "FRAME" ? (
-                        <span
-                          className={styles.framePreview}
-                          style={
-                            item.data?.ring
-                              ? { background: item.data.ring }
-                              : undefined
-                          }
-                        />
-                      ) : item.type === "BACKGROUND" ? (
-                        <span
-                          className={styles.bgPreview}
-                          style={
-                            item.data?.background
-                              ? { background: item.data.background }
-                              : undefined
-                          }
-                        />
-                      ) : item.type === "COLOR" ? (
-                        <span
-                          className={styles.colorPreview}
-                          style={
-                            item.data?.swatch
-                              ? { background: item.data.swatch }
-                              : undefined
-                          }
-                        />
-                      ) : (
-                        <span
-                          className={styles.titleSample}
-                          style={
-                            item.data?.color
-                              ? { color: item.data.color }
-                              : undefined
-                          }
-                        >
-                          {item.name}
-                        </span>
-                      )}
+                        {p.fullyOwned ? (
+                          <span className={styles.owned}>Completa</span>
+                        ) : (
+                          <button
+                            className={styles.buyBtn}
+                            onClick={() => buyPalette(p)}
+                            disabled={!canAfford || busyPalette === p.key}
+                          >
+                            {busyPalette === p.key
+                              ? "..."
+                              : canAfford
+                                ? "Comprar paleta"
+                                : "Sin Bits"}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className={styles.cardName}>{item.name}</div>
-                    {item.description && (
-                      <div className={styles.cardDesc}>{item.description}</div>
-                    )}
-                    <div className={styles.cardFooter}>
-                      <span className={styles.price}>
-                        {item.priceBits} Bits
-                      </span>
-                      {item.owned ? (
-                        <span className={styles.owned}>Adquirido</span>
-                      ) : (
-                        <button
-                          className={styles.buyBtn}
-                          onClick={() => buy(item)}
-                          disabled={!canAfford || busyId === item.id}
-                        >
-                          {busyId === item.id
-                            ? "..."
-                            : canAfford
-                              ? "Comprar"
-                              : "Sin Bits"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -8,16 +8,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SHOP_COSMETICS } from './shop.config';
 import { COLOR_PALETTES } from './shop.config';
 import { BIT_PACKAGES } from './shop.config';
+import { Cosmetic } from '@prisma/client';
+import { SEASON_WINDOWS } from './shop.config';
 
 @Injectable()
 export class ShopService {
   constructor(private prisma: PrismaService) {}
 
-  // Lista lo que está a la venta, con el saldo del usuario y si ya lo tiene
   async listForUser(userId: number) {
-    const cosmetics = await this.prisma.cosmetic.findMany({
-      where: { active: true, priceBits: { not: null } },
-      orderBy: [{ rarity: 'asc' }, { priceBits: 'asc' }],
+    const RARITY_ORDER = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
+    const cosmetics = (await this.getTodaysCosmetics()).sort((a, b) => {
+      const ra = RARITY_ORDER.indexOf(a.rarity ?? 'COMMON');
+      const rb = RARITY_ORDER.indexOf(b.rarity ?? 'COMMON');
+      if (ra !== rb) return ra - rb;
+      return (a.priceBits ?? 0) - (b.priceBits ?? 0);
     });
     const owned = await this.prisma.userCosmetic.findMany({
       where: { userId },
@@ -49,6 +53,12 @@ export class ShopService {
     });
     if (!cosmetic || !cosmetic.active || cosmetic.priceBits == null) {
       throw new BadRequestException('Este objeto no está a la venta');
+    }
+
+    // FOMO: solo se puede comprar lo que está en la rotación de hoy
+    const todays = await this.getTodaysCosmetics();
+    if (!todays.some((c) => c.id === cosmeticId)) {
+      throw new BadRequestException('Este objeto no está disponible hoy');
     }
 
     const already = await this.prisma.userCosmetic.findUnique({
@@ -214,5 +224,76 @@ export class ShopService {
     });
 
     return { success: true, granted: total, bits: user.bits };
+  }
+  private dailySeed(date: Date): number {
+    const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+    let h = 2166136261;
+    for (let i = 0; i < key.length; i++) {
+      h ^= key.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  private rng(seed: number): () => number {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  private shuffle<T>(arr: T[], rand: () => number): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  private isThemeActive(theme: string | null, date: Date): boolean {
+    if (!theme) return true;
+    const w = SEASON_WINDOWS[theme];
+    if (!w) return true; // estéticas/memes/elementos: siempre disponibles
+    return w.months.includes(date.getUTCMonth() + 1);
+  }
+
+  // Selección determinista del día (igual para todos, cambia a medianoche UTC)
+  async getTodaysCosmetics(date: Date = new Date()): Promise<Cosmetic[]> {
+    const all = await this.prisma.cosmetic.findMany({
+      where: { active: true, priceBits: { not: null } },
+    });
+    const eligible = all.filter((c) => this.isThemeActive(c.theme, date));
+    const seed = this.dailySeed(date);
+    const PER_CATEGORY = 6;
+
+    const chosenIds = new Set<number>();
+    const result: Cosmetic[] = [];
+    const add = (c: Cosmetic) => {
+      if (!chosenIds.has(c.id)) {
+        chosenIds.add(c.id);
+        result.push(c);
+      }
+    };
+
+    const types = [...new Set(eligible.map((c) => c.type))];
+    types.forEach((type, i) => {
+      const list = eligible
+        .filter((c) => c.type === type)
+        .sort((a, b) => a.key.localeCompare(b.key));
+      this.shuffle(list, this.rng(seed + i * 7919))
+        .slice(0, PER_CATEGORY)
+        .forEach(add);
+    });
+
+    // Temporada activa: incluir todos sus items para que luzca la temporada
+    eligible.forEach((c) => {
+      if (c.theme && SEASON_WINDOWS[c.theme]) add(c);
+    });
+
+    return result;
   }
 }

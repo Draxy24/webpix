@@ -18,7 +18,10 @@ interface Profile {
   level: number;
   title: { name: string; data: { color?: string } | null } | null;
   badge: { name: string; data: { icon?: string } | null } | null;
-  frame: { name: string; data: { ring?: string } | null } | null;
+  frame: {
+    name: string;
+    data: { ring?: string; image?: string } | null;
+  } | null;
   background: { name: string; data: { background?: string } | null } | null;
 }
 
@@ -172,9 +175,11 @@ export default function ProfileView({
         <div
           className={styles.avatarFrame}
           style={
-            profile.frame?.data?.ring
-              ? { background: profile.frame.data.ring }
-              : undefined
+            profile.frame?.data?.image
+              ? undefined
+              : profile.frame?.data?.ring
+                ? { background: profile.frame.data.ring }
+                : undefined
           }
         >
           <div
@@ -185,6 +190,13 @@ export default function ProfileView({
                 : undefined
             }
           />
+          {profile.frame?.data?.image && (
+            <img
+              src={profile.frame.data.image}
+              alt=""
+              className={styles.frameImage}
+            />
+          )}
         </div>
         <div className={styles.nameRow}>
           <h1 className={styles.nickname}>{profile.nickname}</h1>

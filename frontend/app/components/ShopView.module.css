@@ -221,3 +221,74 @@
   margin-right: 6px;
   vertical-align: middle;
 }
+
+.rarity_EPIC {
+  color: #a78bfa;
+}
+.rarity_LEGENDARY {
+  color: #ffb020;
+}
+.rarity_MYTHIC {
+  background: linear-gradient(90deg, #ff4d6d, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.framePreviewImg {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.tab {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: var(--border-normal) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.tabActive {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+  background: var(--color-elevated);
+}
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.seeAll {
+  background: transparent;
+  border: none;
+  color: var(--color-brand);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+.backBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-brand);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  margin-bottom: var(--space-3);
+}
+.raritySub {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: var(--space-3) 0 var(--space-2);
+}
+.subSection {
+  margin-bottom: var(--space-3);
+}

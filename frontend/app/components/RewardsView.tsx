@@ -31,6 +31,7 @@ type Cosmetic = {
     color?: string;
     ring?: string;
     background?: string;
+    image?: string;
   } | null;
   equipped: boolean;
 };
@@ -179,10 +180,20 @@ export default function RewardsView() {
                 disabled={busy}
                 title={c.description ?? undefined}
               >
-                <span
-                  className={styles.ringSwatch}
-                  style={c.data?.ring ? { background: c.data.ring } : undefined}
-                />
+                {c.data?.image ? (
+                  <img
+                    src={c.data.image}
+                    alt=""
+                    className={styles.ringSwatchImg}
+                  />
+                ) : (
+                  <span
+                    className={styles.ringSwatch}
+                    style={
+                      c.data?.ring ? { background: c.data.ring } : undefined
+                    }
+                  />
+                )}
                 {c.name}
               </button>
             ))}

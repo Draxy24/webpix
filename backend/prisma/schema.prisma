@@ -335,5 +335,7 @@ model UserWeeklyTask {
 enum CosmeticRarity {
   COMMON
   RARE
-  PREMIUM
+  EPIC
+  LEGENDARY
+  MYTHIC
 }

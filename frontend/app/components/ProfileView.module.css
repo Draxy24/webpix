@@ -182,7 +182,19 @@
 
 .avatarFrame {
   align-self: center;
+  position: relative;
+  margin: 20px 0;
   padding: 4px;
   border-radius: var(--radius-full);
   line-height: 0;
+}
+
+.frameImage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150%;
+  height: 150%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }

@@ -49,6 +49,7 @@ export default function MenuPanel({
   const [saving, setSaving] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [frameRing, setFrameRing] = useState<string | null>(null);
+  const [frameImg, setFrameImg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!nickname) return;
@@ -59,6 +60,7 @@ export default function MenuPanel({
         setCountry(data.country ?? "");
         setStats({ pixelCount: data.pixelCount, createdAt: data.createdAt });
         setFrameRing(data.frame?.data?.ring ?? null);
+        setFrameImg(data.frame?.data?.image ?? null);
       })
       .catch(() => {});
   }, [nickname]);
@@ -159,7 +161,13 @@ export default function MenuPanel({
               <div className={styles.box}>
                 <div
                   className={styles.avatarFrame}
-                  style={frameRing ? { background: frameRing } : undefined}
+                  style={
+                    frameImg
+                      ? undefined
+                      : frameRing
+                        ? { background: frameRing }
+                        : undefined
+                  }
                 >
                   <div
                     className={styles.avatar}
@@ -175,6 +183,9 @@ export default function MenuPanel({
                   >
                     {!profilePic && nickname.charAt(0).toUpperCase()}
                   </div>
+                  {frameImg && (
+                    <img src={frameImg} alt="" className={styles.frameImage} />
+                  )}
                 </div>
                 <div className={styles.nameRow}>
                   <span className={styles.nickname}>{nickname}</span>
