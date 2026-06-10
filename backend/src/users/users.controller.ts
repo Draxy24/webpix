@@ -25,10 +25,6 @@ export class UsersController {
     const user = await this.usersService.findByNickname(nickname);
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const pixelCount = await this.prisma.pixel.count({
-      where: { userId: user.id },
-    });
-
     const equipped = await this.prisma.userCosmetic.findMany({
       where: { userId: user.id, equipped: true },
       include: { cosmetic: true },
@@ -49,7 +45,7 @@ export class UsersController {
       profilePic: user.profilePic,
       country: user.country,
       createdAt: user.createdAt,
-      pixelCount,
+      pixelCount: user.pixelsPlaced,
       level: levelInfo(user.xp).level,
       title: titleCos ? { name: titleCos.name, data: titleCos.data } : null,
       badge: badgeCos ? { name: badgeCos.name, data: badgeCos.data } : null,

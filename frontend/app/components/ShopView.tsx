@@ -426,13 +426,6 @@ export default function ShopView() {
             </section>
           )}
 
-          {featured.length > 0 && (
-            <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Destacados</h3>
-              <div className={styles.grid}>{featured.map(renderCard)}</div>
-            </section>
-          )}
-
           {offerItems.length > 0 && (
             <section className={styles.section}>
               <h3 className={`${styles.sectionTitle} ${styles.offerTitle}`}>

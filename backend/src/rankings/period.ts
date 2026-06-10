@@ -8,3 +8,22 @@ export function previousPeriod(date: Date = new Date()): string {
   );
   return currentPeriod(d);
 }
+
+export function periodLabelEs(period: string): string {
+  const [y, mo] = period.split('-');
+  const months = [
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
+  ];
+  return `${months[parseInt(mo, 10) - 1] ?? mo} ${y}`;
+}

@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
-import { currentPeriod, previousPeriod } from './period';
+import { currentPeriod, previousPeriod, periodLabelEs } from './period';
 import { RANKING_REWARD_BITS } from './rankings.config';
 
 @Injectable()
@@ -24,68 +24,83 @@ export class RankingsService {
   }
 
   async pixelsGlobal(limit = 50) {
-    const grouped = await this.prisma.pixel.groupBy({
-      by: ['userId'],
-      where: { userId: { not: null } },
-      _count: { userId: true },
-      orderBy: { _count: { userId: 'desc' } },
+    const users = await this.prisma.user.findMany({
+      where: { pixelsPlaced: { gt: 0 } },
+      orderBy: { pixelsPlaced: 'desc' },
       take: limit,
+      select: {
+        nickname: true,
+        profilePic: true,
+        country: true,
+        pixelsPlaced: true,
+      },
     });
-    return this.hydrate(
-      grouped.map((g) => ({ userId: g.userId, count: g._count.userId })),
-    );
+    return users.map((u) => ({
+      nickname: u.nickname,
+      profilePic: u.profilePic,
+      country: u.country,
+      count: u.pixelsPlaced,
+    }));
   }
 
   async pixelsNational(country: string, limit = 50) {
-    const usersInCountry = await this.prisma.user.findMany({
-      where: { country },
-      select: { id: true },
-    });
-    const ids = usersInCountry.map((u) => u.id);
-    if (ids.length === 0) return [];
-
-    const grouped = await this.prisma.pixel.groupBy({
-      by: ['userId'],
-      where: { userId: { in: ids } },
-      _count: { userId: true },
-      orderBy: { _count: { userId: 'desc' } },
+    const users = await this.prisma.user.findMany({
+      where: { country, pixelsPlaced: { gt: 0 } },
+      orderBy: { pixelsPlaced: 'desc' },
       take: limit,
+      select: {
+        nickname: true,
+        profilePic: true,
+        country: true,
+        pixelsPlaced: true,
+      },
     });
-    return this.hydrate(
-      grouped.map((g) => ({ userId: g.userId, count: g._count.userId })),
-    );
+    return users.map((u) => ({
+      nickname: u.nickname,
+      profilePic: u.profilePic,
+      country: u.country,
+      count: u.pixelsPlaced,
+    }));
   }
 
   async creatorsGlobal(limit = 50) {
-    const grouped = await this.prisma.publication.groupBy({
-      by: ['userId'],
-      _count: { userId: true },
-      orderBy: { _count: { userId: 'desc' } },
+    const users = await this.prisma.user.findMany({
+      where: { publicationsCreated: { gt: 0 } },
+      orderBy: { publicationsCreated: 'desc' },
       take: limit,
+      select: {
+        nickname: true,
+        profilePic: true,
+        country: true,
+        publicationsCreated: true,
+      },
     });
-    return this.hydrate(
-      grouped.map((g) => ({ userId: g.userId, count: g._count.userId })),
-    );
+    return users.map((u) => ({
+      nickname: u.nickname,
+      profilePic: u.profilePic,
+      country: u.country,
+      count: u.publicationsCreated,
+    }));
   }
 
   async creatorsNational(country: string, limit = 50) {
-    const usersInCountry = await this.prisma.user.findMany({
-      where: { country },
-      select: { id: true },
-    });
-    const ids = usersInCountry.map((u) => u.id);
-    if (ids.length === 0) return [];
-
-    const grouped = await this.prisma.publication.groupBy({
-      by: ['userId'],
-      where: { userId: { in: ids } },
-      _count: { userId: true },
-      orderBy: { _count: { userId: 'desc' } },
+    const users = await this.prisma.user.findMany({
+      where: { country, publicationsCreated: { gt: 0 } },
+      orderBy: { publicationsCreated: 'desc' },
       take: limit,
+      select: {
+        nickname: true,
+        profilePic: true,
+        country: true,
+        publicationsCreated: true,
+      },
     });
-    return this.hydrate(
-      grouped.map((g) => ({ userId: g.userId, count: g._count.userId })),
-    );
+    return users.map((u) => ({
+      nickname: u.nickname,
+      profilePic: u.profilePic,
+      country: u.country,
+      count: u.publicationsCreated,
+    }));
   }
 
   private async monthlyTop(
@@ -186,9 +201,51 @@ export class RankingsService {
     return [...set];
   }
 
-  private async grantCosmetic(userId: number, key: string) {
-    const cosmetic = await this.prisma.cosmetic.findUnique({ where: { key } });
-    if (!cosmetic) return; // si aún no está sembrado, simplemente no lo otorga
+  private async grantMedal(
+    userId: number,
+    tier: 'gold' | 'silver' | 'bronze',
+    metric: 'pixels' | 'creations',
+    period: string,
+  ) {
+    const TIERS = {
+      gold: {
+        name: 'Oro',
+        color: '#FFD700',
+        rarity: 'LEGENDARY' as const,
+        pos: 1,
+      },
+      silver: {
+        name: 'Plata',
+        color: '#C0C0C0',
+        rarity: 'EPIC' as const,
+        pos: 2,
+      },
+      bronze: {
+        name: 'Bronce',
+        color: '#CD7F32',
+        rarity: 'RARE' as const,
+        pos: 3,
+      },
+    };
+    const t = TIERS[tier];
+    const metricName = metric === 'pixels' ? 'Píxeles' : 'Creadores';
+    const key = `medal_${tier}_${metric}_${period}`;
+
+    const cosmetic = await this.prisma.cosmetic.upsert({
+      where: { key },
+      update: {},
+      create: {
+        key,
+        type: 'BADGE',
+        name: `Medalla de ${t.name} · ${metricName} · ${periodLabelEs(period)}`,
+        description: `Top ${t.pos} de ${metricName} en ${periodLabelEs(period)}`,
+        source: 'RANKING',
+        rarity: t.rarity,
+        data: { medal: tier, color: t.color, metric, period },
+        active: true,
+      },
+    });
+
     await this.prisma.userCosmetic.upsert({
       where: { userId_cosmeticId: { userId, cosmeticId: cosmetic.id } },
       update: {},
@@ -213,9 +270,15 @@ export class RankingsService {
         data: { bits: { increment: info.bits } },
       });
     }
-    // Insignia de prestigio: podio (top 3) global
+    // Medalla de podio (top 3 global), única por mes y métrica
     if (info.scope === 'global' && info.position <= 3) {
-      await this.grantCosmetic(row.userId, 'rank_podium');
+      const tier =
+        info.position === 1
+          ? 'gold'
+          : info.position === 2
+            ? 'silver'
+            : 'bronze';
+      await this.grantMedal(row.userId, tier, info.metric, info.period);
     }
     await this.prisma.rankingWinner.create({
       data: {

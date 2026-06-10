@@ -18,7 +18,10 @@ interface Profile {
   pixelCount: number;
   level: number;
   title: { name: string; data: { color?: string } | null } | null;
-  badge: { name: string; data: { icon?: string } | null } | null;
+  badge: {
+    name: string;
+    data: { icon?: string; medal?: string; color?: string } | null;
+  } | null;
   frame: {
     name: string;
     data: { ring?: string; image?: string } | null;
@@ -221,7 +224,17 @@ export default function ProfileView({
               </span>
             )}
             {profile.badge && (
-              <span className={styles.cosmeticPill}>
+              <span
+                className={styles.cosmeticPill}
+                style={
+                  profile.badge.data?.color
+                    ? {
+                        color: profile.badge.data.color,
+                        borderColor: profile.badge.data.color,
+                      }
+                    : undefined
+                }
+              >
                 {badgeIcon(profile.badge.data?.icon)} {profile.badge.name}
               </span>
             )}
