@@ -11,6 +11,7 @@ import { BIT_PACKAGES } from './shop.config';
 import { Cosmetic } from '@prisma/client';
 import { SEASON_WINDOWS, SEASON_LABEL_PRIORITY } from './shop.config';
 import { AchievementsService } from '../achievements/achievements.service';
+import { OFFER_COUNT, OFFER_DISCOUNTS } from './shop.config';
 
 @Injectable()
 export class ShopService {
@@ -34,22 +35,28 @@ export class ShopService {
     const ownedSet = new Set(owned.map((o) => o.cosmeticId));
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     const season = this.getActiveSeason();
+    const offers = this.getTodaysOffers(cosmetics);
 
     return {
       bits: user?.bits ?? 0,
       season,
-      items: cosmetics.map((c) => ({
-        id: c.id,
-        key: c.key,
-        type: c.type,
-        name: c.name,
-        description: c.description,
-        rarity: c.rarity,
-        priceBits: c.priceBits,
-        data: c.data,
-        theme: c.theme,
-        owned: ownedSet.has(c.id),
-      })),
+      items: cosmetics.map((c) => {
+        const offer = offers.get(c.id);
+        return {
+          id: c.id,
+          key: c.key,
+          type: c.type,
+          name: c.name,
+          description: c.description,
+          rarity: c.rarity,
+          priceBits: offer ? offer.priceBits : c.priceBits,
+          originalPriceBits: offer ? offer.originalPriceBits : null,
+          discountPercent: offer ? offer.discountPercent : null,
+          data: c.data,
+          theme: c.theme,
+          owned: ownedSet.has(c.id),
+        };
+      }),
     };
   }
 
@@ -68,16 +75,22 @@ export class ShopService {
       throw new BadRequestException('Este objeto no está disponible hoy');
     }
 
+    // Precio efectivo: aplica la oferta del día si este objeto está rebajado
+    const offers = this.getTodaysOffers(todays);
+    const price = offers.get(cosmeticId)?.priceBits ?? cosmetic.priceBits;
+
     const already = await this.prisma.userCosmetic.findUnique({
       where: { userId_cosmeticId: { userId, cosmeticId } },
     });
     if (already) throw new BadRequestException('Ya tienes este objeto');
 
     // Descuento condicional: solo paga si el saldo alcanza (evita saldos negativos)
+    // Descuento condicional: solo paga si el saldo alcanza (evita saldos negativos)
     const paid = await this.prisma.user.updateMany({
-      where: { id: userId, bits: { gte: cosmetic.priceBits } },
-      data: { bits: { decrement: cosmetic.priceBits } },
+      where: { id: userId, bits: { gte: price } },
+      data: { bits: { decrement: price } },
     });
+
     if (paid.count === 0) {
       throw new BadRequestException('No tienes suficientes Bits');
     }
@@ -88,7 +101,7 @@ export class ShopService {
       // Si el desbloqueo falla (ej. carrera), devolvemos los Bits
       await this.prisma.user.update({
         where: { id: userId },
-        data: { bits: { increment: cosmetic.priceBits } },
+        data: { bits: { increment: price } },
       });
       throw new BadRequestException('No se pudo completar la compra');
     }
@@ -99,7 +112,7 @@ export class ShopService {
     return {
       success: true,
       cosmeticKey: cosmetic.key,
-      spent: cosmetic.priceBits,
+      spent: price,
       bits: user?.bits ?? 0,
     };
   }
@@ -282,6 +295,41 @@ export class ShopService {
     if (themes.length === 0) return null;
     const labelKey = SEASON_LABEL_PRIORITY.find((k) => themes.includes(k));
     return { themes, label: SEASON_WINDOWS[labelKey ?? themes[0]].label };
+  }
+
+  // Ofertas del día: selección determinista de unos pocos items rebajados (cambia a medianoche UTC)
+  private getTodaysOffers(
+    cosmetics: Cosmetic[],
+    date: Date = new Date(),
+  ): Map<
+    number,
+    { discountPercent: number; originalPriceBits: number; priceBits: number }
+  > {
+    const pool = cosmetics
+      .filter((c) => c.priceBits != null)
+      .sort((a, b) => a.id - b.id);
+
+    const rand = this.rng(this.dailySeed(date) + 104729);
+    const chosen = this.shuffle(pool, rand).slice(0, OFFER_COUNT);
+
+    const offers = new Map<
+      number,
+      { discountPercent: number; originalPriceBits: number; priceBits: number }
+    >();
+    for (const c of chosen) {
+      const discount =
+        OFFER_DISCOUNTS[Math.floor(rand() * OFFER_DISCOUNTS.length)];
+      const original = c.priceBits as number;
+      const sale = Math.max(1, Math.round(original * (1 - discount)));
+
+      offers.set(c.id, {
+        discountPercent: Math.round(discount * 100),
+        originalPriceBits: original,
+        priceBits: sale,
+      });
+    }
+
+    return offers;
   }
 
   // Selección determinista del día (igual para todos, cambia a medianoche UTC)

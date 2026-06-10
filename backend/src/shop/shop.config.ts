@@ -1242,3 +1242,7 @@ export const SEASON_LABEL_PRIORITY: string[] = [
   'otono',
   'invierno',
 ];
+
+// Ofertas del día: cuántos items se rebajan y los posibles descuentos
+export const OFFER_COUNT = 3;
+export const OFFER_DISCOUNTS = [0.2, 0.3, 0.4];

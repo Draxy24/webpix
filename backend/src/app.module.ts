@@ -13,6 +13,7 @@ import { RewardsModule } from './rewards/rewards.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { WeeklyTasksModule } from './weekly-tasks/weekly-tasks.module';
 import { ShopModule } from './shop/shop.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ShopModule } from './shop/shop.module';
     AchievementsModule,
     WeeklyTasksModule,
     ShopModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [],

@@ -193,6 +193,7 @@ export class PixelService {
     }
 
     await this.achievements.track(userId, 'PIXELS_PLACED');
+    await this.achievements.recordMonthly(userId, 'pixels');
 
     const updated = await this.prisma.user.findUnique({
       where: { id: userId },

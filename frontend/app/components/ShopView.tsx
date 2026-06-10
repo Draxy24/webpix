@@ -24,6 +24,8 @@ type ShopItem = {
     image?: string;
   } | null;
   theme?: string | null;
+  originalPriceBits?: number | null;
+  discountPercent?: number | null;
   owned: boolean;
 };
 
@@ -240,10 +242,14 @@ export default function ShopView() {
     ? data.items.filter((i) => !!i.theme && season.themes.includes(i.theme))
     : [];
 
+  const offerItems = data.items.filter((i) => i.originalPriceBits != null);
   const renderCard = (item: ShopItem) => {
     const canAfford = (data?.bits ?? 0) >= item.priceBits;
     return (
       <div key={item.id} className={styles.card}>
+        {item.discountPercent ? (
+          <span className={styles.discountBadge}>-{item.discountPercent}%</span>
+        ) : null}
         <div className={styles.cardIcon}>
           {item.type === "BADGE" ? (
             <span className={styles.badgeIcon}>
@@ -294,7 +300,16 @@ export default function ShopView() {
           <div className={styles.cardDesc}>{item.description}</div>
         )}
         <div className={styles.cardFooter}>
-          <span className={styles.price}>{item.priceBits} Bits</span>
+          {item.originalPriceBits ? (
+            <span className={styles.priceOffer}>
+              <span className={styles.priceOriginal}>
+                {item.originalPriceBits}
+              </span>
+              <span className={styles.price}>{item.priceBits} Bits</span>
+            </span>
+          ) : (
+            <span className={styles.price}>{item.priceBits} Bits</span>
+          )}
           {item.owned ? (
             <span className={styles.owned}>Adquirido</span>
           ) : (
@@ -408,6 +423,22 @@ export default function ShopView() {
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Destacados</h3>
               <div className={styles.grid}>{featured.map(renderCard)}</div>
+            </section>
+          )}
+
+          {featured.length > 0 && (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Destacados</h3>
+              <div className={styles.grid}>{featured.map(renderCard)}</div>
+            </section>
+          )}
+
+          {offerItems.length > 0 && (
+            <section className={styles.section}>
+              <h3 className={`${styles.sectionTitle} ${styles.offerTitle}`}>
+                Ofertas
+              </h3>
+              <div className={styles.grid}>{offerItems.map(renderCard)}</div>
             </section>
           )}
 

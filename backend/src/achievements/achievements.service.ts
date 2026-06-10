@@ -6,6 +6,7 @@ import { STARTER_ACHIEVEMENTS } from './achievements.config';
 import { WeeklyTasksService } from '../weekly-tasks/weekly-tasks.service';
 import { xpPerPixelForLevel } from '../rewards/rewards.config';
 import { COLOR_PALETTES } from '../shop/shop.config';
+import { currentPeriod } from '../rankings/period';
 
 type CounterField = 'pixelsPlaced' | 'publicationsCreated' | 'likesReceived';
 type CounterMetric =
@@ -79,6 +80,24 @@ export class AchievementsService {
     await this.weeklyTasks.track(userId, metric, increment);
     await this.checkLevel(userId);
     return completed;
+  }
+
+  // Marcador mensual del ranking: acumula actividad del periodo actual
+  async recordMonthly(userId: number, field: 'pixels' | 'creations') {
+    const period = currentPeriod();
+    const isPixels = field === 'pixels';
+    await this.prisma.monthlyScore.upsert({
+      where: { userId_period: { userId, period } },
+      update: isPixels
+        ? { pixels: { increment: 1 } }
+        : { creations: { increment: 1 } },
+      create: {
+        userId,
+        period,
+        pixels: isPixels ? 1 : 0,
+        creations: isPixels ? 0 : 1,
+      },
+    });
   }
 
   // Para likes: recuenta el total actual de likes del autor y revisa logros

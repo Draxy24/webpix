@@ -43,6 +43,8 @@ model User {
   cosmetics UserCosmetic[]
   achievements UserAchievement[]
   weeklyTasks UserWeeklyTask[]
+  monthlyScores MonthlyScore[]
+  rankingWins RankingWinner[]
 }
 
 model Pixel {
@@ -344,4 +346,32 @@ enum CosmeticRarity {
   EPIC
   LEGENDARY
   MYTHIC
+}
+
+model MonthlyScore {
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  period    String // "2026-06" (año-mes UTC)
+  pixels    Int    @default(0)
+  creations Int    @default(0)
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+}
+
+model RankingWinner {
+  id          Int      @id @default(autoincrement())
+  period      String   // "2026-06"
+  metric      String   // "pixels" | "creations"
+  scope       String   // "global" | "national"
+  country     String?  // ISO-2 si es nacional
+  position    Int      // 1..10
+  userId      Int
+  score       Int      // conteo al cierre
+  bitsAwarded Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([period])
+  @@index([userId])
 }
