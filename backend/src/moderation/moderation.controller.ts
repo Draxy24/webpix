@@ -26,11 +26,15 @@ export class ModerationController {
     @Request() req: { user: { id: number } },
     @Body()
     body: {
-      type: 'USER' | 'PUBLICATION' | 'COMMENT' | 'BUG';
+      type: 'USER' | 'PUBLICATION' | 'COMMENT' | 'BUG' | 'CANVAS';
       targetUserId?: number;
       targetNickname?: string;
       publicationId?: number;
       commentId?: number;
+      x1?: number;
+      y1?: number;
+      x2?: number;
+      y2?: number;
       reason: string;
       details?: string;
     },

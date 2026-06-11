@@ -1,0 +1,8 @@
+-- AlterEnum
+ALTER TYPE "ReportType" ADD VALUE 'CANVAS';
+
+-- AlterTable
+ALTER TABLE "Report" ADD COLUMN     "x1" INTEGER,
+ADD COLUMN     "x2" INTEGER,
+ADD COLUMN     "y1" INTEGER,
+ADD COLUMN     "y2" INTEGER;

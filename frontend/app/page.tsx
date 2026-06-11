@@ -24,7 +24,15 @@ import { resolveColor } from "./lib/colors";
 import { API_URL } from "@/app/lib/api";
 import Flag from "./components/Flag";
 import { badgeIcon } from "./lib/badges";
-import { playPaint, playError } from "./lib/sounds";
+import {
+  playPaint,
+  playError,
+  playErase,
+  playPurchase,
+  playPublish,
+  playNav,
+} from "./lib/sounds";
+import ReportModal from "./components/ReportModal";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -124,6 +132,7 @@ export default function Home() {
     y2: number;
   } | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [publishTitle, setPublishTitle] = useState("");
   const [publishError, setPublishError] = useState("");
   const [publishing, setPublishing] = useState(false);
@@ -140,6 +149,13 @@ export default function Home() {
   const pixelsRef = useRef(pixels);
   const nicknameRef = useRef(nickname);
   const isAdminRef = useRef(isAdmin);
+  const [highlightZone, setHighlightZone] = useState<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  } | null>(null);
+  const didJumpRef = useRef(false);
 
   const PALETTES: Record<"FREE" | "PLUS" | "PREMIUM", string[]> = {
     FREE: [
@@ -274,6 +290,7 @@ export default function Home() {
         delete next[key];
         return next;
       });
+      if (soundEnabledRef.current) playErase();
 
       fetch(API_URL + "/erase", {
         method: "POST",
@@ -497,7 +514,17 @@ export default function Home() {
       ctx.fillStyle = resolveColor(pixels[key], x, y);
       ctx.fillRect(x, y, 1, 1);
     }
-  }, [pixels, zoom]);
+    if (highlightZone) {
+      const { x1, y1, x2, y2 } = highlightZone;
+      const w = x2 - x1 + 1;
+      const h = y2 - y1 + 1;
+      ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+      ctx.fillRect(x1, y1, w, h);
+      ctx.strokeStyle = "#EF4444";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x1 + 0.5, y1 + 0.5, w - 1, h - 1);
+    }
+  }, [pixels, zoom, highlightZone]);
 
   useEffect(() => {
     localStorage.setItem("pixels", JSON.stringify(pixels));
@@ -855,6 +882,9 @@ export default function Home() {
     } else if (activeTool === "publish") {
       setSelectionMode(true);
       setSelection(null);
+    } else if (activeTool === "report") {
+      setSelectionMode(true);
+      setSelection(null);
     } else {
       // brush, borrador en punto, o gestionar espacios: sin selección
       setSelectionMode(false);
@@ -949,6 +979,72 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [notice]);
 
+  useEffect(() => {
+    if (didJumpRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const zoneParam = params.get("zone");
+    if (!zoneParam) return;
+
+    const parts = zoneParam.split("_").map(Number);
+    if (parts.length !== 4 || parts.some((n) => Number.isNaN(n))) return;
+
+    didJumpRef.current = true;
+
+    const x1 = Math.max(0, Math.min(parts[0], parts[2]));
+    const y1 = Math.max(0, Math.min(parts[1], parts[3]));
+    const x2 = Math.min(999, Math.max(parts[0], parts[2]));
+    const y2 = Math.min(999, Math.max(parts[1], parts[3]));
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const zoneW = x2 - x1 + 1;
+    const zoneH = y2 - y1 + 1;
+    const minZoom = Math.max(
+      1,
+      window.innerWidth / 1000,
+      window.innerHeight / 1000,
+    );
+    const fitZoom = Math.max(
+      minZoom,
+      Math.min(
+        40,
+        (container.clientWidth * 0.6) / zoneW,
+        (container.clientHeight * 0.6) / zoneH,
+      ),
+    );
+
+    const cx = (x1 + x2 + 1) / 2;
+    const cy = (y1 + y2 + 1) / 2;
+
+    setHighlightZone({ x1, y1, x2, y2 });
+    setZoom(fitZoom);
+
+    const centerOn = () => {
+      const c = containerRef.current;
+      if (!c) return;
+      const maxL = 1000 * fitZoom - c.clientWidth;
+      const maxT = 1000 * fitZoom - c.clientHeight;
+      c.scrollLeft = Math.max(
+        0,
+        Math.min(cx * fitZoom - c.clientWidth / 2, maxL),
+      );
+      c.scrollTop = Math.max(
+        0,
+        Math.min(cy * fitZoom - c.clientHeight / 2, maxT),
+      );
+    };
+    requestAnimationFrame(() => requestAnimationFrame(centerOn));
+
+    // limpia el parámetro para que un refresh no vuelva a saltar
+    const url = new URL(window.location.href);
+    url.searchParams.delete("zone");
+    window.history.replaceState({}, "", url.pathname + url.search);
+
+    const t = setTimeout(() => setHighlightZone(null), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
   const handlePublish = async () => {
     if (!selection || !token) return;
     setPublishing(true);
@@ -973,6 +1069,7 @@ export default function Home() {
       setShowPublishModal(false);
       setSelection(null);
       setPublishTitle("");
+      if (soundEnabledRef.current) playPublish();
       alert("¡Publicación creada exitosamente!");
     } catch (err) {
       setPublishError(err instanceof Error ? err.message : "Error al publicar");
@@ -1010,6 +1107,7 @@ export default function Home() {
           setCooldown(data.state.cooldownSeconds);
       }
       setSelection(null);
+      if (soundEnabledRef.current) playErase();
     } catch {
       alert("Error de conexión al borrar el área");
     } finally {
@@ -1055,6 +1153,7 @@ export default function Home() {
       setSelection(null);
       setMemberInput("");
       setAccessMode("OWNER_ONLY");
+      if (soundEnabledRef.current) playPurchase();
       alert("¡Espacio privado comprado!");
     } catch (err) {
       setPurchaseError(err instanceof Error ? err.message : "Error al comprar");
@@ -1319,6 +1418,34 @@ export default function Home() {
         </div>
       )}
 
+      {/* Centro arriba: reportar zona */}
+      {nickname && activeTool === "report" && (
+        <div style={overlayBoxCenter}>
+          <span
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {selection
+              ? `Reportar ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
+              : "Arrastra para seleccionar el área a reportar"}
+          </span>
+          <button
+            onClick={() => setShowReportModal(true)}
+            disabled={!selection}
+            style={navButton}
+          >
+            Reportar zona
+          </button>
+          {selection && (
+            <button onClick={() => setSelection(null)} style={navButton}>
+              Cancelar
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Caja de herramientas flotante */}
       <FloatingToolbox
         activeTool={activeTool}
@@ -1333,6 +1460,7 @@ export default function Home() {
         eraserEnabled={!!nickname}
         privateEnabled={!!nickname}
         publishEnabled={!!nickname}
+        reportEnabled={!!nickname}
         privateMode={privateMode}
         onPrivateModeChange={(mode) => {
           setPrivateMode(mode);
@@ -1485,6 +1613,17 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
+      {showReportModal && selection && (
+        <ReportModal
+          type="CANVAS"
+          x1={selection.x1}
+          y1={selection.y1}
+          x2={selection.x2}
+          y2={selection.y2}
+          onClose={() => setShowReportModal(false)}
+        />
       )}
 
       {/* Modal de compra de espacio privado */}
@@ -1726,9 +1865,18 @@ export default function Home() {
 
       <SideButtons
         activeSection={panelSection}
-        onSelect={(s) => setPanelSection((prev) => (prev === s ? null : s))}
-        onReportBug={() => router.push("/report-bug")}
-        onOpenShop={openShop}
+        onSelect={(s) => {
+          if (soundEnabledRef.current) playNav();
+          setPanelSection((prev) => (prev === s ? null : s));
+        }}
+        onReportBug={() => {
+          if (soundEnabledRef.current) playNav();
+          router.push("/report-bug");
+        }}
+        onOpenShop={() => {
+          if (soundEnabledRef.current) playNav();
+          openShop();
+        }}
         panelOpen={panelSection !== null}
       />
 

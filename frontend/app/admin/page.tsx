@@ -9,7 +9,7 @@ import { API_URL } from "@/app/lib/api";
 
 type Report = {
   id: number;
-  type: "USER" | "PUBLICATION" | "COMMENT" | "BUG";
+  type: "USER" | "PUBLICATION" | "COMMENT" | "BUG" | "CANVAS";
   reason: string;
   details: string | null;
   status: "PENDING" | "RESOLVED" | "DISMISSED";
@@ -19,6 +19,10 @@ type Report = {
   targetNickname: string | null;
   publicationId: number | null;
   commentId: number | null;
+  x1: number | null;
+  y1: number | null;
+  x2: number | null;
+  y2: number | null;
   contentAuthorId: number | null;
   contentAuthorNickname: string | null;
   contentPreview: string | null;
@@ -49,12 +53,14 @@ const TYPE_LABELS: Record<string, string> = {
   PUBLICATION: "Publicación",
   COMMENT: "Comentario",
   BUG: "Bug",
+  CANVAS: "Zona del lienzo",
 };
 const TYPE_COLORS: Record<string, string> = {
   USER: "#c33",
   PUBLICATION: "#a60",
   COMMENT: "#36c",
   BUG: "#693",
+  CANVAS: "#7c3aed",
 };
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "Pendiente",
@@ -308,6 +314,7 @@ export default function AdminPage() {
                 <option value="PUBLICATION">Publicaciones</option>
                 <option value="COMMENT">Comentarios</option>
                 <option value="BUG">Bugs</option>
+                <option value="CANVAS">Zonas del lienzo</option>
               </select>
             </div>
           </div>
@@ -367,6 +374,14 @@ export default function AdminPage() {
                             “{r.contentPreview}”
                           </div>
                         </>
+                      )}
+                      {r.type === "CANVAS" && (
+                        <div>
+                          <strong>Zona reportada:</strong>{" "}
+                          {r.x1 != null
+                            ? `(${r.x1}, ${r.y1}) – (${r.x2}, ${r.y2})`
+                            : "?"}
+                        </div>
                       )}
                       <div style={{ marginTop: "4px" }}>
                         <strong>Motivo:</strong> {r.reason}
@@ -447,6 +462,16 @@ export default function AdminPage() {
                             Descartar
                           </button>
                         </>
+                      )}
+                      {r.type === "CANVAS" && r.x1 != null && (
+                        <a
+                          href={`/?zone=${r.x1}_${r.y1}_${r.x2}_${r.y2}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`${styles.actionBtn} ${styles.actionNeutral}`}
+                        >
+                          Ir a la zona
+                        </a>
                       )}
                     </div>
                   </div>

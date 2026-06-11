@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(23, 23, 28, 0.7);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
   border: var(--border-normal) solid var(--color-border-strong);
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
@@ -35,7 +35,7 @@
 }
 
 .button:hover {
-  background: rgba(31, 31, 38, 0.95);
+  background: color-mix(in srgb, var(--color-elevated) 90%, transparent);
   color: var(--color-text);
   border-color: var(--color-menu);
 }

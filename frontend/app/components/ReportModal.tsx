@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "../context/auth";
 import { API_URL } from "@/app/lib/api";
 
-type ReportType = "USER" | "PUBLICATION" | "COMMENT";
+type ReportType = "USER" | "PUBLICATION" | "COMMENT" | "CANVAS";
 
 const REASONS: Record<ReportType, string[]> = {
   USER: [
@@ -22,12 +22,20 @@ const REASONS: Record<ReportType, string[]> = {
     "Otro",
   ],
   COMMENT: ["Acoso", "Spam", "Discurso de odio", "Contenido explícito", "Otro"],
+  CANVAS: [
+    "Contenido explícito / NSFW",
+    "Discurso de odio",
+    "Símbolo o contenido ofensivo",
+    "Spam",
+    "Otro",
+  ],
 };
 
 const TITLES: Record<ReportType, string> = {
   USER: "Reportar usuario",
   PUBLICATION: "Reportar publicación",
   COMMENT: "Reportar comentario",
+  CANVAS: "Reportar zona del lienzo",
 };
 
 export default function ReportModal({
@@ -35,12 +43,20 @@ export default function ReportModal({
   targetNickname,
   publicationId,
   commentId,
+  x1,
+  y1,
+  x2,
+  y2,
   onClose,
 }: {
   type: ReportType;
   targetNickname?: string;
   publicationId?: number;
   commentId?: number;
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
   onClose: () => void;
 }) {
   const { token } = useAuth();
@@ -65,6 +81,10 @@ export default function ReportModal({
           targetNickname,
           publicationId,
           commentId,
+          x1,
+          y1,
+          x2,
+          y2,
           reason,
           details: details || undefined,
         }),

@@ -152,6 +152,10 @@ model Report {
   targetUserId  Int?
   publicationId Int?
   commentId     Int?
+  x1            Int?
+  y1            Int?
+  x2            Int?
+  y2            Int?
   reason        String
   details       String?
   status        ReportStatus @default(PENDING)
@@ -174,6 +178,7 @@ enum ReportType {
   PUBLICATION
   COMMENT
   BUG
+  CANVAS
 }
 
 enum ReportStatus {

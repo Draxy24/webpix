@@ -198,3 +198,16 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+
+.headerCosmetic {
+  padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-lg);
+  /* Los fondos cosméticos están pensados para texto claro:
+     forzamos la paleta oscura dentro del hero, sin importar el tema */
+  --color-text: #f0f0f2;
+  --color-text-secondary: #a8a8b0;
+  --color-text-muted: #6b6b73;
+  --color-elevated: #1f1f26;
+  --color-border: #2a2a33;
+  --color-border-strong: #3a3a45;
+}

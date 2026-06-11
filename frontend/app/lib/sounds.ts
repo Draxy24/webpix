@@ -41,3 +41,20 @@ export function playPaint() {
 export function playError() {
   blip(150, 0.18, "sawtooth", 0.05);
 }
+
+export function playErase() {
+  blip(300, 0.1, "triangle", 0.045);
+}
+
+export function playPurchase() {
+  blip(523, 0.09, "sine", 0.05);
+  setTimeout(() => blip(784, 0.12, "sine", 0.05), 90);
+}
+
+export function playPublish() {
+  blip(660, 0.13, "triangle", 0.05);
+}
+
+export function playNav() {
+  blip(360, 0.05, "sine", 0.03);
+}

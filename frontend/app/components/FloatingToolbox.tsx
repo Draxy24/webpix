@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./FloatingToolbox.module.css";
 
-export type Tool = "brush" | "eraser" | "publish" | "private";
+export type Tool = "brush" | "eraser" | "publish" | "private" | "report";
 export type EraseMode = "point" | "area";
 export type PrivateMode = "buy" | "manage";
 
@@ -12,6 +12,7 @@ const TOOL_LABELS: Record<Tool, string> = {
   eraser: "Borrar",
   publish: "Publicar",
   private: "Espacio privado",
+  report: "Reportar",
 };
 
 const TOOL_ENABLED: Record<Tool, boolean> = {
@@ -19,6 +20,7 @@ const TOOL_ENABLED: Record<Tool, boolean> = {
   eraser: true,
   publish: true,
   private: true,
+  report: true,
 };
 
 function ToolIcon({ tool }: { tool: Tool }) {
@@ -59,6 +61,15 @@ function ToolIcon({ tool }: { tool: Tool }) {
           <rect x="3" y="7" width="10" height="7" />
         </svg>
       );
+    case "report":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="3" y="2" width="2" height="12" />
+          <rect x="5" y="3" width="8" height="2" />
+          <rect x="5" y="5" width="6" height="2" />
+          <rect x="5" y="7" width="8" height="2" />
+        </svg>
+      );
   }
 }
 
@@ -74,6 +85,7 @@ export default function FloatingToolbox({
   eraserEnabled = false,
   privateEnabled = false,
   publishEnabled = false,
+  reportEnabled = false,
   privateMode = "buy",
   onPrivateModeChange,
   exoticColors = [],
@@ -89,6 +101,7 @@ export default function FloatingToolbox({
   eraserEnabled?: boolean;
   privateEnabled?: boolean;
   publishEnabled?: boolean;
+  reportEnabled?: boolean;
   privateMode?: PrivateMode;
   onPrivateModeChange?: (mode: PrivateMode) => void;
   exoticColors?: { token: string; swatch: string; name: string }[];
@@ -176,36 +189,42 @@ export default function FloatingToolbox({
   const toolsContent = (
     <>
       <div className={styles.tools}>
-        {(["brush", "eraser", "publish", "private"] as Tool[]).map((tool) => {
-          const enabled =
-            TOOL_ENABLED[tool] &&
-            (tool !== "eraser" || eraserEnabled) &&
-            (tool !== "private" || privateEnabled) &&
-            (tool !== "publish" || publishEnabled);
-          return (
-            <button
-              key={tool}
-              className={`${styles.tool} ${activeTool === tool ? styles.toolActive : ""}`}
-              onClick={() => enabled && onToolChange(tool)}
-              disabled={!enabled}
-            >
-              <ToolIcon tool={tool} />
-              <span className={styles.tooltip}>
-                {TOOL_LABELS[tool]}
-                {!TOOL_ENABLED[tool] && " (próximamente)"}
-                {tool === "eraser" && TOOL_ENABLED.eraser && !eraserEnabled
-                  ? " (inicia sesión)"
-                  : ""}
-                {tool === "private" && TOOL_ENABLED.private && !privateEnabled
-                  ? " (inicia sesión)"
-                  : ""}
-                {tool === "publish" && TOOL_ENABLED.publish && !publishEnabled
-                  ? " (inicia sesión)"
-                  : ""}
-              </span>
-            </button>
-          );
-        })}
+        {(["brush", "eraser", "publish", "private", "report"] as Tool[]).map(
+          (tool) => {
+            const enabled =
+              TOOL_ENABLED[tool] &&
+              (tool !== "eraser" || eraserEnabled) &&
+              (tool !== "private" || privateEnabled) &&
+              (tool !== "publish" || publishEnabled) &&
+              (tool !== "report" || reportEnabled);
+            return (
+              <button
+                key={tool}
+                className={`${styles.tool} ${activeTool === tool ? styles.toolActive : ""}`}
+                onClick={() => enabled && onToolChange(tool)}
+                disabled={!enabled}
+              >
+                <ToolIcon tool={tool} />
+                <span className={styles.tooltip}>
+                  {TOOL_LABELS[tool]}
+                  {!TOOL_ENABLED[tool] && " (próximamente)"}
+                  {tool === "eraser" && TOOL_ENABLED.eraser && !eraserEnabled
+                    ? " (inicia sesión)"
+                    : ""}
+                  {tool === "private" && TOOL_ENABLED.private && !privateEnabled
+                    ? " (inicia sesión)"
+                    : ""}
+                  {tool === "publish" && TOOL_ENABLED.publish && !publishEnabled
+                    ? " (inicia sesión)"
+                    : ""}
+                  {tool === "report" && TOOL_ENABLED.report && !reportEnabled
+                    ? " (inicia sesión)"
+                    : ""}
+                </span>
+              </button>
+            );
+          },
+        )}
       </div>
 
       {activeTool === "brush" && (
@@ -305,6 +324,13 @@ export default function FloatingToolbox({
             {privateMode === "buy"
               ? "Selecciona un área del lienzo para comprarla."
               : "Administra tus espacios comprados."}
+          </p>
+        </div>
+      )}
+      {activeTool === "report" && (
+        <div className={styles.panel}>
+          <p className={styles.eraseHint}>
+            Selecciona un área del lienzo para reportarla a los moderadores.
           </p>
         </div>
       )}

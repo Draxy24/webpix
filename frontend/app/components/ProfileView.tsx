@@ -169,7 +169,9 @@ export default function ProfileView({
   return (
     <Wrapper className={styles.main}>
       <div
-        className={styles.header}
+        className={`${styles.header} ${
+          profile.background?.data?.background ? styles.headerCosmetic : ""
+        }`}
         style={
           profile.background?.data?.background
             ? { background: profile.background.data.background }
@@ -290,61 +292,61 @@ export default function ProfileView({
             </button>
           </div>
         )}
+      </div>
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Publicaciones</h2>
-          {publications.length === 0 ? (
-            <p className={styles.muted}>Sin publicaciones todavía.</p>
-          ) : (
-            <div className={styles.grid}>
-              {publications.map((pub) => (
-                <a
-                  key={pub.id}
-                  href={`/publication/${pub.id}`}
-                  className={styles.pubCard}
-                  onClick={(e) => {
-                    if (onOpenPublication) {
-                      e.preventDefault();
-                      onOpenPublication(pub.id);
-                    }
-                  }}
-                >
-                  <PublicationCanvas
-                    pixelData={pub.pixelData}
-                    x1={pub.x1}
-                    y1={pub.y1}
-                    x2={pub.x2}
-                    y2={pub.y2}
-                    maxSize={150}
-                  />
-                  <div className={styles.pubInfo}>
-                    {pub.title && (
-                      <div className={styles.pubTitle}>{pub.title}</div>
-                    )}
-                    <div className={styles.pubMeta}>
-                      👍 {pub.likes} · 👎 {pub.dislikes} · 💬 {pub.commentCount}
-                    </div>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Publicaciones</h2>
+        {publications.length === 0 ? (
+          <p className={styles.muted}>Sin publicaciones todavía.</p>
+        ) : (
+          <div className={styles.grid}>
+            {publications.map((pub) => (
+              <a
+                key={pub.id}
+                href={`/publication/${pub.id}`}
+                className={styles.pubCard}
+                onClick={(e) => {
+                  if (onOpenPublication) {
+                    e.preventDefault();
+                    onOpenPublication(pub.id);
+                  }
+                }}
+              >
+                <PublicationCanvas
+                  pixelData={pub.pixelData}
+                  x1={pub.x1}
+                  y1={pub.y1}
+                  x2={pub.x2}
+                  y2={pub.y2}
+                  maxSize={150}
+                />
+                <div className={styles.pubInfo}>
+                  {pub.title && (
+                    <div className={styles.pubTitle}>{pub.title}</div>
+                  )}
+                  <div className={styles.pubMeta}>
+                    👍 {pub.likes} · 👎 {pub.dislikes} · 💬 {pub.commentCount}
                   </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {!inModal && (
-          <a href="/" className={styles.backLink}>
-            ← Volver al lienzo
-          </a>
-        )}
-
-        {showReport && (
-          <ReportModal
-            type="USER"
-            targetNickname={profile.nickname}
-            onClose={() => setShowReport(false)}
-          />
+                </div>
+              </a>
+            ))}
+          </div>
         )}
       </div>
+
+      {!inModal && (
+        <a href="/" className={styles.backLink}>
+          ← Volver al lienzo
+        </a>
+      )}
+
+      {showReport && (
+        <ReportModal
+          type="USER"
+          targetNickname={profile.nickname}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </Wrapper>
   );
 }

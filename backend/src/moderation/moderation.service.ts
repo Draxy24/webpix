@@ -26,11 +26,15 @@ export class ModerationService {
   async createReport(
     reporterId: number,
     data: {
-      type: 'USER' | 'PUBLICATION' | 'COMMENT' | 'BUG';
+      type: 'USER' | 'PUBLICATION' | 'COMMENT' | 'BUG' | 'CANVAS';
       targetUserId?: number;
       targetNickname?: string;
       publicationId?: number;
       commentId?: number;
+      x1?: number;
+      y1?: number;
+      x2?: number;
+      y2?: number;
       reason: string;
       details?: string;
     },
@@ -67,6 +71,26 @@ export class ModerationService {
       if (!data.details || data.details.trim().length === 0) {
         throw new BadRequestException('Debes explicar cómo reproducir el bug');
       }
+    } else if (data.type === 'CANVAS') {
+      if (
+        data.x1 == null ||
+        data.y1 == null ||
+        data.x2 == null ||
+        data.y2 == null
+      ) {
+        throw new BadRequestException('Falta el área a reportar');
+      }
+      const minX = Math.min(data.x1, data.x2);
+      const maxX = Math.max(data.x1, data.x2);
+      const minY = Math.min(data.y1, data.y2);
+      const maxY = Math.max(data.y1, data.y2);
+      if ([minX, minY, maxX, maxY].some((v) => v < 0 || v >= 1000)) {
+        throw new BadRequestException('Coordenadas fuera del lienzo');
+      }
+      data.x1 = minX;
+      data.y1 = minY;
+      data.x2 = maxX;
+      data.y2 = maxY;
     }
 
     if (data.type !== 'BUG') {
@@ -78,6 +102,10 @@ export class ModerationService {
           targetUserId: data.targetUserId ?? undefined,
           publicationId: data.publicationId ?? undefined,
           commentId: data.commentId ?? undefined,
+          x1: data.x1 ?? undefined,
+          y1: data.y1 ?? undefined,
+          x2: data.x2 ?? undefined,
+          y2: data.y2 ?? undefined,
         },
       });
       if (existing)
@@ -93,6 +121,10 @@ export class ModerationService {
         targetUserId: data.targetUserId,
         publicationId: data.publicationId,
         commentId: data.commentId,
+        x1: data.x1,
+        y1: data.y1,
+        x2: data.x2,
+        y2: data.y2,
         reason: data.reason,
         details: data.details,
       },
@@ -166,6 +198,8 @@ export class ModerationService {
         } else {
           contentPreview = 'Comentario eliminado';
         }
+      } else if (r.type === 'CANVAS' && r.x1 != null) {
+        contentPreview = `Zona (${r.x1}, ${r.y1}) – (${r.x2}, ${r.y2})`;
       }
 
       return {
@@ -182,6 +216,10 @@ export class ModerationService {
           : null,
         publicationId: r.publicationId,
         commentId: r.commentId,
+        x1: r.x1,
+        y1: r.y1,
+        x2: r.x2,
+        y2: r.y2,
         contentAuthorId,
         contentAuthorNickname,
         contentPreview,
