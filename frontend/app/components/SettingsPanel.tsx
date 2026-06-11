@@ -76,13 +76,25 @@ export default function SettingsPanel({
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Apariencia y sonido</h3>
-        <div className={styles.comingSoon}>
-          Tema claro/oscuro · próximamente
-        </div>
+        <label className={styles.rowToggle}>
+          <span>Modo claro</span>
+          <input
+            type="checkbox"
+            checked={settings.theme === "light"}
+            onChange={(e) =>
+              updateSetting("theme", e.target.checked ? "light" : "dark")
+            }
+          />
+        </label>
+        <label className={styles.rowToggle}>
+          <span>Efectos de sonido</span>
+          <input
+            type="checkbox"
+            checked={settings.soundEnabled}
+            onChange={(e) => updateSetting("soundEnabled", e.target.checked)}
+          />
+        </label>
         <div className={styles.comingSoon}>Idioma · próximamente</div>
-        <div className={styles.comingSoon}>
-          Efectos de sonido · próximamente
-        </div>
       </section>
     </div>
   );

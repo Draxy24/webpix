@@ -22,6 +22,9 @@ import { useProfileModal } from "./components/ProfileModalContext";
 import { useShopModal } from "./components/ShopModalContext";
 import { resolveColor } from "./lib/colors";
 import { API_URL } from "@/app/lib/api";
+import Flag from "./components/Flag";
+import { badgeIcon } from "./lib/badges";
+import { playPaint, playError } from "./lib/sounds";
 
 export default function Home() {
   const { token, nickname, logout } = useAuth();
@@ -39,12 +42,24 @@ export default function Home() {
     null,
   );
   const showCoordsRef = useRef(settings.showCoords);
+  const soundEnabledRef = useRef(settings.soundEnabled);
   const [pixelOwners, setPixelOwners] = useState<Record<string, string>>({});
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
     nickname: string;
   } | null>(null);
+  type OwnerCard = {
+    country: string | null;
+    level: number | null;
+    title: { name: string; data: { color?: string } | null } | null;
+    badge: {
+      name: string;
+      data: { icon?: string; medal?: string; color?: string } | null;
+    } | null;
+  };
+  const [ownerCards, setOwnerCards] = useState<Record<string, OwnerCard>>({});
+  const ownerCardsRef = useRef<Record<string, OwnerCard>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pixelOwnersRef = useRef<Record<string, string>>({});
@@ -311,11 +326,18 @@ export default function Home() {
         eraseAtPoint(x, y, key);
         return;
       }
-      if (cooldownRef.current > 0) return;
-      if (clicksRef.current <= 0) return;
+      if (cooldownRef.current > 0) {
+        if (soundEnabledRef.current) playError();
+        return;
+      }
+      if (clicksRef.current <= 0) {
+        if (soundEnabledRef.current) playError();
+        return;
+      }
 
       ctx.fillStyle = resolveColor(colorRef.current, x, y);
       ctx.fillRect(x, y, 1, 1);
+      if (soundEnabledRef.current) playPaint();
 
       const color = colorRef.current;
       setPixels((prev) => ({ ...prev, [key]: color }));
@@ -631,6 +653,10 @@ export default function Home() {
   }, [settings.showCoords]);
 
   useEffect(() => {
+    soundEnabledRef.current = settings.soundEnabled;
+  }, [settings.soundEnabled]);
+
+  useEffect(() => {
     const clampZoom = () => {
       const minZoom = Math.max(
         1,
@@ -771,6 +797,37 @@ export default function Home() {
   useEffect(() => {
     pixelOwnersRef.current = pixelOwners;
   }, [pixelOwners]);
+  useEffect(() => {
+    ownerCardsRef.current = ownerCards;
+  }, [ownerCards]);
+
+  // Carga (con caché y pequeño debounce) la info del dueño bajo el cursor
+  useEffect(() => {
+    const nick = tooltip?.nickname;
+    if (!nick || ownerCardsRef.current[nick]) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      fetch(`${API_URL}/users/${nick}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (cancelled) return;
+          setOwnerCards((prev) => ({
+            ...prev,
+            [nick]: {
+              country: data.country ?? null,
+              level: data.level ?? null,
+              title: data.title ?? null,
+              badge: data.badge ?? null,
+            },
+          }));
+        })
+        .catch(() => {});
+    }, 150);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [tooltip?.nickname]);
   useEffect(() => {
     selectionModeRef.current = selectionMode;
   }, [selectionMode]);
@@ -1284,28 +1341,63 @@ export default function Home() {
       />
 
       {/* Tooltip */}
-      {tooltip && (
-        <div
-          style={{
-            position: "fixed",
-            top: tooltip.y + 12,
-            left: tooltip.x + 12,
-            background: "var(--color-bg)",
-            color: "var(--color-text)",
-            border: "var(--border-thin) solid var(--color-border-strong)",
-            padding: "4px 8px",
-            borderRadius: "var(--radius-sm)",
-            fontSize: "var(--text-xs)",
-            pointerEvents: "none",
-            zIndex: 1000,
-          }}
-        >
-          {tooltip.nickname}
-          <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>
-            Ctrl+Clic para ver perfil
-          </div>
-        </div>
-      )}
+      {tooltip &&
+        (() => {
+          const card = ownerCards[tooltip.nickname];
+          return (
+            <div
+              style={{
+                position: "fixed",
+                top: tooltip.y + 12,
+                left: tooltip.x + 12,
+                background: "var(--color-bg)",
+                color: "var(--color-text)",
+                border: "var(--border-thin) solid var(--color-border-strong)",
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "var(--radius-sm)",
+                fontSize: "var(--text-xs)",
+                pointerEvents: "none",
+                zIndex: 1000,
+                maxWidth: "200px",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                {card?.country && <Flag code={card.country} />}
+                <strong>{tooltip.nickname}</strong>
+                {card?.level != null && (
+                  <span style={{ color: "var(--color-text-secondary)" }}>
+                    · Nv {card.level}
+                  </span>
+                )}
+              </div>
+              {card?.title && (
+                <div
+                  style={{
+                    marginTop: "2px",
+                    color: card.title.data?.color ?? undefined,
+                  }}
+                >
+                  {card.title.name}
+                </div>
+              )}
+              {card?.badge && (
+                <div
+                  style={{
+                    marginTop: "2px",
+                    color: card.badge.data?.color ?? undefined,
+                  }}
+                >
+                  {badgeIcon(card.badge.data?.icon)} {card.badge.name}
+                </div>
+              )}
+              <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>
+                Ctrl+Clic para ver perfil
+              </div>
+            </div>
+          );
+        })()}
 
       {/* Modal de publicación */}
       {showPublishModal && selection && (

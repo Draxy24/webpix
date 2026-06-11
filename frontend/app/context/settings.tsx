@@ -6,12 +6,16 @@ type Settings = {
   menuColor: string;
   gridThreshold: number;
   showCoords: boolean;
+  theme: "dark" | "light";
+  soundEnabled: boolean;
 };
 
 const DEFAULT_SETTINGS: Settings = {
   menuColor: "#FF7A1A",
   gridThreshold: 3,
   showCoords: false,
+  theme: "dark",
+  soundEnabled: true,
 };
 
 const SettingsContext = createContext<{
@@ -34,6 +38,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       "--color-menu",
       settings.menuColor,
     );
+    document.documentElement.setAttribute("data-theme", settings.theme);
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
 
