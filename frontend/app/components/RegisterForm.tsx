@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import { COUNTRIES } from "../lib/countries";
 import PhoneCountrySelect from "./PhoneCountrySelect";
@@ -14,6 +15,7 @@ export default function RegisterForm({
 }: {
   switchToLogin?: () => void;
 }) {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const router = useRouter();
   const [nickname, setNickname] = useState("");
@@ -51,11 +53,11 @@ export default function RegisterForm({
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Error al registrarse");
+      if (!res.ok) throw new Error(data.message ?? t("auth.register.error"));
       login(data.token, data.nickname);
       router.push("/verify");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrarse");
+      setError(err instanceof Error ? err.message : t("auth.register.error"));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ export default function RegisterForm({
     <form onSubmit={handleSubmit} className={styles.form}>
       <input
         type="text"
-        placeholder="Nickname"
+        placeholder={t("auth.nickname")}
         value={nickname}
         onChange={(e) => setNickname(e.target.value)}
         required
@@ -77,20 +79,20 @@ export default function RegisterForm({
           onClick={() => setMethod("email")}
           className={`${styles.methodTab} ${method === "email" ? styles.methodTabActive : ""}`}
         >
-          Email
+          {t("auth.email")}
         </button>
         <button
           type="button"
           onClick={() => setMethod("phone")}
           className={`${styles.methodTab} ${method === "phone" ? styles.methodTabActive : ""}`}
         >
-          Teléfono
+          {t("auth.phone")}
         </button>
       </div>
       {method === "email" ? (
         <input
           type="email"
-          placeholder="correo@ejemplo.com"
+          placeholder={t("auth.emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -112,7 +114,7 @@ export default function RegisterForm({
       )}
       <input
         type="password"
-        placeholder="Contraseña"
+        placeholder={t("auth.password")}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
@@ -123,7 +125,7 @@ export default function RegisterForm({
         onChange={(e) => setCountry(e.target.value)}
         className={styles.input}
       >
-        <option value="">País (opcional)</option>
+        <option value="">{t("auth.countryOptional")}</option>
         {COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
             {c.name}
@@ -132,21 +134,21 @@ export default function RegisterForm({
       </select>
       {error && <p className={styles.error}>{error}</p>}
       <Button type="submit" disabled={loading} fullWidth size="lg">
-        {loading ? "Registrando..." : "Crear cuenta"}
+        {loading ? t("auth.register.submitting") : t("auth.register.submit")}
       </Button>
       <div className={styles.footerLinks}>
         <p>
-          ¿Ya tienes cuenta?{" "}
+          {t("auth.register.haveAccount")}{" "}
           {switchToLogin ? (
             <button
               type="button"
               className={styles.linkButton}
               onClick={switchToLogin}
             >
-              Inicia sesión
+              {t("auth.register.login")}
             </button>
           ) : (
-            <a href="/login">Inicia sesión</a>
+            <a href="/login">{t("auth.register.login")}</a>
           )}
         </p>
       </div>

@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/auth";
 import { SettingsProvider } from "./context/settings";
 import { ProfileModalProvider } from "./components/ProfileModalContext";
 import { ShopModalProvider } from "./components/ShopModalContext";
+import I18nProvider from "./components/I18nProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,13 +32,15 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${pressStart.variable}`}>
       <body>
-        <AuthProvider>
-          <SettingsProvider>
-            <ProfileModalProvider>
-              <ShopModalProvider>{children}</ShopModalProvider>
-            </ProfileModalProvider>
-          </SettingsProvider>
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <SettingsProvider>
+              <ProfileModalProvider>
+                <ShopModalProvider>{children}</ShopModalProvider>
+              </ProfileModalProvider>
+            </SettingsProvider>
+          </AuthProvider>
+        </I18nProvider>
       </body>
     </html>
   );

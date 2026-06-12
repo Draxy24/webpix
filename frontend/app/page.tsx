@@ -33,8 +33,10 @@ import {
   playNav,
 } from "./lib/sounds";
 import ReportModal from "./components/ReportModal";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
+  const { t } = useTranslation();
   const { token, nickname, logout } = useAuth();
   const { openProfile } = useProfileModal();
   const { openShop } = useShopModal();
@@ -1330,19 +1332,22 @@ export default function Home() {
             }}
           >
             {selection
-              ? `Publicar ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
-              : "Arrastra para seleccionar tu creación"}
+              ? t("canvas.overlay.publishSize", {
+                  w: selection.x2 - selection.x1 + 1,
+                  h: selection.y2 - selection.y1 + 1,
+                })
+              : t("canvas.overlay.publishHint")}
           </span>
           <button
             onClick={() => setShowPublishModal(true)}
             disabled={!selection}
             style={navButton}
           >
-            Publicar
+            {t("canvas.overlay.publishBtn")}
           </button>
           {selection && (
             <button onClick={() => setSelection(null)} style={navButton}>
-              Cancelar
+              {t("common.cancel")}
             </button>
           )}
         </div>
@@ -1358,19 +1363,24 @@ export default function Home() {
             }}
           >
             {selection
-              ? `Borrar ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
-              : "Arrastra para seleccionar un área"}
+              ? t("canvas.overlay.eraseSize", {
+                  w: selection.x2 - selection.x1 + 1,
+                  h: selection.y2 - selection.y1 + 1,
+                })
+              : t("canvas.overlay.dragArea")}
           </span>
           <button
             onClick={handleEraseArea}
             disabled={!selection || erasingArea}
             style={navButton}
           >
-            {erasingArea ? "Borrando..." : "Borrar área"}
+            {erasingArea
+              ? t("canvas.overlay.eraseBtnLoading")
+              : t("canvas.overlay.eraseBtn")}
           </button>
           {selection && (
             <button onClick={() => setSelection(null)} style={navButton}>
-              Cancelar
+              {t("common.cancel")}
             </button>
           )}
         </div>
@@ -1385,7 +1395,7 @@ export default function Home() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Toca tus píxeles para borrarlos
+            {t("canvas.overlay.erasePoint")}
           </span>
         </div>
       )}
@@ -1400,19 +1410,22 @@ export default function Home() {
             }}
           >
             {selection
-              ? `Espacio ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
-              : "Arrastra para seleccionar un área"}
+              ? t("canvas.overlay.privateSize", {
+                  w: selection.x2 - selection.x1 + 1,
+                  h: selection.y2 - selection.y1 + 1,
+                })
+              : t("canvas.overlay.dragArea")}
           </span>
           <button
             onClick={() => setShowPurchaseModal(true)}
             disabled={!selection}
             style={navButton}
           >
-            Comprar espacio
+            {t("canvas.overlay.privateBtn")}
           </button>
           {selection && (
             <button onClick={() => setSelection(null)} style={navButton}>
-              Cancelar
+              {t("common.cancel")}
             </button>
           )}
         </div>
@@ -1428,19 +1441,22 @@ export default function Home() {
             }}
           >
             {selection
-              ? `Reportar ${selection.x2 - selection.x1 + 1} × ${selection.y2 - selection.y1 + 1}`
-              : "Arrastra para seleccionar el área a reportar"}
+              ? t("canvas.overlay.reportSize", {
+                  w: selection.x2 - selection.x1 + 1,
+                  h: selection.y2 - selection.y1 + 1,
+                })
+              : t("canvas.overlay.reportHint")}
           </span>
           <button
             onClick={() => setShowReportModal(true)}
             disabled={!selection}
             style={navButton}
           >
-            Reportar zona
+            {t("canvas.overlay.reportBtn")}
           </button>
           {selection && (
             <button onClick={() => setSelection(null)} style={navButton}>
-              Cancelar
+              {t("common.cancel")}
             </button>
           )}
         </div>
@@ -1884,15 +1900,15 @@ export default function Home() {
         open={panelSection !== null}
         title={
           panelSection === "menu"
-            ? "Menú"
+            ? t("panel.titles.menu")
             : panelSection === "settings"
-              ? "Configuración"
+              ? t("panel.titles.settings")
               : panelSection === "achievements"
-                ? "Logros"
+                ? t("panel.titles.achievements")
                 : panelSection === "tasks"
-                  ? "Tareas semanales"
+                  ? t("panel.titles.tasks")
                   : panelSection === "bug"
-                    ? "Reportar bug"
+                    ? t("panel.titles.bug")
                     : ""
         }
         onClose={() => setPanelSection(null)}

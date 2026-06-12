@@ -2,18 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./FloatingToolbox.module.css";
+import { useTranslation } from "react-i18next";
 
 export type Tool = "brush" | "eraser" | "publish" | "private" | "report";
 export type EraseMode = "point" | "area";
 export type PrivateMode = "buy" | "manage";
-
-const TOOL_LABELS: Record<Tool, string> = {
-  brush: "Pintar",
-  eraser: "Borrar",
-  publish: "Publicar",
-  private: "Espacio privado",
-  report: "Reportar",
-};
 
 const TOOL_ENABLED: Record<Tool, boolean> = {
   brush: true,
@@ -106,6 +99,7 @@ export default function FloatingToolbox({
   onPrivateModeChange?: (mode: PrivateMode) => void;
   exoticColors?: { token: string; swatch: string; name: string }[];
 }) {
+  const { t } = useTranslation();
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
   );
@@ -206,19 +200,19 @@ export default function FloatingToolbox({
               >
                 <ToolIcon tool={tool} />
                 <span className={styles.tooltip}>
-                  {TOOL_LABELS[tool]}
-                  {!TOOL_ENABLED[tool] && " (próximamente)"}
+                  {t(`toolbox.tools.${tool}`)}
+                  {!TOOL_ENABLED[tool] ? ` ${t("toolbox.soon")}` : ""}
                   {tool === "eraser" && TOOL_ENABLED.eraser && !eraserEnabled
-                    ? " (inicia sesión)"
+                    ? ` ${t("toolbox.loginRequired")}`
                     : ""}
                   {tool === "private" && TOOL_ENABLED.private && !privateEnabled
-                    ? " (inicia sesión)"
+                    ? ` ${t("toolbox.loginRequired")}`
                     : ""}
                   {tool === "publish" && TOOL_ENABLED.publish && !publishEnabled
-                    ? " (inicia sesión)"
+                    ? ` ${t("toolbox.loginRequired")}`
                     : ""}
                   {tool === "report" && TOOL_ENABLED.report && !reportEnabled
-                    ? " (inicia sesión)"
+                    ? ` ${t("toolbox.loginRequired")}`
                     : ""}
                 </span>
               </button>
@@ -236,7 +230,7 @@ export default function FloatingToolbox({
                 className={`${styles.swatch} ${color === c ? styles.swatchActive : ""}`}
                 style={{ background: c }}
                 onClick={() => onColorChange(c)}
-                aria-label={`Color ${c}`}
+                aria-label={t("toolbox.colorAria", { color: c })}
               />
             ))}
           </div>
@@ -248,13 +242,15 @@ export default function FloatingToolbox({
                 value={color.startsWith("#") ? color : "#000000"}
                 onChange={(e) => onColorChange(e.target.value)}
               />
-              <span className={styles.customLabel}>Color personalizado</span>
+              <span className={styles.customLabel}>
+                {t("toolbox.customColor")}
+              </span>
             </div>
           )}
 
           {exoticColors.length > 0 && (
             <>
-              <div className={styles.exoticLabel}>Exóticos</div>
+              <div className={styles.exoticLabel}>{t("toolbox.exotic")}</div>
               <div className={styles.paletteGrid}>
                 {exoticColors.map((ec) => (
                   <button
@@ -279,28 +275,26 @@ export default function FloatingToolbox({
               className={`${styles.eraseModeBtn} ${eraseMode === "point" ? styles.eraseModeActive : ""}`}
               onClick={() => onEraseModeChange?.("point")}
             >
-              Punto
+              {t("toolbox.erase.point")}
             </button>
             <button
               className={`${styles.eraseModeBtn} ${eraseMode === "area" ? styles.eraseModeActive : ""}`}
               onClick={() => onEraseModeChange?.("area")}
             >
-              Área
+              {t("toolbox.erase.area")}
             </button>
           </div>
           <p className={styles.eraseHint}>
             {eraseMode === "point"
-              ? "Borra tus píxeles uno por uno."
-              : "Selecciona un área para borrar tus píxeles."}
+              ? t("toolbox.erase.hintPoint")
+              : t("toolbox.erase.hintArea")}
           </p>
         </div>
       )}
 
       {activeTool === "publish" && (
         <div className={styles.panel}>
-          <p className={styles.eraseHint}>
-            Selecciona tu creación en el lienzo para publicarla.
-          </p>
+          <p className={styles.eraseHint}>{t("toolbox.publish.hint")}</p>
         </div>
       )}
 
@@ -311,27 +305,26 @@ export default function FloatingToolbox({
               className={`${styles.eraseModeBtn} ${privateMode === "buy" ? styles.eraseModeActive : ""}`}
               onClick={() => onPrivateModeChange?.("buy")}
             >
-              Comprar
+              {t("toolbox.private.buy")}
             </button>
             <button
               className={`${styles.eraseModeBtn} ${privateMode === "manage" ? styles.eraseModeActive : ""}`}
               onClick={() => onPrivateModeChange?.("manage")}
             >
-              Gestionar
+              {t("toolbox.private.manage")}
             </button>
           </div>
           <p className={styles.eraseHint}>
             {privateMode === "buy"
-              ? "Selecciona un área del lienzo para comprarla."
-              : "Administra tus espacios comprados."}
+              ? t("toolbox.private.hintBuy")
+              : t("toolbox.private.hintManage")}
           </p>
         </div>
       )}
+
       {activeTool === "report" && (
         <div className={styles.panel}>
-          <p className={styles.eraseHint}>
-            Selecciona un área del lienzo para reportarla a los moderadores.
-          </p>
+          <p className={styles.eraseHint}>{t("toolbox.report.hint")}</p>
         </div>
       )}
     </>
@@ -345,7 +338,7 @@ export default function FloatingToolbox({
         <button
           className={styles.mobileToggle}
           onClick={() => setExpanded((e) => !e)}
-          aria-label="Herramientas"
+          aria-label={t("toolbox.toolsAria")}
         >
           <ToolIcon tool={activeTool} />
           <span

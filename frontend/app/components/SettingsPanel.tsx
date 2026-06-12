@@ -2,6 +2,8 @@
 
 import { useSettings } from "../context/settings";
 import styles from "./SettingsPanel.module.css";
+import { useTranslation } from "react-i18next";
+import { LANGS, setLanguage } from "../lib/i18n";
 
 export default function SettingsPanel({
   palette,
@@ -11,6 +13,7 @@ export default function SettingsPanel({
   showCustomColor: boolean;
 }) {
   const { settings, updateSetting } = useSettings();
+  const { t, i18n } = useTranslation();
 
   return (
     <div className={styles.container}>
@@ -94,7 +97,20 @@ export default function SettingsPanel({
             onChange={(e) => updateSetting("soundEnabled", e.target.checked)}
           />
         </label>
-        <div className={styles.comingSoon}>Idioma · próximamente</div>
+        <label className={styles.row}>
+          <span>{t("settings.language")}</span>
+          <select
+            value={i18n.language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className={styles.select}
+          >
+            {LANGS.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </section>
     </div>
   );

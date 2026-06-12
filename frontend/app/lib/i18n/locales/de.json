@@ -1,0 +1,125 @@
+{
+  "auth": {
+    "nickname": "Nickname",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "emailPlaceholder": "email@beispiel.com",
+    "password": "Passwort",
+    "countryOptional": "Land (optional)",
+    "register": {
+      "submit": "Konto erstellen",
+      "submitting": "Wird registriert...",
+      "error": "Registrierung fehlgeschlagen",
+      "haveAccount": "Hast du schon ein Konto?",
+      "login": "Anmelden"
+    },
+    "login": {
+      "emailOrPhone": "E-Mail oder Telefon",
+      "submit": "Anmelden",
+      "submitting": "Wird angemeldet...",
+      "error": "Anmeldung fehlgeschlagen",
+      "noAccount": "Noch kein Konto?",
+      "register": "Registrieren",
+      "forgot": "Passwort vergessen?"
+    },
+    "ban": {
+      "title": "Konto gesperrt",
+      "reason": "Grund:",
+      "reasonUnknown": "Nicht angegeben",
+      "duration": "Dauer:",
+      "permanent": "Dauerhaft",
+      "until": "Bis {{date}}",
+      "durationUnknown": "Nicht angegeben"
+    }
+  },
+  "menu": {
+    "tabs": {
+      "profile": "Profil",
+      "rankings": "Ranglisten",
+      "friends": "Freunde"
+    },
+    "edit": {
+      "picUrl": "URL des Profilbilds",
+      "country": "Land",
+      "noCountry": "Kein Land"
+    },
+    "admin": "Admin",
+    "stats": {
+      "pixelsLabel": "Pixel gemalt",
+      "memberSince": "Mitglied seit {{date}}"
+    },
+    "buttons": {
+      "editProfile": "Profil bearbeiten",
+      "viewPublications": "Veröffentlichungen ansehen",
+      "modPanel": "Moderationsbereich",
+      "logout": "Abmelden"
+    },
+    "friends": { "loginPrompt": "Melde dich an, um Freunde zu haben." }
+  },
+  "panel": {
+    "titles": {
+      "menu": "Menü",
+      "settings": "Einstellungen",
+      "achievements": "Erfolge",
+      "tasks": "Wöchentliche Aufgaben",
+      "bug": "Fehler melden",
+      "shop": "Shop"
+    }
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert..."
+  },
+  "canvas": {
+    "overlay": {
+      "publishSize": "Veröffentlichen {{w}} × {{h}}",
+      "publishHint": "Ziehe, um dein Werk auszuwählen",
+      "publishBtn": "Veröffentlichen",
+      "eraseSize": "Löschen {{w}} × {{h}}",
+      "eraseBtn": "Bereich löschen",
+      "eraseBtnLoading": "Wird gelöscht...",
+      "erasePoint": "Tippe auf deine Pixel, um sie zu löschen",
+      "privateSize": "Bereich {{w}} × {{h}}",
+      "privateBtn": "Bereich kaufen",
+      "reportSize": "Melden {{w}} × {{h}}",
+      "reportHint": "Ziehe, um den zu meldenden Bereich auszuwählen",
+      "reportBtn": "Bereich melden",
+      "dragArea": "Ziehe, um einen Bereich auszuwählen"
+    }
+  },
+  "settings": { "language": "Sprache" },
+  "toolbox": {
+    "tools": {
+      "brush": "Malen",
+      "eraser": "Löschen",
+      "publish": "Veröffentlichen",
+      "private": "Privater Bereich",
+      "report": "Bereich melden"
+    },
+    "soon": "(demnächst)",
+    "loginRequired": "(anmelden)",
+    "customColor": "Eigene Farbe",
+    "exotic": "Exotisch",
+    "colorAria": "Farbe {{color}}",
+    "toolsAria": "Werkzeuge",
+    "erase": {
+      "point": "Punkt",
+      "area": "Bereich",
+      "hintPoint": "Lösche deine Pixel einzeln.",
+      "hintArea": "Wähle einen Bereich, um deine Pixel zu löschen."
+    },
+    "publish": {
+      "hint": "Wähle dein Werk auf der Leinwand aus, um es zu veröffentlichen."
+    },
+    "private": {
+      "buy": "Kaufen",
+      "manage": "Verwalten",
+      "hintBuy": "Wähle einen Bereich der Leinwand aus, um ihn zu kaufen.",
+      "hintManage": "Verwalte deine gekauften Bereiche."
+    },
+    "report": {
+      "hint": "Wähle einen Bereich der Leinwand aus, um ihn den Moderatoren zu melden."
+    }
+  }
+}

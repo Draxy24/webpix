@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import Flag from "./Flag";
 import { COUNTRIES } from "../lib/countries";
@@ -29,6 +30,7 @@ export default function MenuPanel({
   onNavigate: (path: string) => void;
   onClose: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const { token } = useAuth();
   const { openProfile } = useProfileModal();
   const goToProfile = (nick: string) => {
@@ -100,19 +102,19 @@ export default function MenuPanel({
           className={`${styles.tab} ${tab === "profile" ? styles.tabActive : ""}`}
           onClick={() => setTab("profile")}
         >
-          Perfil
+          {t("menu.tabs.profile")}
         </button>
         <button
           className={`${styles.tab} ${tab === "rankings" ? styles.tabActive : ""}`}
           onClick={() => setTab("rankings")}
         >
-          Rankings
+          {t("menu.tabs.rankings")}
         </button>
         <button
           className={`${styles.tab} ${tab === "friends" ? styles.tabActive : ""}`}
           onClick={() => setTab("friends")}
         >
-          Amigos
+          {t("menu.tabs.friends")}
         </button>
       </div>
 
@@ -120,7 +122,9 @@ export default function MenuPanel({
         (nickname ? (
           editing ? (
             <div className={styles.box}>
-              <label className={styles.editLabel}>URL de foto de perfil</label>
+              <label className={styles.editLabel}>
+                {t("menu.edit.picUrl")}
+              </label>
               <input
                 type="text"
                 value={picInput}
@@ -128,13 +132,15 @@ export default function MenuPanel({
                 placeholder="https://..."
                 className={styles.editInput}
               />
-              <label className={styles.editLabel}>País</label>
+              <label className={styles.editLabel}>
+                {t("menu.edit.country")}
+              </label>
               <select
                 value={countryInput}
                 onChange={(e) => setCountryInput(e.target.value)}
                 className={styles.editInput}
               >
-                <option value="">Sin país</option>
+                <option value="">{t("menu.edit.noCountry")}</option>
                 {COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.name}
@@ -147,14 +153,14 @@ export default function MenuPanel({
                 onClick={handleSave}
                 disabled={saving}
               >
-                {saving ? "Guardando..." : "Guardar"}
+                {saving ? t("common.saving") : t("common.save")}
               </Button>
               <Button
                 variant="ghost"
                 fullWidth
                 onClick={() => setEditing(false)}
               >
-                Cancelar
+                {t("common.cancel")}
               </Button>
             </div>
           ) : (
@@ -193,28 +199,32 @@ export default function MenuPanel({
                   {country && <Flag code={country} />}
                 </div>
                 <div className={styles.tier}>
-                  {isAdmin ? "Admin" : userTier}
+                  {isAdmin ? t("menu.admin") : userTier}
                 </div>
                 {stats && (
                   <div className={styles.stats}>
                     <span>
-                      <strong>{stats.pixelCount}</strong> píxeles pintados
+                      <strong>{stats.pixelCount}</strong>{" "}
+                      {t("menu.stats.pixelsLabel")}
                     </span>
                     <span>
-                      Miembro desde{" "}
-                      {new Date(stats.createdAt).toLocaleDateString("es-MX")}
+                      {t("menu.stats.memberSince", {
+                        date: new Date(stats.createdAt).toLocaleDateString(
+                          i18n.language,
+                        ),
+                      })}
                     </span>
                   </div>
                 )}
                 <Button variant="secondary" fullWidth onClick={startEdit}>
-                  Editar perfil
+                  {t("menu.buttons.editProfile")}
                 </Button>
                 <Button
                   variant="secondary"
                   fullWidth
                   onClick={() => goToProfile(nickname)}
                 >
-                  Ver publicaciones
+                  {t("menu.buttons.viewPublications")}
                 </Button>
                 {isAdmin && (
                   <Button
@@ -222,11 +232,11 @@ export default function MenuPanel({
                     fullWidth
                     onClick={() => onNavigate("/admin")}
                   >
-                    Panel de moderación
+                    {t("menu.buttons.modPanel")}
                   </Button>
                 )}
                 <Button variant="ghost" fullWidth onClick={onLogout}>
-                  Cerrar sesión
+                  {t("menu.buttons.logout")}
                 </Button>
               </div>
               <RewardsView />
@@ -251,7 +261,7 @@ export default function MenuPanel({
         (nickname ? (
           <FriendsView onOpenProfile={goToProfile} />
         ) : (
-          <p className={styles.muted}>Inicia sesión para tener amigos.</p>
+          <p className={styles.muted}>{t("menu.friends.loginPrompt")}</p>
         ))}
     </div>
   );

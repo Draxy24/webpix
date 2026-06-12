@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./SideButtons.module.css";
+import { useTranslation } from "react-i18next";
 
 export type PanelSection =
   | "menu"
@@ -94,32 +95,37 @@ export default function SideButtons({
   onOpenShop: () => void;
   panelOpen: boolean;
 }) {
-  const sections: { key: PanelSection; label: string }[] = [
-    { key: "menu", label: "Menú" },
-    { key: "settings", label: "Configuración" },
-    { key: "achievements", label: "Logros" },
-    { key: "tasks", label: "Tareas semanales" },
+  const { t } = useTranslation();
+  const sections: PanelSection[] = [
+    "menu",
+    "settings",
+    "achievements",
+    "tasks",
   ];
 
   return (
     <div className={`${styles.stack} ${panelOpen ? styles.stackShifted : ""}`}>
       {sections.map((s) => (
         <button
-          key={s.key}
-          className={`${styles.button} ${activeSection === s.key ? styles.buttonActive : ""}`}
-          onClick={() => onSelect(s.key)}
-          title={s.label}
+          key={s}
+          className={`${styles.button} ${activeSection === s ? styles.buttonActive : ""}`}
+          onClick={() => onSelect(s)}
+          title={t(`panel.titles.${s}`)}
         >
-          <Icon section={s.key} />
+          <Icon section={s} />
         </button>
       ))}
-      <button className={styles.button} onClick={onOpenShop} title="Tienda">
+      <button
+        className={styles.button}
+        onClick={onOpenShop}
+        title={t("panel.titles.shop")}
+      >
         <Icon section="cart" />
       </button>
       <button
         className={styles.button}
         onClick={onReportBug}
-        title="Reportar bug"
+        title={t("panel.titles.bug")}
       >
         <Icon section="bug" />
       </button>

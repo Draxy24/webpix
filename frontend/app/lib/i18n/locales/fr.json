@@ -1,0 +1,125 @@
+{
+  "auth": {
+    "nickname": "Pseudo",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "emailPlaceholder": "email@exemple.com",
+    "password": "Mot de passe",
+    "countryOptional": "Pays (facultatif)",
+    "register": {
+      "submit": "Créer un compte",
+      "submitting": "Inscription...",
+      "error": "Échec de l'inscription",
+      "haveAccount": "Vous avez déjà un compte ?",
+      "login": "Se connecter"
+    },
+    "login": {
+      "emailOrPhone": "E-mail ou téléphone",
+      "submit": "Se connecter",
+      "submitting": "Connexion...",
+      "error": "Échec de la connexion",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "register": "S'inscrire",
+      "forgot": "Mot de passe oublié ?"
+    },
+    "ban": {
+      "title": "Compte suspendu",
+      "reason": "Motif :",
+      "reasonUnknown": "Non précisé",
+      "duration": "Durée :",
+      "permanent": "Permanente",
+      "until": "Jusqu'au {{date}}",
+      "durationUnknown": "Non précisée"
+    }
+  },
+  "menu": {
+    "tabs": {
+      "profile": "Profil",
+      "rankings": "Classements",
+      "friends": "Amis"
+    },
+    "edit": {
+      "picUrl": "URL de la photo de profil",
+      "country": "Pays",
+      "noCountry": "Aucun pays"
+    },
+    "admin": "Admin",
+    "stats": {
+      "pixelsLabel": "pixels peints",
+      "memberSince": "Membre depuis {{date}}"
+    },
+    "buttons": {
+      "editProfile": "Modifier le profil",
+      "viewPublications": "Voir les publications",
+      "modPanel": "Panneau de modération",
+      "logout": "Se déconnecter"
+    },
+    "friends": { "loginPrompt": "Connecte-toi pour avoir des amis." }
+  },
+  "panel": {
+    "titles": {
+      "menu": "Menu",
+      "settings": "Paramètres",
+      "achievements": "Succès",
+      "tasks": "Tâches hebdomadaires",
+      "bug": "Signaler un bug",
+      "shop": "Boutique"
+    }
+  },
+  "common": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement..."
+  },
+  "canvas": {
+    "overlay": {
+      "publishSize": "Publier {{w}} × {{h}}",
+      "publishHint": "Glissez pour sélectionner votre création",
+      "publishBtn": "Publier",
+      "eraseSize": "Effacer {{w}} × {{h}}",
+      "eraseBtn": "Effacer la zone",
+      "eraseBtnLoading": "Effacement...",
+      "erasePoint": "Touchez vos pixels pour les effacer",
+      "privateSize": "Espace {{w}} × {{h}}",
+      "privateBtn": "Acheter l'espace",
+      "reportSize": "Signaler {{w}} × {{h}}",
+      "reportHint": "Glissez pour sélectionner la zone à signaler",
+      "reportBtn": "Signaler la zone",
+      "dragArea": "Glissez pour sélectionner une zone"
+    }
+  },
+  "settings": { "language": "Langue" },
+  "toolbox": {
+    "tools": {
+      "brush": "Peindre",
+      "eraser": "Effacer",
+      "publish": "Publier",
+      "private": "Espace privé",
+      "report": "Signaler la zone"
+    },
+    "soon": "(bientôt)",
+    "loginRequired": "(connexion requise)",
+    "customColor": "Couleur personnalisée",
+    "exotic": "Exotiques",
+    "colorAria": "Couleur {{color}}",
+    "toolsAria": "Outils",
+    "erase": {
+      "point": "Point",
+      "area": "Zone",
+      "hintPoint": "Effacez vos pixels un par un.",
+      "hintArea": "Sélectionnez une zone pour effacer vos pixels."
+    },
+    "publish": {
+      "hint": "Sélectionnez votre création sur le canevas pour la publier."
+    },
+    "private": {
+      "buy": "Acheter",
+      "manage": "Gérer",
+      "hintBuy": "Sélectionnez une zone du canevas pour l'acheter.",
+      "hintManage": "Gérez vos espaces achetés."
+    },
+    "report": {
+      "hint": "Sélectionnez une zone du canevas pour la signaler aux modérateurs."
+    }
+  }
+}

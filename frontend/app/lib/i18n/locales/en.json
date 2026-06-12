@@ -1,0 +1,119 @@
+{
+  "auth": {
+    "nickname": "Nickname",
+    "email": "Email",
+    "phone": "Phone",
+    "emailPlaceholder": "email@example.com",
+    "password": "Password",
+    "countryOptional": "Country (optional)",
+    "register": {
+      "submit": "Create account",
+      "submitting": "Registering...",
+      "error": "Registration failed",
+      "haveAccount": "Already have an account?",
+      "login": "Log in"
+    },
+    "login": {
+      "emailOrPhone": "Email or phone",
+      "submit": "Log in",
+      "submitting": "Logging in...",
+      "error": "Login failed",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up",
+      "forgot": "Forgot your password?"
+    },
+    "ban": {
+      "title": "Account suspended",
+      "reason": "Reason:",
+      "reasonUnknown": "Not specified",
+      "duration": "Duration:",
+      "permanent": "Permanent",
+      "until": "Until {{date}}",
+      "durationUnknown": "Not specified"
+    }
+  },
+  "menu": {
+    "tabs": {
+      "profile": "Profile",
+      "rankings": "Rankings",
+      "friends": "Friends"
+    },
+    "edit": {
+      "picUrl": "Profile picture URL",
+      "country": "Country",
+      "noCountry": "No country"
+    },
+    "admin": "Admin",
+    "stats": {
+      "pixelsLabel": "pixels painted",
+      "memberSince": "Member since {{date}}"
+    },
+    "buttons": {
+      "editProfile": "Edit profile",
+      "viewPublications": "View publications",
+      "modPanel": "Moderation panel",
+      "logout": "Log out"
+    },
+    "friends": { "loginPrompt": "Log in to have friends." }
+  },
+  "panel": {
+    "titles": {
+      "menu": "Menu",
+      "settings": "Settings",
+      "achievements": "Achievements",
+      "tasks": "Weekly tasks",
+      "bug": "Report bug",
+      "shop": "Shop"
+    }
+  },
+  "common": { "cancel": "Cancel", "save": "Save", "saving": "Saving..." },
+  "canvas": {
+    "overlay": {
+      "publishSize": "Publish {{w}} × {{h}}",
+      "publishHint": "Drag to select your creation",
+      "publishBtn": "Publish",
+      "eraseSize": "Erase {{w}} × {{h}}",
+      "eraseBtn": "Erase area",
+      "eraseBtnLoading": "Erasing...",
+      "erasePoint": "Tap your pixels to erase them",
+      "privateSize": "Space {{w}} × {{h}}",
+      "privateBtn": "Buy space",
+      "reportSize": "Report {{w}} × {{h}}",
+      "reportHint": "Drag to select the area to report",
+      "reportBtn": "Report area",
+      "dragArea": "Drag to select an area"
+    }
+  },
+  "settings": { "language": "Language" },
+  "toolbox": {
+    "tools": {
+      "brush": "Paint",
+      "eraser": "Erase",
+      "publish": "Publish",
+      "private": "Private space",
+      "report": "Report area"
+    },
+    "soon": "(coming soon)",
+    "loginRequired": "(log in)",
+    "customColor": "Custom color",
+    "exotic": "Exotic",
+    "colorAria": "Color {{color}}",
+    "toolsAria": "Tools",
+    "erase": {
+      "point": "Point",
+      "area": "Area",
+      "hintPoint": "Erase your pixels one by one.",
+      "hintArea": "Select an area to erase your pixels."
+    },
+    "publish": { "hint": "Select your creation on the canvas to publish it." },
+    "private": {
+      "buy": "Buy",
+      "manage": "Manage",
+      "hintBuy": "Select an area of the canvas to buy it.",
+      "hintManage": "Manage your purchased spaces."
+    },
+    "report": {
+      "hint": "Select an area of the canvas to report it to the moderators."
+    }
+  }
+}

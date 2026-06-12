@@ -1,0 +1,125 @@
+{
+  "auth": {
+    "nickname": "Nickname",
+    "email": "Email",
+    "phone": "Teléfono",
+    "emailPlaceholder": "correo@ejemplo.com",
+    "password": "Contraseña",
+    "countryOptional": "País (opcional)",
+    "register": {
+      "submit": "Crear cuenta",
+      "submitting": "Registrando...",
+      "error": "Error al registrarse",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "login": "Inicia sesión"
+    },
+    "login": {
+      "emailOrPhone": "Email o teléfono",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "error": "Error al iniciar sesión",
+      "noAccount": "¿No tienes cuenta?",
+      "register": "Regístrate",
+      "forgot": "¿Olvidaste tu contraseña?"
+    },
+    "ban": {
+      "title": "Cuenta suspendida",
+      "reason": "Motivo:",
+      "reasonUnknown": "No especificado",
+      "duration": "Duración:",
+      "permanent": "Permanente",
+      "until": "Hasta el {{date}}",
+      "durationUnknown": "No especificada"
+    }
+  },
+  "menu": {
+    "tabs": {
+      "profile": "Perfil",
+      "rankings": "Rankings",
+      "friends": "Amigos"
+    },
+    "edit": {
+      "picUrl": "URL de foto de perfil",
+      "country": "País",
+      "noCountry": "Sin país"
+    },
+    "admin": "Admin",
+    "stats": {
+      "pixelsLabel": "píxeles pintados",
+      "memberSince": "Miembro desde {{date}}"
+    },
+    "buttons": {
+      "editProfile": "Editar perfil",
+      "viewPublications": "Ver publicaciones",
+      "modPanel": "Panel de moderación",
+      "logout": "Cerrar sesión"
+    },
+    "friends": { "loginPrompt": "Inicia sesión para tener amigos." }
+  },
+  "panel": {
+    "titles": {
+      "menu": "Menú",
+      "settings": "Configuración",
+      "achievements": "Logros",
+      "tasks": "Tareas semanales",
+      "bug": "Reportar bug",
+      "shop": "Tienda"
+    }
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando..."
+  },
+  "canvas": {
+    "overlay": {
+      "publishSize": "Publicar {{w}} × {{h}}",
+      "publishHint": "Arrastra para seleccionar tu creación",
+      "publishBtn": "Publicar",
+      "eraseSize": "Borrar {{w}} × {{h}}",
+      "eraseBtn": "Borrar área",
+      "eraseBtnLoading": "Borrando...",
+      "erasePoint": "Toca tus píxeles para borrarlos",
+      "privateSize": "Espacio {{w}} × {{h}}",
+      "privateBtn": "Comprar espacio",
+      "reportSize": "Reportar {{w}} × {{h}}",
+      "reportHint": "Arrastra para seleccionar el área a reportar",
+      "reportBtn": "Reportar zona",
+      "dragArea": "Arrastra para seleccionar un área"
+    }
+  },
+  "settings": { "language": "Idioma" },
+  "toolbox": {
+    "tools": {
+      "brush": "Pintar",
+      "eraser": "Borrar",
+      "publish": "Publicar",
+      "private": "Espacio privado",
+      "report": "Reportar zona"
+    },
+    "soon": "(próximamente)",
+    "loginRequired": "(inicia sesión)",
+    "customColor": "Color personalizado",
+    "exotic": "Exóticos",
+    "colorAria": "Color {{color}}",
+    "toolsAria": "Herramientas",
+    "erase": {
+      "point": "Punto",
+      "area": "Área",
+      "hintPoint": "Borra tus píxeles uno por uno.",
+      "hintArea": "Selecciona un área para borrar tus píxeles."
+    },
+    "publish": {
+      "hint": "Selecciona tu creación en el lienzo para publicarla."
+    },
+    "private": {
+      "buy": "Comprar",
+      "manage": "Gestionar",
+      "hintBuy": "Selecciona un área del lienzo para comprarla.",
+      "hintManage": "Administra tus espacios comprados."
+    },
+    "report": {
+      "hint": "Selecciona un área del lienzo para reportarla a los moderadores."
+    }
+  }
+}
