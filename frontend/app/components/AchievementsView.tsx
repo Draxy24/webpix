@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./AchievementsView.module.css";
 import { API_URL } from "@/app/lib/api";
@@ -19,6 +20,7 @@ type Achievement = {
 };
 
 export default function AchievementsView() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [items, setItems] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,14 +47,15 @@ export default function AchievementsView() {
   }, [load]);
 
   if (!token)
-    return <p className={styles.muted}>Inicia sesión para ver tus logros.</p>;
-  if (loading) return <p className={styles.muted}>Cargando logros...</p>;
+    return <p className={styles.muted}>{t("achievements.loginRequired")}</p>;
+  if (loading)
+    return <p className={styles.muted}>{t("achievements.loading")}</p>;
   if (items.length === 0)
-    return <p className={styles.muted}>Aún no hay logros disponibles.</p>;
+    return <p className={styles.muted}>{t("achievements.empty")}</p>;
 
   return (
     <div className={styles.container}>
-      <h4 className={styles.sectionTitle}>Logros</h4>
+      <h4 className={styles.sectionTitle}>{t("achievements.title")}</h4>
       <div className={styles.list}>
         {items.map((a) => {
           const pct = Math.min(
@@ -78,7 +81,9 @@ export default function AchievementsView() {
                 <div className={styles.fill} style={{ width: `${pct}%` }} />
               </div>
               <div className={styles.progressText}>
-                {a.completed ? "Completado" : `${a.progress} / ${a.threshold}`}
+                {a.completed
+                  ? t("achievements.completed")
+                  : `${a.progress} / ${a.threshold}`}
               </div>
             </div>
           );

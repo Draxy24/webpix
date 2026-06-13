@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./ShopView.module.css";
 import { badgeIcon } from "../lib/badges";
@@ -68,13 +69,6 @@ const RARITY_ORDER: ("COMMON" | "RARE" | "EPIC" | "LEGENDARY" | "MYTHIC")[] = [
   "LEGENDARY",
   "MYTHIC",
 ];
-const RARITY_LABEL: Record<string, string> = {
-  COMMON: "Comunes",
-  RARE: "Raros",
-  EPIC: "Épicos",
-  LEGENDARY: "Legendarios",
-  MYTHIC: "Míticos",
-};
 const RARITY_RANK: Record<string, number> = {
   COMMON: 0,
   RARE: 1,
@@ -89,16 +83,10 @@ const CATEGORY_ORDER: ShopItem["type"][] = [
   "BACKGROUND",
   "COLOR",
 ];
-const CATEGORY_LABEL: Record<string, string> = {
-  TITLE: "Títulos",
-  BADGE: "Insignias",
-  FRAME: "Marcos",
-  BACKGROUND: "Fondos",
-  COLOR: "Colores",
-};
 const HOME_SAMPLE = 4;
 
 export default function ShopView() {
+  const { t, i18n } = useTranslation();
   const { token } = useAuth();
   const [data, setData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,14 +139,14 @@ export default function ShopView() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.message || "No se pudo completar la compra");
+        setMessage(result.message || t("shop.msg.buyFail"));
       } else {
-        setMessage(`¡Compraste "${item.name}"!`);
+        setMessage(t("shop.msg.bought", { name: item.name }));
         window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }
     } catch {
-      setMessage("Error de conexión");
+      setMessage(t("shop.msg.connError"));
     } finally {
       setBusyId(null);
     }
@@ -179,14 +167,14 @@ export default function ShopView() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.message || "No se pudo comprar la paleta");
+        setMessage(result.message || t("shop.msg.paletteFail"));
       } else {
-        setMessage(`¡Compraste la ${p.name}!`);
+        setMessage(t("shop.msg.boughtPalette", { name: p.name }));
         window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }
     } catch {
-      setMessage("Error de conexión");
+      setMessage(t("shop.msg.connError"));
     } finally {
       setBusyPalette(null);
     }
@@ -207,27 +195,23 @@ export default function ShopView() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.message || "No se pudo completar la compra");
+        setMessage(result.message || t("shop.msg.buyFail"));
       } else {
-        setMessage(`¡Recibiste ${result.granted} Bits!`);
+        setMessage(t("shop.msg.gotBits", { count: result.granted }));
         await load();
       }
     } catch {
-      setMessage("Error de conexión");
+      setMessage(t("shop.msg.connError"));
     } finally {
       setBusyPackage(null);
     }
   };
 
   if (!token)
-    return (
-      <div className={styles.empty}>
-        Inicia sesión para comprar en la tienda.
-      </div>
-    );
-  if (loading) return <div className={styles.empty}>Cargando tienda...</div>;
+    return <div className={styles.empty}>{t("shop.loginRequired")}</div>;
+  if (loading) return <div className={styles.empty}>{t("shop.loading")}</div>;
   if (!data || data.items.length === 0)
-    return <div className={styles.empty}>La tienda está vacía por ahora.</div>;
+    return <div className={styles.empty}>{t("shop.empty")}</div>;
 
   const featured = [...data.items]
     .sort(
@@ -311,14 +295,18 @@ export default function ShopView() {
             <span className={styles.price}>{item.priceBits} Bits</span>
           )}
           {item.owned ? (
-            <span className={styles.owned}>Adquirido</span>
+            <span className={styles.owned}>{t("shop.owned")}</span>
           ) : (
             <button
               className={styles.buyBtn}
               onClick={() => buy(item)}
               disabled={!canAfford || busyId === item.id}
             >
-              {busyId === item.id ? "..." : canAfford ? "Comprar" : "Sin Bits"}
+              {busyId === item.id
+                ? "..."
+                : canAfford
+                  ? t("shop.buy")
+                  : t("shop.noBits")}
             </button>
           )}
         </div>
@@ -329,7 +317,7 @@ export default function ShopView() {
   return (
     <div className={styles.container}>
       <div className={styles.balance}>
-        <span className={styles.balanceLabel}>Tu saldo</span>
+        <span className={styles.balanceLabel}>{t("shop.balance")}</span>
         <span className={styles.balanceValue}>{data.bits} Bits</span>
       </div>
 
@@ -341,13 +329,13 @@ export default function ShopView() {
             setCategoryView(null);
           }}
         >
-          Tienda
+          {t("shop.tabs.shop")}
         </button>
         <button
           className={`${styles.tab} ${tab === "bits" ? styles.tabActive : ""}`}
           onClick={() => setTab("bits")}
         >
-          Bits
+          {t("shop.tabs.bits")}
         </button>
       </div>
 
@@ -355,18 +343,20 @@ export default function ShopView() {
 
       {tab === "bits" && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Consigue Bits</h3>
+          <h3 className={styles.sectionTitle}>{t("shop.getBits")}</h3>
           <div className={styles.grid}>
             {packages.map((pkg) => (
               <div key={pkg.key} className={styles.card}>
                 <div className={styles.bitsAmount}>
                   <span className={styles.coin}>B</span>
-                  {pkg.total.toLocaleString("es-MX")}
+                  {pkg.total.toLocaleString(i18n.language)}
                 </div>
                 <div className={styles.cardName}>{pkg.name}</div>
                 {pkg.bonus > 0 && (
                   <div className={styles.bitsBonus}>
-                    +{pkg.bonus.toLocaleString("es-MX")} de bonus
+                    {t("shop.bonus", {
+                      amount: pkg.bonus.toLocaleString(i18n.language),
+                    })}
                   </div>
                 )}
                 <div className={styles.cardFooter}>
@@ -378,7 +368,7 @@ export default function ShopView() {
                     onClick={() => buyBits(pkg)}
                     disabled={busyPackage === pkg.key}
                   >
-                    {busyPackage === pkg.key ? "..." : "Comprar"}
+                    {busyPackage === pkg.key ? "..." : t("shop.buy")}
                   </button>
                 </div>
               </div>
@@ -393,10 +383,10 @@ export default function ShopView() {
             className={styles.backBtn}
             onClick={() => setCategoryView(null)}
           >
-            ← Volver
+            ← {t("shop.back")}
           </button>
           <h3 className={styles.sectionTitle}>
-            {CATEGORY_LABEL[categoryView]}
+            {t(`shop.category.${categoryView}`)}
           </h3>
           {RARITY_ORDER.map((rarity) => {
             const items = data.items.filter(
@@ -408,7 +398,7 @@ export default function ShopView() {
                 <div
                   className={`${styles.raritySub} ${styles[`rarity_${rarity}`]}`}
                 >
-                  {RARITY_LABEL[rarity]}
+                  {t(`shop.rarity.${rarity}`)}
                 </div>
                 <div className={styles.grid}>{items.map(renderCard)}</div>
               </div>
@@ -421,7 +411,7 @@ export default function ShopView() {
         <>
           {featured.length > 0 && (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Destacados</h3>
+              <h3 className={styles.sectionTitle}>{t("shop.featured")}</h3>
               <div className={styles.grid}>{featured.map(renderCard)}</div>
             </section>
           )}
@@ -429,7 +419,7 @@ export default function ShopView() {
           {offerItems.length > 0 && (
             <section className={styles.section}>
               <h3 className={`${styles.sectionTitle} ${styles.offerTitle}`}>
-                Ofertas
+                {t("shop.offers")}
               </h3>
               <div className={styles.grid}>{offerItems.map(renderCard)}</div>
             </section>
@@ -451,14 +441,14 @@ export default function ShopView() {
               <section key={type} className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>
-                    {CATEGORY_LABEL[type]}
+                    {t(`shop.category.${type}`)}
                   </h3>
                   {items.length > HOME_SAMPLE && (
                     <button
                       className={styles.seeAll}
                       onClick={() => setCategoryView(type)}
                     >
-                      Ver todo ({items.length})
+                      {t("shop.seeAll", { count: items.length })}
                     </button>
                   )}
                 </div>
@@ -474,7 +464,7 @@ export default function ShopView() {
               <h3
                 className={`${styles.sectionTitle} ${styles.rarity_LEGENDARY}`}
               >
-                Paletas
+                {t("shop.palettes")}
               </h3>
               <div className={styles.grid}>
                 {palettes.map((p) => {
@@ -498,14 +488,19 @@ export default function ShopView() {
                       <div className={styles.cardName}>{p.name}</div>
                       <div className={styles.cardDesc}>{p.description}</div>
                       <div className={styles.paletteProgress}>
-                        {p.ownedCount}/{p.total} adquiridos
+                        {t("shop.paletteProgress", {
+                          owned: p.ownedCount,
+                          total: p.total,
+                        })}
                       </div>
                       <div className={styles.cardFooter}>
                         <span className={styles.price}>
                           {p.bundlePriceBits} Bits
                         </span>
                         {p.fullyOwned ? (
-                          <span className={styles.owned}>Completa</span>
+                          <span className={styles.owned}>
+                            {t("shop.paletteComplete")}
+                          </span>
                         ) : (
                           <button
                             className={styles.buyBtn}
@@ -515,8 +510,8 @@ export default function ShopView() {
                             {busyPalette === p.key
                               ? "..."
                               : canAfford
-                                ? "Comprar paleta"
-                                : "Sin Bits"}
+                                ? t("shop.buyPalette")
+                                : t("shop.noBits")}
                           </button>
                         )}
                       </div>

@@ -2,11 +2,13 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
 import { API_URL } from "@/app/lib/api";
 
 function VerifyEmailInner() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get("code");
@@ -32,7 +34,7 @@ function VerifyEmailInner() {
 
   if (status === "verifying") {
     return (
-      <AuthPageLayout title="Verificando...">
+      <AuthPageLayout title={t("verify.link.verifying")}>
         <p
           style={{
             textAlign: "center",
@@ -40,7 +42,7 @@ function VerifyEmailInner() {
             margin: 0,
           }}
         >
-          Validando tu enlace de verificación.
+          {t("verify.link.validating")}
         </p>
       </AuthPageLayout>
     );
@@ -48,7 +50,7 @@ function VerifyEmailInner() {
 
   if (status === "success") {
     return (
-      <AuthPageLayout title="¡Cuenta verificada!">
+      <AuthPageLayout title={t("verify.link.successTitle")}>
         <div
           style={{
             display: "flex",
@@ -64,10 +66,10 @@ function VerifyEmailInner() {
               margin: 0,
             }}
           >
-            Tu correo ha sido verificado correctamente.
+            {t("verify.link.successText")}
           </p>
           <Button fullWidth size="lg" onClick={() => router.push("/")}>
-            Ir al lienzo
+            {t("verify.link.goToCanvas")}
           </Button>
         </div>
       </AuthPageLayout>
@@ -75,7 +77,7 @@ function VerifyEmailInner() {
   }
 
   return (
-    <AuthPageLayout title="Enlace inválido">
+    <AuthPageLayout title={t("verify.link.invalidTitle")}>
       <p
         style={{
           textAlign: "center",
@@ -83,17 +85,18 @@ function VerifyEmailInner() {
           margin: 0,
         }}
       >
-        El enlace de verificación es inválido o ha expirado.
+        {t("verify.link.invalidText")}
       </p>
     </AuthPageLayout>
   );
 }
 
 export default function VerifyEmailPage() {
+  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
-        <AuthPageLayout title="Cargando...">
+        <AuthPageLayout title={t("common.loading")}>
           <p
             style={{
               textAlign: "center",

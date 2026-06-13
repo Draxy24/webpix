@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { COUNTRIES } from "../lib/countries";
 import Flag from "./Flag";
 import styles from "./RankingsView.module.css";
@@ -27,35 +29,22 @@ interface Winner {
 
 type View = "monthly" | "historical" | "winners";
 
-function formatCountdown(endsAt: string): string {
+function formatCountdown(endsAt: string, t: TFunction): string {
   const ms = new Date(endsAt).getTime() - Date.now();
-  if (ms <= 0) return "cerrando...";
+  if (ms <= 0) return t("rankings.countdown.closing");
   const totalMin = Math.floor(ms / 60000);
   const d = Math.floor(totalMin / 1440);
   const h = Math.floor((totalMin % 1440) / 60);
   const m = totalMin % 60;
-  if (d > 0) return `${d}d ${h}h ${m}m`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
+  if (d > 0) return t("rankings.countdown.dhm", { d, h, m });
+  if (h > 0) return t("rankings.countdown.hm", { h, m });
+  return t("rankings.countdown.m", { m });
 }
 
-function periodLabel(period: string): string {
+function periodLabel(period: string, locale: string): string {
   const [y, mo] = period.split("-");
-  const months = [
-    "enero",
-    "febrero",
-    "marzo",
-    "abril",
-    "mayo",
-    "junio",
-    "julio",
-    "agosto",
-    "septiembre",
-    "octubre",
-    "noviembre",
-    "diciembre",
-  ];
-  return `${months[parseInt(mo, 10) - 1] ?? mo} ${y}`;
+  const date = new Date(Number(y), Number(mo) - 1, 1);
+  return date.toLocaleDateString(locale, { month: "long", year: "numeric" });
 }
 
 export default function RankingsView({
@@ -63,6 +52,7 @@ export default function RankingsView({
 }: {
   onOpenProfile?: (nickname: string) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<View>("monthly");
   const [metric, setMetric] = useState<"pixels" | "creators">("pixels");
   const [scope, setScope] = useState<"global" | "national">("global");
@@ -111,7 +101,7 @@ export default function RankingsView({
       .then((r) => r.json())
       .then(setInfo)
       .catch(() => setInfo(null));
-    const id = setInterval(() => setTick((t) => t + 1), 60000);
+    const id = setInterval(() => setTick((tk) => tk + 1), 60000);
     return () => clearInterval(id);
   }, [view]);
 
@@ -159,31 +149,33 @@ export default function RankingsView({
           onClick={() => setView("monthly")}
           className={`${styles.toggle} ${view === "monthly" ? styles.toggleActive : ""}`}
         >
-          Este mes
+          {t("rankings.views.monthly")}
         </button>
         <button
           onClick={() => setView("historical")}
           className={`${styles.toggle} ${view === "historical" ? styles.toggleActive : ""}`}
         >
-          Histórico
+          {t("rankings.views.historical")}
         </button>
         <button
           onClick={() => setView("winners")}
           className={`${styles.toggle} ${view === "winners" ? styles.toggleActive : ""}`}
         >
-          Ganadores
+          {t("rankings.views.winners")}
         </button>
       </div>
 
       {/* Cuenta regresiva (solo mensual) */}
       {view === "monthly" && info && (
         <div className={styles.countdown}>
-          <span className={styles.countdownLabel}>Cierra en</span>
+          <span className={styles.countdownLabel}>
+            {t("rankings.countdown.label")}
+          </span>
           <span className={styles.countdownTime}>
-            {formatCountdown(info.endsAt)}
+            {formatCountdown(info.endsAt, t)}
           </span>
           <span className={styles.countdownHint}>
-            Top 10 recibe recompensas 🏆
+            {t("rankings.countdown.reward")} 🏆
           </span>
         </div>
       )}
@@ -191,7 +183,7 @@ export default function RankingsView({
       {/* Salón de la fama (solo ganadores) */}
       {view === "winners" && (
         <>
-          <h3 className={styles.sectionTitle}>🏆 Salón de la Fama</h3>
+          <h3 className={styles.sectionTitle}>🏆 {t("rankings.hallOfFame")}</h3>
           {periods.length > 0 && (
             <select
               value={period}
@@ -200,7 +192,7 @@ export default function RankingsView({
             >
               {periods.map((p) => (
                 <option key={p} value={p}>
-                  {periodLabel(p)}
+                  {periodLabel(p, i18n.language)}
                 </option>
               ))}
             </select>
@@ -214,13 +206,13 @@ export default function RankingsView({
           onClick={() => setMetric("pixels")}
           className={`${styles.toggle} ${metric === "pixels" ? styles.toggleActive : ""}`}
         >
-          Píxeles
+          {t("rankings.metric.pixels")}
         </button>
         <button
           onClick={() => setMetric("creators")}
           className={`${styles.toggle} ${metric === "creators" ? styles.toggleActive : ""}`}
         >
-          Creadores
+          {t("rankings.metric.creators")}
         </button>
       </div>
 
@@ -230,13 +222,13 @@ export default function RankingsView({
           onClick={() => setScope("global")}
           className={`${styles.toggle} ${scope === "global" ? styles.toggleActive : ""}`}
         >
-          Global
+          {t("rankings.scope.global")}
         </button>
         <button
           onClick={() => setScope("national")}
           className={`${styles.toggle} ${scope === "national" ? styles.toggleActive : ""}`}
         >
-          Nacional
+          {t("rankings.scope.national")}
         </button>
       </div>
 
@@ -256,13 +248,13 @@ export default function RankingsView({
 
       {/* Lista */}
       {loading ? (
-        <p className={styles.muted}>Cargando...</p>
+        <p className={styles.muted}>{t("common.loading")}</p>
       ) : view === "winners" ? (
         shownWinners.length === 0 ? (
           <p className={styles.muted}>
             {periods.length === 0
-              ? "Aún no hay ganadores. Se registran al cerrar cada mes."
-              : "No hay ganadores para esta categoría."}
+              ? t("rankings.empty.noWinnersYet")
+              : t("rankings.empty.noWinnersCategory")}
           </p>
         ) : (
           <div className={styles.list}>
@@ -305,7 +297,7 @@ export default function RankingsView({
           </div>
         )
       ) : entries.length === 0 ? (
-        <p className={styles.muted}>No hay datos para este ranking todavía.</p>
+        <p className={styles.muted}>{t("rankings.empty.noData")}</p>
       ) : (
         <div className={styles.list}>
           {entries.map((entry, index) => (

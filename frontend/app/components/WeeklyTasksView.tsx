@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./WeeklyTasksView.module.css";
 import { API_URL } from "@/app/lib/api";
@@ -18,6 +19,7 @@ type WeeklyTask = {
 };
 
 export default function WeeklyTasksView() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [items, setItems] = useState<WeeklyTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,50 +45,53 @@ export default function WeeklyTasksView() {
     load();
   }, [load]);
 
-  if (!token)
-    return <p className={styles.muted}>Inicia sesión para ver tus tareas.</p>;
-  if (loading) return <p className={styles.muted}>Cargando tareas...</p>;
+  if (!token) return <p className={styles.muted}>{t("tasks.loginRequired")}</p>;
+  if (loading) return <p className={styles.muted}>{t("tasks.loading")}</p>;
   if (items.length === 0)
-    return <p className={styles.muted}>Aún no hay tareas disponibles.</p>;
+    return <p className={styles.muted}>{t("tasks.empty")}</p>;
 
-  const doneCount = items.filter((t) => t.completed).length;
+  const doneCount = items.filter((task) => task.completed).length;
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <span className={styles.headerTitle}>Tareas de la semana</span>
+        <span className={styles.headerTitle}>{t("tasks.header")}</span>
         <span className={styles.headerCount}>
           {doneCount} / {items.length}
         </span>
       </div>
-      <p className={styles.subtitle}>Se reinician cada semana.</p>
+      <p className={styles.subtitle}>{t("tasks.subtitle")}</p>
 
       <div className={styles.list}>
-        {items.map((t) => {
+        {items.map((task) => {
           const pct = Math.min(
             100,
-            Math.round((t.progress / t.threshold) * 100),
+            Math.round((task.progress / task.threshold) * 100),
           );
           return (
             <div
-              key={t.key}
-              className={`${styles.card} ${t.completed ? styles.cardDone : ""}`}
+              key={task.key}
+              className={`${styles.card} ${task.completed ? styles.cardDone : ""}`}
             >
               <div className={styles.cardHead}>
                 <span className={styles.name}>
-                  {t.completed ? "✓ " : ""}
-                  {t.name}
+                  {task.completed ? "✓ " : ""}
+                  {task.name}
                 </span>
                 <span className={styles.reward}>
-                  +{t.rewardXp} XP · +{t.rewardBits} Bits
+                  +{task.rewardXp} XP · +{task.rewardBits} Bits
                 </span>
               </div>
-              {t.description && <p className={styles.desc}>{t.description}</p>}
+              {task.description && (
+                <p className={styles.desc}>{task.description}</p>
+              )}
               <div className={styles.bar}>
                 <div className={styles.fill} style={{ width: `${pct}%` }} />
               </div>
               <div className={styles.progressText}>
-                {t.completed ? "Completada" : `${t.progress} / ${t.threshold}`}
+                {task.completed
+                  ? t("tasks.completed")
+                  : `${task.progress} / ${task.threshold}`}
               </div>
             </div>
           );

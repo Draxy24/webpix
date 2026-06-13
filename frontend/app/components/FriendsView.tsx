@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./FriendsView.module.css";
 import { API_URL } from "@/app/lib/api";
@@ -29,6 +30,7 @@ export default function FriendsView({
 }: {
   onOpenProfile?: (nickname: string) => void;
 }) {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [tab, setTab] = useState<"friends" | "incoming" | "outgoing">(
     "friends",
@@ -127,26 +129,26 @@ export default function FriendsView({
           onClick={() => setTab("friends")}
           className={`${styles.tab} ${tab === "friends" ? styles.tabActive : ""}`}
         >
-          Amigos ({friends.length})
+          {t("friends.tabs.friends", { count: friends.length })}
         </button>
         <button
           onClick={() => setTab("incoming")}
           className={`${styles.tab} ${tab === "incoming" ? styles.tabActive : ""}`}
         >
-          Recibidas ({incoming.length})
+          {t("friends.tabs.incoming", { count: incoming.length })}
         </button>
         <button
           onClick={() => setTab("outgoing")}
           className={`${styles.tab} ${tab === "outgoing" ? styles.tabActive : ""}`}
         >
-          Enviadas ({outgoing.length})
+          {t("friends.tabs.outgoing", { count: outgoing.length })}
         </button>
       </div>
 
       {tab === "friends" && (
         <div className={styles.list}>
           {friends.length === 0 ? (
-            <p className={styles.muted}>Aún no tienes amigos.</p>
+            <p className={styles.muted}>{t("friends.empty.friends")}</p>
           ) : (
             friends.map((f) =>
               card(
@@ -155,7 +157,7 @@ export default function FriendsView({
                 <button
                   className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
                   onClick={() => handleRemoveFriend(f.friendshipId)}
-                  title="Eliminar amistad"
+                  title={t("friends.actions.remove")}
                 >
                   ✕
                 </button>,
@@ -168,7 +170,7 @@ export default function FriendsView({
       {tab === "incoming" && (
         <div className={styles.list}>
           {incoming.length === 0 ? (
-            <p className={styles.muted}>No tienes solicitudes pendientes.</p>
+            <p className={styles.muted}>{t("friends.empty.incoming")}</p>
           ) : (
             incoming.map((r) =>
               card(
@@ -178,14 +180,14 @@ export default function FriendsView({
                   <button
                     className={`${styles.iconBtn} ${styles.iconBtnAccept}`}
                     onClick={() => handleAccept(r.friendshipId)}
-                    title="Aceptar"
+                    title={t("friends.actions.accept")}
                   >
                     ✓
                   </button>
                   <button
                     className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
                     onClick={() => handleDecline(r.friendshipId)}
-                    title="Declinar"
+                    title={t("friends.actions.decline")}
                   >
                     ✕
                   </button>
@@ -199,7 +201,7 @@ export default function FriendsView({
       {tab === "outgoing" && (
         <div className={styles.list}>
           {outgoing.length === 0 ? (
-            <p className={styles.muted}>No has enviado solicitudes.</p>
+            <p className={styles.muted}>{t("friends.empty.outgoing")}</p>
           ) : (
             outgoing.map((r) =>
               card(
@@ -208,7 +210,7 @@ export default function FriendsView({
                 <button
                   className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
                   onClick={() => handleCancel(r.friendshipId)}
-                  title="Cancelar solicitud"
+                  title={t("friends.actions.cancel")}
                 >
                   ✕
                 </button>,

@@ -1,4 +1,261 @@
 {
+  "admin": {
+    "title": "Panneau de modération",
+    "tabs": { "reports": "Signalements", "log": "Journal" },
+    "filters": { "status": "Statut", "type": "Type" },
+    "statusOption": {
+      "PENDING": "En attente",
+      "RESOLVED": "Résolus",
+      "DISMISSED": "Rejetés",
+      "ALL": "Tous"
+    },
+    "typeOption": {
+      "ALL": "Tous",
+      "USER": "Utilisateurs",
+      "PUBLICATION": "Publications",
+      "COMMENT": "Commentaires",
+      "BUG": "Bugs",
+      "CANVAS": "Zones du canevas"
+    },
+    "statusLabel": {
+      "PENDING": "En attente",
+      "RESOLVED": "Résolu",
+      "DISMISSED": "Rejeté"
+    },
+    "typeLabel": {
+      "USER": "Utilisateur",
+      "PUBLICATION": "Publication",
+      "COMMENT": "Commentaire",
+      "BUG": "Bug",
+      "CANVAS": "Zone du canevas"
+    },
+    "actionLabel": {
+      "BAN_TEMP": "Bannissement temporaire",
+      "BAN_PERMANENT": "Bannissement permanent",
+      "MODIFY_BAN": "Bannissement modifié",
+      "UNBAN": "Bannissement levé",
+      "DELETE_PUBLICATION": "Publication supprimée",
+      "DELETE_COMMENT": "Commentaire supprimé",
+      "RESOLVE_REPORT": "Signalement résolu",
+      "DISMISS_REPORT": "Signalement rejeté"
+    },
+    "banUser": "Bannir {{nickname}}",
+    "reports": {
+      "loading": "Chargement des signalements...",
+      "empty": "Aucun signalement avec ces filtres.",
+      "reportedBy": "Signalé par :",
+      "reportedUser": "Utilisateur signalé :",
+      "contentAuthor": "Auteur du contenu :",
+      "reportedZone": "Zone signalée :",
+      "reason": "Motif :",
+      "viewPublication": "Voir la publication",
+      "confirmDeletePublication": "Supprimer cette publication ?",
+      "deletePublication": "Supprimer la publication",
+      "confirmDeleteComment": "Supprimer ce commentaire ?",
+      "deleteComment": "Supprimer le commentaire",
+      "resolve": "Résoudre",
+      "dismiss": "Rejeter",
+      "goToZone": "Aller à la zone"
+    },
+    "log": {
+      "loading": "Chargement du journal...",
+      "empty": "Aucune action enregistrée pour le moment.",
+      "by": "Par",
+      "about": "à propos de"
+    },
+    "banModal": {
+      "permanent": "Bannissement permanent",
+      "durationDays": "Durée (jours)",
+      "reason": "Motif",
+      "reasonPlaceholder": "Ex. : Contenu NSFW répété",
+      "reasonRequired": "Tu dois indiquer un motif",
+      "banning": "Bannissement...",
+      "ban": "Bannir",
+      "error": "Erreur lors du bannissement",
+      "errorGeneric": "Erreur"
+    }
+  },
+  "banned": {
+    "title": "Compte suspendu",
+    "intro": "Ton compte a été suspendu pour non-respect des règles de la communauté.",
+    "reason": "Motif :",
+    "reasonUnknown": "Non précisé",
+    "duration": "Durée :",
+    "permanent": "Permanent",
+    "until": "Jusqu'au {{date}}",
+    "durationUnknown": "Non précisée",
+    "contactSupport": "Si tu penses qu'il s'agit d'une erreur, tu peux contacter l'équipe de support."
+  },
+  "profile": {
+    "error": "Profil introuvable",
+    "level": "Niveau",
+    "pixelsLabel": "pixels peints",
+    "memberSince": "Membre depuis {{date}}",
+    "sendRequest": "Envoyer une demande d'ami",
+    "requestSent": "Demande envoyée",
+    "friendsBadge": "Amis",
+    "reportUser": "Signaler l'utilisateur",
+    "publications": "Publications",
+    "noPublications": "Aucune publication pour le moment.",
+    "backToCanvas": "Retour au canevas"
+  },
+  "shop": {
+    "rarity": {
+      "COMMON": "Communs",
+      "RARE": "Rares",
+      "EPIC": "Épiques",
+      "LEGENDARY": "Légendaires",
+      "MYTHIC": "Mythiques"
+    },
+    "category": {
+      "TITLE": "Titres",
+      "BADGE": "Badges",
+      "FRAME": "Cadres",
+      "BACKGROUND": "Arrière-plans",
+      "COLOR": "Couleurs"
+    },
+    "loginRequired": "Connecte-toi pour acheter dans la boutique.",
+    "loading": "Chargement de la boutique...",
+    "empty": "La boutique est vide pour le moment.",
+    "balance": "Ton solde",
+    "tabs": { "shop": "Boutique", "bits": "Bits" },
+    "getBits": "Obtenir des Bits",
+    "bonus": "+{{amount}} de bonus",
+    "featured": "À la une",
+    "offers": "Offres",
+    "seeAll": "Tout voir ({{count}})",
+    "back": "Retour",
+    "palettes": "Palettes",
+    "paletteProgress": "{{owned}}/{{total}} obtenus",
+    "buy": "Acheter",
+    "buyPalette": "Acheter la palette",
+    "noBits": "Pas de Bits",
+    "owned": "Acquis",
+    "paletteComplete": "Complète",
+    "msg": {
+      "buyFail": "Impossible de finaliser l'achat",
+      "paletteFail": "Impossible d'acheter la palette",
+      "connError": "Erreur de connexion",
+      "bought": "Tu as acheté « {{name}} » !",
+      "boughtPalette": "Tu as acheté la {{name}} !",
+      "gotBits": "Tu as reçu {{count}} Bits !"
+    }
+  },
+  "bug": {
+    "loginRequired": "Connecte-toi pour signaler un bug. Ouvre le menu et connecte-toi depuis l'onglet Profil.",
+    "success": {
+      "title": "Merci pour ton signalement !",
+      "text": "Ton signalement a été envoyé. Notre équipe l'examinera pour corriger le problème.",
+      "again": "Signaler un autre"
+    },
+    "intro": "Aide-nous à améliorer WebPix. Décris le problème et surtout comment tu y es arrivé pour que nous puissions le reproduire et le corriger.",
+    "titleLabel": "Qu'est-ce qui n'a pas fonctionné ?",
+    "titlePlaceholder": "Ex. : Le temps de recharge ne se réinitialise pas au rechargement",
+    "stepsLabel": "Étapes pour le reproduire",
+    "stepsPlaceholder": "Ex. :\n1. Je me suis connecté en tant qu'utilisateur PREMIUM\n2. J'ai peint plusieurs pixels\n3. J'ai rechargé la page\n4. Le compteur affichait 20 au lieu d'illimité",
+    "hint": "Plus c'est détaillé, plus vite nous pourrons le corriger.",
+    "error": "Échec de l'envoi du signalement",
+    "submitting": "Envoi...",
+    "submit": "Envoyer le signalement"
+  },
+  "verify": {
+    "accountTitle": "Vérifie ton compte",
+    "resent": "Nous avons renvoyé le code.",
+    "email": {
+      "body": "Nous t'avons envoyé un e-mail avec un lien de vérification. Ouvre-le pour activer ton compte.",
+      "note": "Une fois vérifié, tu pourras accéder au canevas.",
+      "resend": "Renvoyer l'e-mail"
+    },
+    "phone": {
+      "body": "Saisis le code à 6 chiffres que nous avons envoyé sur ton téléphone.",
+      "verifying": "Vérification...",
+      "verify": "Vérifier",
+      "resend": "Renvoyer le code",
+      "invalidCode": "Code invalide"
+    },
+    "link": {
+      "verifying": "Vérification...",
+      "validating": "Validation de ton lien de vérification.",
+      "successTitle": "Compte vérifié !",
+      "successText": "Ton e-mail a été vérifié avec succès.",
+      "goToCanvas": "Aller au canevas",
+      "invalidTitle": "Lien invalide",
+      "invalidText": "Le lien de vérification est invalide ou a expiré."
+    }
+  },
+  "achievements": {
+    "loginRequired": "Connecte-toi pour voir tes succès.",
+    "loading": "Chargement des succès...",
+    "empty": "Aucun succès disponible pour le moment.",
+    "title": "Succès",
+    "completed": "Terminé"
+  },
+  "tasks": {
+    "loginRequired": "Connecte-toi pour voir tes tâches.",
+    "loading": "Chargement des tâches...",
+    "empty": "Aucune tâche disponible pour le moment.",
+    "header": "Tâches de la semaine",
+    "subtitle": "Elles sont réinitialisées chaque semaine.",
+    "completed": "Terminée"
+  },
+  "friends": {
+    "tabs": {
+      "friends": "Amis ({{count}})",
+      "incoming": "Reçues ({{count}})",
+      "outgoing": "Envoyées ({{count}})"
+    },
+    "empty": {
+      "friends": "Vous n'avez pas encore d'amis.",
+      "incoming": "Vous n'avez aucune demande en attente.",
+      "outgoing": "Vous n'avez envoyé aucune demande."
+    },
+    "actions": {
+      "remove": "Supprimer l'ami",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "cancel": "Annuler la demande"
+    }
+  },
+  "rewards": {
+    "loading": "Chargement des récompenses...",
+    "level": "Niveau {{level}}",
+    "maxLevel": "Niveau maximum",
+    "sections": {
+      "titles": "Titres",
+      "badges": "Badges",
+      "frames": "Cadres",
+      "backgrounds": "Arrière-plans"
+    },
+    "empty": {
+      "titles": "Vous n'avez pas encore de titres.",
+      "badges": "Vous n'avez pas encore de badges.",
+      "frames": "Vous n'avez pas encore de cadres.",
+      "backgrounds": "Vous n'avez pas encore d'arrière-plans."
+    }
+  },
+  "rankings": {
+    "views": {
+      "monthly": "Ce mois-ci",
+      "historical": "Historique",
+      "winners": "Gagnants"
+    },
+    "countdown": {
+      "label": "Se termine dans",
+      "reward": "Le top 10 reçoit des récompenses",
+      "closing": "clôture...",
+      "dhm": "{{d}} j {{h}} h {{m}} min",
+      "hm": "{{h}} h {{m}} min",
+      "m": "{{m}} min"
+    },
+    "hallOfFame": "Panthéon",
+    "metric": { "pixels": "Pixels", "creators": "Créateurs" },
+    "scope": { "global": "Mondial", "national": "National" },
+    "empty": {
+      "noWinnersYet": "Pas encore de gagnants. Ils sont enregistrés à la clôture de chaque mois.",
+      "noWinnersCategory": "Aucun gagnant pour cette catégorie.",
+      "noData": "Pas encore de données pour ce classement."
+    }
+  },
   "auth": {
     "nickname": "Pseudo",
     "email": "E-mail",
@@ -69,7 +326,8 @@
   "common": {
     "cancel": "Annuler",
     "save": "Enregistrer",
-    "saving": "Enregistrement..."
+    "saving": "Enregistrement...",
+    "loading": "Chargement..."
   },
   "canvas": {
     "overlay": {

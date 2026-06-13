@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
 import Button from "../components/Button";
 import { API_URL } from "@/app/lib/api";
 
 export default function BannedPage() {
+  const { t, i18n } = useTranslation();
   const { token, loading, logout } = useAuth();
   const router = useRouter();
   const [info, setInfo] = useState<{
@@ -51,7 +53,7 @@ export default function BannedPage() {
           color: "var(--color-text-secondary)",
         }}
       >
-        Cargando...
+        {t("common.loading")}
       </main>
     );
   }
@@ -88,7 +90,7 @@ export default function BannedPage() {
             fontSize: "var(--text-lg)",
           }}
         >
-          Cuenta suspendida
+          {t("banned.title")}
         </h1>
         <p
           style={{
@@ -97,7 +99,7 @@ export default function BannedPage() {
             margin: "0 0 var(--space-4) 0",
           }}
         >
-          Tu cuenta ha sido suspendida por incumplir las normas de la comunidad.
+          {t("banned.intro")}
         </p>
         <div
           style={{
@@ -111,15 +113,20 @@ export default function BannedPage() {
           }}
         >
           <div style={{ marginBottom: "var(--space-2)" }}>
-            <strong>Motivo:</strong> {info?.banReason ?? "No especificado"}
+            <strong>{t("banned.reason")}</strong>{" "}
+            {info?.banReason ?? t("banned.reasonUnknown")}
           </div>
           <div>
-            <strong>Duración:</strong>{" "}
+            <strong>{t("banned.duration")}</strong>{" "}
             {info?.banPermanent
-              ? "Permanente"
+              ? t("banned.permanent")
               : info?.bannedUntil
-                ? `Hasta el ${new Date(info.bannedUntil).toLocaleString("es-MX")}`
-                : "No especificada"}
+                ? t("banned.until", {
+                    date: new Date(info.bannedUntil).toLocaleString(
+                      i18n.language,
+                    ),
+                  })
+                : t("banned.durationUnknown")}
           </div>
         </div>
         <p
@@ -129,7 +136,7 @@ export default function BannedPage() {
             margin: "0 0 var(--space-4) 0",
           }}
         >
-          Si crees que esto es un error, puedes contactar al equipo de soporte.
+          {t("banned.contactSupport")}
         </p>
         <Button
           variant="secondary"
@@ -138,7 +145,7 @@ export default function BannedPage() {
             router.push("/login");
           }}
         >
-          Cerrar sesión
+          {t("menu.buttons.logout")}
         </Button>
       </div>
     </main>

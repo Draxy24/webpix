@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./RewardsView.module.css";
 import { badgeIcon } from "../lib/badges";
@@ -38,6 +39,7 @@ type Cosmetic = {
 };
 
 export default function RewardsView() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [prog, setProg] = useState<Progression | null>(null);
   const [cosmetics, setCosmetics] = useState<Cosmetic[]>([]);
@@ -87,7 +89,7 @@ export default function RewardsView() {
     }
   };
 
-  if (loading) return <p className={styles.muted}>Cargando recompensas...</p>;
+  if (loading) return <p className={styles.muted}>{t("rewards.loading")}</p>;
   if (!prog) return null;
 
   const titles = cosmetics.filter((c) => c.type === "TITLE");
@@ -104,7 +106,7 @@ export default function RewardsView() {
       <div className={styles.progCard}>
         <div className={styles.progTop}>
           <span className={styles.level}>
-            Nivel {prog.level}
+            {t("rewards.level", { level: prog.level })}
             {prog.equippedTitle ? ` · ${prog.equippedTitle.name}` : ""}
           </span>
           <span className={styles.bits}>
@@ -117,14 +119,14 @@ export default function RewardsView() {
         <div className={styles.xpText}>
           {prog.xpForNext > 0
             ? `${prog.xpIntoLevel} / ${prog.xpForNext} XP`
-            : "Nivel máximo"}
+            : t("rewards.maxLevel")}
         </div>
       </div>
 
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Títulos</h4>
+        <h4 className={styles.sectionTitle}>{t("rewards.sections.titles")}</h4>
         {titles.length === 0 ? (
-          <p className={styles.muted}>Aún no tienes títulos.</p>
+          <p className={styles.muted}>{t("rewards.empty.titles")}</p>
         ) : (
           <div className={styles.chips}>
             {titles.map((c) => (
@@ -148,9 +150,9 @@ export default function RewardsView() {
       </div>
 
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Insignias</h4>
+        <h4 className={styles.sectionTitle}>{t("rewards.sections.badges")}</h4>
         {badges.length === 0 ? (
-          <p className={styles.muted}>Aún no tienes insignias.</p>
+          <p className={styles.muted}>{t("rewards.empty.badges")}</p>
         ) : (
           <div className={styles.chips}>
             {badges.map((c) => (
@@ -168,9 +170,9 @@ export default function RewardsView() {
         )}
       </div>
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Marcos</h4>
+        <h4 className={styles.sectionTitle}>{t("rewards.sections.frames")}</h4>
         {frames.length === 0 ? (
-          <p className={styles.muted}>Aún no tienes marcos.</p>
+          <p className={styles.muted}>{t("rewards.empty.frames")}</p>
         ) : (
           <div className={styles.chips}>
             {frames.map((c) => (
@@ -203,9 +205,11 @@ export default function RewardsView() {
       </div>
 
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Fondos</h4>
+        <h4 className={styles.sectionTitle}>
+          {t("rewards.sections.backgrounds")}
+        </h4>
         {backgrounds.length === 0 ? (
-          <p className={styles.muted}>Aún no tienes fondos.</p>
+          <p className={styles.muted}>{t("rewards.empty.backgrounds")}</p>
         ) : (
           <div className={styles.chips}>
             {backgrounds.map((c) => (

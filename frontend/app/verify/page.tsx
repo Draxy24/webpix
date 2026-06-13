@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
@@ -9,6 +10,7 @@ import styles from "../components/AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
 
 export default function VerifyPage() {
+  const { t } = useTranslation();
   const { token, loading } = useAuth();
   const router = useRouter();
 
@@ -55,10 +57,13 @@ export default function VerifyPage() {
         body: JSON.stringify({ code }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Código inválido");
+      if (!res.ok)
+        throw new Error(data.message ?? t("verify.phone.invalidCode"));
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(
+        err instanceof Error ? err.message : t("verify.phone.invalidCode"),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -71,12 +76,12 @@ export default function VerifyPage() {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (res.ok) setInfo("Te reenviamos el código.");
+    if (res.ok) setInfo(t("verify.resent"));
   };
 
   if (loading || checking) {
     return (
-      <AuthPageLayout title="Cargando...">
+      <AuthPageLayout title={t("common.loading")}>
         <p
           style={{
             textAlign: "center",
@@ -91,7 +96,7 @@ export default function VerifyPage() {
   }
 
   return (
-    <AuthPageLayout title="Verifica tu cuenta">
+    <AuthPageLayout title={t("verify.accountTitle")}>
       {method === "email" && (
         <div
           style={{
@@ -108,8 +113,7 @@ export default function VerifyPage() {
               margin: 0,
             }}
           >
-            Te enviamos un correo con un enlace de verificación. Ábrelo para
-            activar tu cuenta.
+            {t("verify.email.body")}
           </p>
           <p
             style={{
@@ -119,10 +123,10 @@ export default function VerifyPage() {
               margin: 0,
             }}
           >
-            Una vez verificado, podrás acceder al lienzo.
+            {t("verify.email.note")}
           </p>
           <Button variant="secondary" fullWidth onClick={handleResend}>
-            Reenviar correo
+            {t("verify.email.resend")}
           </Button>
           {info && (
             <p
@@ -155,7 +159,7 @@ export default function VerifyPage() {
               margin: 0,
             }}
           >
-            Ingresa el código de 6 dígitos que enviamos a tu teléfono.
+            {t("verify.phone.body")}
           </p>
           <input
             type="text"
@@ -178,10 +182,12 @@ export default function VerifyPage() {
             onClick={handleVerifyPhone}
             disabled={submitting || code.length !== 6}
           >
-            {submitting ? "Verificando..." : "Verificar"}
+            {submitting
+              ? t("verify.phone.verifying")
+              : t("verify.phone.verify")}
           </Button>
           <Button variant="ghost" fullWidth onClick={handleResend}>
-            Reenviar código
+            {t("verify.phone.resend")}
           </Button>
           {info && (
             <p

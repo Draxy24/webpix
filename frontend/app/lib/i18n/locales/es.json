@@ -1,4 +1,261 @@
 {
+  "admin": {
+    "title": "Panel de moderación",
+    "tabs": { "reports": "Reportes", "log": "Registro" },
+    "filters": { "status": "Estado", "type": "Tipo" },
+    "statusOption": {
+      "PENDING": "Pendientes",
+      "RESOLVED": "Resueltos",
+      "DISMISSED": "Descartados",
+      "ALL": "Todos"
+    },
+    "typeOption": {
+      "ALL": "Todos",
+      "USER": "Usuarios",
+      "PUBLICATION": "Publicaciones",
+      "COMMENT": "Comentarios",
+      "BUG": "Bugs",
+      "CANVAS": "Zonas del lienzo"
+    },
+    "statusLabel": {
+      "PENDING": "Pendiente",
+      "RESOLVED": "Resuelto",
+      "DISMISSED": "Descartado"
+    },
+    "typeLabel": {
+      "USER": "Usuario",
+      "PUBLICATION": "Publicación",
+      "COMMENT": "Comentario",
+      "BUG": "Bug",
+      "CANVAS": "Zona del lienzo"
+    },
+    "actionLabel": {
+      "BAN_TEMP": "Baneo temporal",
+      "BAN_PERMANENT": "Baneo permanente",
+      "MODIFY_BAN": "Modificó baneo",
+      "UNBAN": "Quitó baneo",
+      "DELETE_PUBLICATION": "Borró publicación",
+      "DELETE_COMMENT": "Borró comentario",
+      "RESOLVE_REPORT": "Resolvió reporte",
+      "DISMISS_REPORT": "Descartó reporte"
+    },
+    "banUser": "Banear a {{nickname}}",
+    "reports": {
+      "loading": "Cargando reportes...",
+      "empty": "No hay reportes con estos filtros.",
+      "reportedBy": "Reportado por:",
+      "reportedUser": "Usuario reportado:",
+      "contentAuthor": "Autor del contenido:",
+      "reportedZone": "Zona reportada:",
+      "reason": "Motivo:",
+      "viewPublication": "Ver publicación",
+      "confirmDeletePublication": "¿Borrar esta publicación?",
+      "deletePublication": "Borrar publicación",
+      "confirmDeleteComment": "¿Borrar este comentario?",
+      "deleteComment": "Borrar comentario",
+      "resolve": "Resolver",
+      "dismiss": "Descartar",
+      "goToZone": "Ir a la zona"
+    },
+    "log": {
+      "loading": "Cargando registro...",
+      "empty": "No hay acciones registradas todavía.",
+      "by": "Por",
+      "about": "sobre"
+    },
+    "banModal": {
+      "permanent": "Baneo permanente",
+      "durationDays": "Duración (días)",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Ej: Contenido NSFW reiterado",
+      "reasonRequired": "Debes indicar un motivo",
+      "banning": "Baneando...",
+      "ban": "Banear",
+      "error": "Error al banear",
+      "errorGeneric": "Error"
+    }
+  },
+  "banned": {
+    "title": "Cuenta suspendida",
+    "intro": "Tu cuenta ha sido suspendida por incumplir las normas de la comunidad.",
+    "reason": "Motivo:",
+    "reasonUnknown": "No especificado",
+    "duration": "Duración:",
+    "permanent": "Permanente",
+    "until": "Hasta el {{date}}",
+    "durationUnknown": "No especificada",
+    "contactSupport": "Si crees que esto es un error, puedes contactar al equipo de soporte."
+  },
+  "profile": {
+    "error": "Perfil no encontrado",
+    "level": "Nivel",
+    "pixelsLabel": "píxeles pintados",
+    "memberSince": "Miembro desde {{date}}",
+    "sendRequest": "Enviar solicitud de amistad",
+    "requestSent": "Solicitud enviada",
+    "friendsBadge": "Amigos",
+    "reportUser": "Reportar usuario",
+    "publications": "Publicaciones",
+    "noPublications": "Sin publicaciones todavía.",
+    "backToCanvas": "Volver al lienzo"
+  },
+  "shop": {
+    "rarity": {
+      "COMMON": "Comunes",
+      "RARE": "Raros",
+      "EPIC": "Épicos",
+      "LEGENDARY": "Legendarios",
+      "MYTHIC": "Míticos"
+    },
+    "category": {
+      "TITLE": "Títulos",
+      "BADGE": "Insignias",
+      "FRAME": "Marcos",
+      "BACKGROUND": "Fondos",
+      "COLOR": "Colores"
+    },
+    "loginRequired": "Inicia sesión para comprar en la tienda.",
+    "loading": "Cargando tienda...",
+    "empty": "La tienda está vacía por ahora.",
+    "balance": "Tu saldo",
+    "tabs": { "shop": "Tienda", "bits": "Bits" },
+    "getBits": "Consigue Bits",
+    "bonus": "+{{amount}} de bonus",
+    "featured": "Destacados",
+    "offers": "Ofertas",
+    "seeAll": "Ver todo ({{count}})",
+    "back": "Volver",
+    "palettes": "Paletas",
+    "paletteProgress": "{{owned}}/{{total}} adquiridos",
+    "buy": "Comprar",
+    "buyPalette": "Comprar paleta",
+    "noBits": "Sin Bits",
+    "owned": "Adquirido",
+    "paletteComplete": "Completa",
+    "msg": {
+      "buyFail": "No se pudo completar la compra",
+      "paletteFail": "No se pudo comprar la paleta",
+      "connError": "Error de conexión",
+      "bought": "¡Compraste \"{{name}}\"!",
+      "boughtPalette": "¡Compraste la {{name}}!",
+      "gotBits": "¡Recibiste {{count}} Bits!"
+    }
+  },
+  "bug": {
+    "loginRequired": "Inicia sesión para reportar un bug. Abre la hamburguesa y entra desde la pestaña Perfil.",
+    "success": {
+      "title": "¡Gracias por reportar!",
+      "text": "Tu reporte fue enviado. Nuestro equipo lo revisará para corregir el problema.",
+      "again": "Reportar otro"
+    },
+    "intro": "Ayúdanos a mejorar WebPix. Describe el problema y, sobre todo, cómo llegaste a él para que podamos reproducirlo y corregirlo.",
+    "titleLabel": "¿Qué salió mal?",
+    "titlePlaceholder": "Ej: El cooldown no se reinicia al recargar",
+    "stepsLabel": "Pasos para reproducirlo",
+    "stepsPlaceholder": "Ej:\n1. Inicié sesión como usuario PREMIUM\n2. Pinté varios píxeles\n3. Recargué la página\n4. El contador mostraba 20 en vez de ilimitado",
+    "hint": "Entre más detallado, más rápido lo podremos arreglar.",
+    "error": "Error al enviar el reporte",
+    "submitting": "Enviando...",
+    "submit": "Enviar reporte"
+  },
+  "verify": {
+    "accountTitle": "Verifica tu cuenta",
+    "resent": "Te reenviamos el código.",
+    "email": {
+      "body": "Te enviamos un correo con un enlace de verificación. Ábrelo para activar tu cuenta.",
+      "note": "Una vez verificado, podrás acceder al lienzo.",
+      "resend": "Reenviar correo"
+    },
+    "phone": {
+      "body": "Ingresa el código de 6 dígitos que enviamos a tu teléfono.",
+      "verifying": "Verificando...",
+      "verify": "Verificar",
+      "resend": "Reenviar código",
+      "invalidCode": "Código inválido"
+    },
+    "link": {
+      "verifying": "Verificando...",
+      "validating": "Validando tu enlace de verificación.",
+      "successTitle": "¡Cuenta verificada!",
+      "successText": "Tu correo ha sido verificado correctamente.",
+      "goToCanvas": "Ir al lienzo",
+      "invalidTitle": "Enlace inválido",
+      "invalidText": "El enlace de verificación es inválido o ha expirado."
+    }
+  },
+  "achievements": {
+    "loginRequired": "Inicia sesión para ver tus logros.",
+    "loading": "Cargando logros...",
+    "empty": "Aún no hay logros disponibles.",
+    "title": "Logros",
+    "completed": "Completado"
+  },
+  "tasks": {
+    "loginRequired": "Inicia sesión para ver tus tareas.",
+    "loading": "Cargando tareas...",
+    "empty": "Aún no hay tareas disponibles.",
+    "header": "Tareas de la semana",
+    "subtitle": "Se reinician cada semana.",
+    "completed": "Completada"
+  },
+  "friends": {
+    "tabs": {
+      "friends": "Amigos ({{count}})",
+      "incoming": "Recibidas ({{count}})",
+      "outgoing": "Enviadas ({{count}})"
+    },
+    "empty": {
+      "friends": "Aún no tienes amigos.",
+      "incoming": "No tienes solicitudes pendientes.",
+      "outgoing": "No has enviado solicitudes."
+    },
+    "actions": {
+      "remove": "Eliminar amistad",
+      "accept": "Aceptar",
+      "decline": "Declinar",
+      "cancel": "Cancelar solicitud"
+    }
+  },
+  "rewards": {
+    "loading": "Cargando recompensas...",
+    "level": "Nivel {{level}}",
+    "maxLevel": "Nivel máximo",
+    "sections": {
+      "titles": "Títulos",
+      "badges": "Insignias",
+      "frames": "Marcos",
+      "backgrounds": "Fondos"
+    },
+    "empty": {
+      "titles": "Aún no tienes títulos.",
+      "badges": "Aún no tienes insignias.",
+      "frames": "Aún no tienes marcos.",
+      "backgrounds": "Aún no tienes fondos."
+    }
+  },
+  "rankings": {
+    "views": {
+      "monthly": "Este mes",
+      "historical": "Histórico",
+      "winners": "Ganadores"
+    },
+    "countdown": {
+      "label": "Cierra en",
+      "reward": "Top 10 recibe recompensas",
+      "closing": "cerrando...",
+      "dhm": "{{d}}d {{h}}h {{m}}m",
+      "hm": "{{h}}h {{m}}m",
+      "m": "{{m}}m"
+    },
+    "hallOfFame": "Salón de la Fama",
+    "metric": { "pixels": "Píxeles", "creators": "Creadores" },
+    "scope": { "global": "Global", "national": "Nacional" },
+    "empty": {
+      "noWinnersYet": "Aún no hay ganadores. Se registran al cerrar cada mes.",
+      "noWinnersCategory": "No hay ganadores para esta categoría.",
+      "noData": "No hay datos para este ranking todavía."
+    }
+  },
   "auth": {
     "nickname": "Nickname",
     "email": "Email",
@@ -69,7 +326,8 @@
   "common": {
     "cancel": "Cancelar",
     "save": "Guardar",
-    "saving": "Guardando..."
+    "saving": "Guardando...",
+    "loading": "Cargando..."
   },
   "canvas": {
     "overlay": {

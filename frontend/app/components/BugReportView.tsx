@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./BugReportView.module.css";
 import { API_URL } from "@/app/lib/api";
 
 export default function BugReportView() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [title, setTitle] = useState("");
   const [steps, setSteps] = useState("");
@@ -28,33 +30,24 @@ export default function BugReportView() {
         body: JSON.stringify({ type: "BUG", reason: title, details: steps }),
       });
       const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message ?? "Error al enviar el reporte");
+      if (!res.ok) throw new Error(data.message ?? t("bug.error"));
       setDone(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof Error ? err.message : t("bug.error"));
     } finally {
       setSubmitting(false);
     }
   };
 
   if (!token) {
-    return (
-      <p className={styles.muted}>
-        Inicia sesión para reportar un bug. Abre la hamburguesa y entra desde la
-        pestaña Perfil.
-      </p>
-    );
+    return <p className={styles.muted}>{t("bug.loginRequired")}</p>;
   }
 
   if (done) {
     return (
       <div className={styles.success}>
-        <div className={styles.successTitle}>¡Gracias por reportar! 🐛</div>
-        <p className={styles.successText}>
-          Tu reporte fue enviado. Nuestro equipo lo revisará para corregir el
-          problema.
-        </p>
+        <div className={styles.successTitle}>{t("bug.success.title")} 🐛</div>
+        <p className={styles.successText}>{t("bug.success.text")}</p>
         <Button
           variant="secondary"
           fullWidth
@@ -64,7 +57,7 @@ export default function BugReportView() {
             setDone(false);
           }}
         >
-          Reportar otro
+          {t("bug.success.again")}
         </Button>
       </div>
     );
@@ -72,16 +65,13 @@ export default function BugReportView() {
 
   return (
     <form onSubmit={handleSubmit} className={styles.container}>
-      <p className={styles.intro}>
-        Ayúdanos a mejorar WebPix. Describe el problema y, sobre todo, cómo
-        llegaste a él para que podamos reproducirlo y corregirlo.
-      </p>
+      <p className={styles.intro}>{t("bug.intro")}</p>
 
       <div className={styles.field}>
-        <label className={styles.label}>¿Qué salió mal?</label>
+        <label className={styles.label}>{t("bug.titleLabel")}</label>
         <input
           type="text"
-          placeholder="Ej: El cooldown no se reinicia al recargar"
+          placeholder={t("bug.titlePlaceholder")}
           maxLength={120}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -92,12 +82,10 @@ export default function BugReportView() {
 
       <div className={styles.field}>
         <label className={styles.label}>
-          Pasos para reproducirlo <span className={styles.required}>*</span>
+          {t("bug.stepsLabel")} <span className={styles.required}>*</span>
         </label>
         <textarea
-          placeholder={
-            "Ej:\n1. Inicié sesión como usuario PREMIUM\n2. Pinté varios píxeles\n3. Recargué la página\n4. El contador mostraba 20 en vez de ilimitado"
-          }
+          placeholder={t("bug.stepsPlaceholder")}
           value={steps}
           onChange={(e) => setSteps(e.target.value)}
           required
@@ -105,9 +93,7 @@ export default function BugReportView() {
           maxLength={1000}
           className={styles.textarea}
         />
-        <span className={styles.hint}>
-          Entre más detallado, más rápido lo podremos arreglar.
-        </span>
+        <span className={styles.hint}>{t("bug.hint")}</span>
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
@@ -117,7 +103,7 @@ export default function BugReportView() {
         disabled={submitting || !title.trim() || !steps.trim()}
         fullWidth
       >
-        {submitting ? "Enviando..." : "Enviar reporte"}
+        {submitting ? t("bug.submitting") : t("bug.submit")}
       </Button>
     </form>
   );

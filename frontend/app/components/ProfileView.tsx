@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import PublicationCanvas from "./PublicationCanvas";
 import Flag from "./Flag";
@@ -57,6 +58,7 @@ export default function ProfileView({
   nickname: string;
   onOpenPublication?: (id: number) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const { nickname: myNickname, token } = useAuth();
   const isOwnProfile = myNickname === nickname;
   const inModal = !!onOpenPublication;
@@ -74,7 +76,7 @@ export default function ProfileView({
     const fetchProfile = async () => {
       try {
         const res = await fetch(`${API_URL}/users/${nickname}`);
-        if (!res.ok) throw new Error("Perfil no encontrado");
+        if (!res.ok) throw new Error(t("profile.error"));
         const data = await res.json();
         setProfile(data);
       } catch {
@@ -84,7 +86,7 @@ export default function ProfileView({
       }
     };
     fetchProfile();
-  }, [nickname]);
+  }, [nickname, t]);
 
   useEffect(() => {
     if (!token || isOwnProfile || !profile) return;
@@ -160,9 +162,10 @@ export default function ProfileView({
     if (res.ok) setFriendStatus({ status: "NONE" });
   };
 
-  if (loading) return <div className={styles.centered}>Cargando...</div>;
+  if (loading)
+    return <div className={styles.centered}>{t("common.loading")}</div>;
   if (!profile)
-    return <div className={styles.centered}>Perfil no encontrado</div>;
+    return <div className={styles.centered}>{t("profile.error")}</div>;
 
   const Wrapper: ElementType = inModal ? "div" : "main";
 
@@ -244,15 +247,19 @@ export default function ProfileView({
         )}
         <div className={styles.stats}>
           <span>
-            Nivel <span className={styles.statValue}>{profile.level}</span>
+            {t("profile.level")}{" "}
+            <span className={styles.statValue}>{profile.level}</span>
           </span>
           <span>
             <span className={styles.statValue}>{profile.pixelCount}</span>{" "}
-            píxeles pintados
+            {t("profile.pixelsLabel")}
           </span>
           <span>
-            Miembro desde{" "}
-            {new Date(profile.createdAt).toLocaleDateString("es-MX")}
+            {t("profile.memberSince", {
+              date: new Date(profile.createdAt).toLocaleDateString(
+                i18n.language,
+              ),
+            })}
           </span>
         </div>
 
@@ -260,27 +267,31 @@ export default function ProfileView({
           <div className={styles.actions}>
             {friendStatus.status === "NONE" && (
               <Button variant="primary" fullWidth onClick={sendRequest}>
-                Enviar solicitud de amistad
+                {t("profile.sendRequest")}
               </Button>
             )}
             {friendStatus.status === "REQUEST_SENT" && (
-              <span className={styles.requestSent}>Solicitud enviada</span>
+              <span className={styles.requestSent}>
+                {t("profile.requestSent")}
+              </span>
             )}
             {friendStatus.status === "REQUEST_RECEIVED" && (
               <div className={styles.row}>
                 <Button variant="primary" fullWidth onClick={acceptRequest}>
-                  Aceptar
+                  {t("friends.actions.accept")}
                 </Button>
                 <Button variant="secondary" fullWidth onClick={declineRequest}>
-                  Declinar
+                  {t("friends.actions.decline")}
                 </Button>
               </div>
             )}
             {friendStatus.status === "FRIENDS" && (
               <>
-                <span className={styles.friendsBadge}>✓ Amigos</span>
+                <span className={styles.friendsBadge}>
+                  ✓ {t("profile.friendsBadge")}
+                </span>
                 <Button variant="ghost" fullWidth onClick={removeFriend}>
-                  Eliminar amistad
+                  {t("friends.actions.remove")}
                 </Button>
               </>
             )}
@@ -288,16 +299,16 @@ export default function ProfileView({
               className={styles.reportButton}
               onClick={() => setShowReport(true)}
             >
-              Reportar usuario
+              {t("profile.reportUser")}
             </button>
           </div>
         )}
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Publicaciones</h2>
+        <h2 className={styles.sectionTitle}>{t("profile.publications")}</h2>
         {publications.length === 0 ? (
-          <p className={styles.muted}>Sin publicaciones todavía.</p>
+          <p className={styles.muted}>{t("profile.noPublications")}</p>
         ) : (
           <div className={styles.grid}>
             {publications.map((pub) => (
@@ -336,7 +347,7 @@ export default function ProfileView({
 
       {!inModal && (
         <a href="/" className={styles.backLink}>
-          ← Volver al lienzo
+          ← {t("profile.backToCanvas")}
         </a>
       )}
 

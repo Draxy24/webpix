@@ -1,4 +1,261 @@
 {
+  "admin": {
+    "title": "Moderation panel",
+    "tabs": { "reports": "Reports", "log": "Log" },
+    "filters": { "status": "Status", "type": "Type" },
+    "statusOption": {
+      "PENDING": "Pending",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed",
+      "ALL": "All"
+    },
+    "typeOption": {
+      "ALL": "All",
+      "USER": "Users",
+      "PUBLICATION": "Publications",
+      "COMMENT": "Comments",
+      "BUG": "Bugs",
+      "CANVAS": "Canvas zones"
+    },
+    "statusLabel": {
+      "PENDING": "Pending",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed"
+    },
+    "typeLabel": {
+      "USER": "User",
+      "PUBLICATION": "Publication",
+      "COMMENT": "Comment",
+      "BUG": "Bug",
+      "CANVAS": "Canvas zone"
+    },
+    "actionLabel": {
+      "BAN_TEMP": "Temporary ban",
+      "BAN_PERMANENT": "Permanent ban",
+      "MODIFY_BAN": "Modified ban",
+      "UNBAN": "Removed ban",
+      "DELETE_PUBLICATION": "Deleted publication",
+      "DELETE_COMMENT": "Deleted comment",
+      "RESOLVE_REPORT": "Resolved report",
+      "DISMISS_REPORT": "Dismissed report"
+    },
+    "banUser": "Ban {{nickname}}",
+    "reports": {
+      "loading": "Loading reports...",
+      "empty": "No reports match these filters.",
+      "reportedBy": "Reported by:",
+      "reportedUser": "Reported user:",
+      "contentAuthor": "Content author:",
+      "reportedZone": "Reported zone:",
+      "reason": "Reason:",
+      "viewPublication": "View publication",
+      "confirmDeletePublication": "Delete this publication?",
+      "deletePublication": "Delete publication",
+      "confirmDeleteComment": "Delete this comment?",
+      "deleteComment": "Delete comment",
+      "resolve": "Resolve",
+      "dismiss": "Dismiss",
+      "goToZone": "Go to zone"
+    },
+    "log": {
+      "loading": "Loading log...",
+      "empty": "No actions logged yet.",
+      "by": "By",
+      "about": "about"
+    },
+    "banModal": {
+      "permanent": "Permanent ban",
+      "durationDays": "Duration (days)",
+      "reason": "Reason",
+      "reasonPlaceholder": "E.g.: Repeated NSFW content",
+      "reasonRequired": "You must provide a reason",
+      "banning": "Banning...",
+      "ban": "Ban",
+      "error": "Error banning",
+      "errorGeneric": "Error"
+    }
+  },
+  "banned": {
+    "title": "Account suspended",
+    "intro": "Your account has been suspended for breaking the community rules.",
+    "reason": "Reason:",
+    "reasonUnknown": "Not specified",
+    "duration": "Duration:",
+    "permanent": "Permanent",
+    "until": "Until {{date}}",
+    "durationUnknown": "Not specified",
+    "contactSupport": "If you think this is a mistake, you can contact the support team."
+  },
+  "profile": {
+    "error": "Profile not found",
+    "level": "Level",
+    "pixelsLabel": "pixels painted",
+    "memberSince": "Member since {{date}}",
+    "sendRequest": "Send friend request",
+    "requestSent": "Request sent",
+    "friendsBadge": "Friends",
+    "reportUser": "Report user",
+    "publications": "Publications",
+    "noPublications": "No publications yet.",
+    "backToCanvas": "Back to the canvas"
+  },
+  "shop": {
+    "rarity": {
+      "COMMON": "Common",
+      "RARE": "Rare",
+      "EPIC": "Epic",
+      "LEGENDARY": "Legendary",
+      "MYTHIC": "Mythic"
+    },
+    "category": {
+      "TITLE": "Titles",
+      "BADGE": "Badges",
+      "FRAME": "Frames",
+      "BACKGROUND": "Backgrounds",
+      "COLOR": "Colors"
+    },
+    "loginRequired": "Log in to buy from the shop.",
+    "loading": "Loading shop...",
+    "empty": "The shop is empty for now.",
+    "balance": "Your balance",
+    "tabs": { "shop": "Shop", "bits": "Bits" },
+    "getBits": "Get Bits",
+    "bonus": "+{{amount}} bonus",
+    "featured": "Featured",
+    "offers": "Offers",
+    "seeAll": "See all ({{count}})",
+    "back": "Back",
+    "palettes": "Palettes",
+    "paletteProgress": "{{owned}}/{{total}} owned",
+    "buy": "Buy",
+    "buyPalette": "Buy palette",
+    "noBits": "No Bits",
+    "owned": "Owned",
+    "paletteComplete": "Complete",
+    "msg": {
+      "buyFail": "Could not complete the purchase",
+      "paletteFail": "Could not buy the palette",
+      "connError": "Connection error",
+      "bought": "You bought \"{{name}}\"!",
+      "boughtPalette": "You bought the {{name}}!",
+      "gotBits": "You received {{count}} Bits!"
+    }
+  },
+  "bug": {
+    "loginRequired": "Log in to report a bug. Open the menu and sign in from the Profile tab.",
+    "success": {
+      "title": "Thanks for reporting!",
+      "text": "Your report was sent. Our team will review it to fix the issue.",
+      "again": "Report another"
+    },
+    "intro": "Help us improve WebPix. Describe the problem and, above all, how you got to it so we can reproduce and fix it.",
+    "titleLabel": "What went wrong?",
+    "titlePlaceholder": "E.g.: The cooldown doesn't reset on reload",
+    "stepsLabel": "Steps to reproduce it",
+    "stepsPlaceholder": "E.g.:\n1. I logged in as a PREMIUM user\n2. I painted several pixels\n3. I reloaded the page\n4. The counter showed 20 instead of unlimited",
+    "hint": "The more detailed, the faster we can fix it.",
+    "error": "Failed to send the report",
+    "submitting": "Sending...",
+    "submit": "Send report"
+  },
+  "verify": {
+    "accountTitle": "Verify your account",
+    "resent": "We resent the code.",
+    "email": {
+      "body": "We sent you an email with a verification link. Open it to activate your account.",
+      "note": "Once verified, you'll be able to access the canvas.",
+      "resend": "Resend email"
+    },
+    "phone": {
+      "body": "Enter the 6-digit code we sent to your phone.",
+      "verifying": "Verifying...",
+      "verify": "Verify",
+      "resend": "Resend code",
+      "invalidCode": "Invalid code"
+    },
+    "link": {
+      "verifying": "Verifying...",
+      "validating": "Validating your verification link.",
+      "successTitle": "Account verified!",
+      "successText": "Your email has been verified successfully.",
+      "goToCanvas": "Go to the canvas",
+      "invalidTitle": "Invalid link",
+      "invalidText": "The verification link is invalid or has expired."
+    }
+  },
+  "achievements": {
+    "loginRequired": "Log in to see your achievements.",
+    "loading": "Loading achievements...",
+    "empty": "No achievements available yet.",
+    "title": "Achievements",
+    "completed": "Completed"
+  },
+  "tasks": {
+    "loginRequired": "Log in to see your tasks.",
+    "loading": "Loading tasks...",
+    "empty": "No tasks available yet.",
+    "header": "Tasks of the week",
+    "subtitle": "They reset every week.",
+    "completed": "Completed"
+  },
+  "friends": {
+    "tabs": {
+      "friends": "Friends ({{count}})",
+      "incoming": "Received ({{count}})",
+      "outgoing": "Sent ({{count}})"
+    },
+    "empty": {
+      "friends": "You don't have any friends yet.",
+      "incoming": "You have no pending requests.",
+      "outgoing": "You haven't sent any requests."
+    },
+    "actions": {
+      "remove": "Remove friend",
+      "accept": "Accept",
+      "decline": "Decline",
+      "cancel": "Cancel request"
+    }
+  },
+  "rewards": {
+    "loading": "Loading rewards...",
+    "level": "Level {{level}}",
+    "maxLevel": "Max level",
+    "sections": {
+      "titles": "Titles",
+      "badges": "Badges",
+      "frames": "Frames",
+      "backgrounds": "Backgrounds"
+    },
+    "empty": {
+      "titles": "You don't have any titles yet.",
+      "badges": "You don't have any badges yet.",
+      "frames": "You don't have any frames yet.",
+      "backgrounds": "You don't have any backgrounds yet."
+    }
+  },
+  "rankings": {
+    "views": {
+      "monthly": "This month",
+      "historical": "All-time",
+      "winners": "Winners"
+    },
+    "countdown": {
+      "label": "Closes in",
+      "reward": "Top 10 earn rewards",
+      "closing": "closing...",
+      "dhm": "{{d}}d {{h}}h {{m}}m",
+      "hm": "{{h}}h {{m}}m",
+      "m": "{{m}}m"
+    },
+    "hallOfFame": "Hall of Fame",
+    "metric": { "pixels": "Pixels", "creators": "Creators" },
+    "scope": { "global": "Global", "national": "National" },
+    "empty": {
+      "noWinnersYet": "No winners yet. They're recorded when each month closes.",
+      "noWinnersCategory": "No winners for this category.",
+      "noData": "No data for this ranking yet."
+    }
+  },
   "auth": {
     "nickname": "Nickname",
     "email": "Email",
@@ -66,7 +323,12 @@
       "shop": "Shop"
     }
   },
-  "common": { "cancel": "Cancel", "save": "Save", "saving": "Saving..." },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "loading": "Loading..."
+  },
   "canvas": {
     "overlay": {
       "publishSize": "Publish {{w}} × {{h}}",

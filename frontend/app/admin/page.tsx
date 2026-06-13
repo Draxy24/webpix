@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth";
 import Button from "../components/Button";
@@ -37,35 +38,12 @@ type LogEntry = {
   createdAt: string;
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  BAN_TEMP: "Baneo temporal",
-  BAN_PERMANENT: "Baneo permanente",
-  MODIFY_BAN: "Modificó baneo",
-  UNBAN: "Quitó baneo",
-  DELETE_PUBLICATION: "Borró publicación",
-  DELETE_COMMENT: "Borró comentario",
-  RESOLVE_REPORT: "Resolvió reporte",
-  DISMISS_REPORT: "Descartó reporte",
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  USER: "Usuario",
-  PUBLICATION: "Publicación",
-  COMMENT: "Comentario",
-  BUG: "Bug",
-  CANVAS: "Zona del lienzo",
-};
 const TYPE_COLORS: Record<string, string> = {
   USER: "#c33",
   PUBLICATION: "#a60",
   COMMENT: "#36c",
   BUG: "#693",
   CANVAS: "#7c3aed",
-};
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: "Pendiente",
-  RESOLVED: "Resuelto",
-  DISMISSED: "Descartado",
 };
 
 function BanModal({
@@ -79,6 +57,7 @@ function BanModal({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const { t } = useTranslation();
   const [permanent, setPermanent] = useState(false);
   const [days, setDays] = useState(3);
   const [reason, setReason] = useState("");
@@ -87,7 +66,7 @@ function BanModal({
 
   const handleBan = async () => {
     if (!reason.trim()) {
-      setError("Debes indicar un motivo");
+      setError(t("admin.banModal.reasonRequired"));
       return;
     }
     setSubmitting(true);
@@ -106,10 +85,12 @@ function BanModal({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Error al banear");
+      if (!res.ok) throw new Error(data.message ?? t("admin.banModal.error"));
       onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(
+        err instanceof Error ? err.message : t("admin.banModal.errorGeneric"),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -118,18 +99,22 @@ function BanModal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 className={styles.modalTitle}>Banear a {target.nickname}</h3>
+        <h3 className={styles.modalTitle}>
+          {t("admin.banUser", { nickname: target.nickname })}
+        </h3>
         <label className={styles.checkRow}>
           <input
             type="checkbox"
             checked={permanent}
             onChange={(e) => setPermanent(e.target.checked)}
           />
-          Baneo permanente
+          {t("admin.banModal.permanent")}
         </label>
         {!permanent && (
           <div className={styles.modalField}>
-            <label className={styles.modalLabel}>Duración (días)</label>
+            <label className={styles.modalLabel}>
+              {t("admin.banModal.durationDays")}
+            </label>
             <input
               type="number"
               min={1}
@@ -142,12 +127,14 @@ function BanModal({
           </div>
         )}
         <div className={styles.modalField}>
-          <label className={styles.modalLabel}>Motivo</label>
+          <label className={styles.modalLabel}>
+            {t("admin.banModal.reason")}
+          </label>
           <input
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Ej: Contenido NSFW reiterado"
+            placeholder={t("admin.banModal.reasonPlaceholder")}
             className={styles.modalInput}
           />
         </div>
@@ -155,7 +142,7 @@ function BanModal({
         <div className={styles.modalButtons}>
           <div style={{ flex: 1 }}>
             <Button variant="secondary" fullWidth onClick={onClose}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
           </div>
           <div style={{ flex: 1 }}>
@@ -165,7 +152,9 @@ function BanModal({
               onClick={handleBan}
               disabled={submitting}
             >
-              {submitting ? "Baneando..." : "Banear"}
+              {submitting
+                ? t("admin.banModal.banning")
+                : t("admin.banModal.ban")}
             </Button>
           </div>
         </div>
@@ -175,6 +164,7 @@ function BanModal({
 }
 
 export default function AdminPage() {
+  const { t, i18n } = useTranslation();
   const { token, loading } = useAuth();
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
@@ -259,15 +249,15 @@ export default function AdminPage() {
   };
 
   if (loading || checking) {
-    return <main className={styles.centered}>Cargando...</main>;
+    return <main className={styles.centered}>{t("common.loading")}</main>;
   }
 
   return (
     <main className={styles.main}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Panel de moderación</h1>
+        <h1 className={styles.title}>{t("admin.title")}</h1>
         <a href="/" className={styles.backLink}>
-          ← Volver al lienzo
+          ← {t("profile.backToCanvas")}
         </a>
       </div>
 
@@ -276,13 +266,13 @@ export default function AdminPage() {
           onClick={() => setTab("reports")}
           className={`${styles.tab} ${tab === "reports" ? styles.tabActive : ""}`}
         >
-          Reportes
+          {t("admin.tabs.reports")}
         </button>
         <button
           onClick={() => setTab("log")}
           className={`${styles.tab} ${tab === "log" ? styles.tabActive : ""}`}
         >
-          Registro
+          {t("admin.tabs.log")}
         </button>
       </div>
 
@@ -290,40 +280,52 @@ export default function AdminPage() {
         <>
           <div className={styles.filters}>
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Estado</label>
+              <label className={styles.filterLabel}>
+                {t("admin.filters.status")}
+              </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className={styles.select}
               >
-                <option value="PENDING">Pendientes</option>
-                <option value="RESOLVED">Resueltos</option>
-                <option value="DISMISSED">Descartados</option>
-                <option value="">Todos</option>
+                <option value="PENDING">
+                  {t("admin.statusOption.PENDING")}
+                </option>
+                <option value="RESOLVED">
+                  {t("admin.statusOption.RESOLVED")}
+                </option>
+                <option value="DISMISSED">
+                  {t("admin.statusOption.DISMISSED")}
+                </option>
+                <option value="">{t("admin.statusOption.ALL")}</option>
               </select>
             </div>
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Tipo</label>
+              <label className={styles.filterLabel}>
+                {t("admin.filters.type")}
+              </label>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className={styles.select}
               >
-                <option value="">Todos</option>
-                <option value="USER">Usuarios</option>
-                <option value="PUBLICATION">Publicaciones</option>
-                <option value="COMMENT">Comentarios</option>
-                <option value="BUG">Bugs</option>
-                <option value="CANVAS">Zonas del lienzo</option>
+                <option value="">{t("admin.typeOption.ALL")}</option>
+                <option value="USER">{t("admin.typeOption.USER")}</option>
+                <option value="PUBLICATION">
+                  {t("admin.typeOption.PUBLICATION")}
+                </option>
+                <option value="COMMENT">{t("admin.typeOption.COMMENT")}</option>
+                <option value="BUG">{t("admin.typeOption.BUG")}</option>
+                <option value="CANVAS">{t("admin.typeOption.CANVAS")}</option>
               </select>
             </div>
           </div>
 
           <div className={styles.list}>
             {loadingReports ? (
-              <p className={styles.muted}>Cargando reportes...</p>
+              <p className={styles.muted}>{t("admin.reports.loading")}</p>
             ) : reports.length === 0 ? (
-              <p className={styles.muted}>No hay reportes con estos filtros.</p>
+              <p className={styles.muted}>{t("admin.reports.empty")}</p>
             ) : (
               reports.map((r) => {
                 const responsible =
@@ -346,28 +348,29 @@ export default function AdminPage() {
                         className={styles.badge}
                         style={{ background: TYPE_COLORS[r.type] }}
                       >
-                        {TYPE_LABELS[r.type]}
+                        {t(`admin.typeLabel.${r.type}`)}
                       </span>
                       <span className={styles.cardMeta}>
-                        {STATUS_LABELS[r.status]} ·{" "}
-                        {new Date(r.createdAt).toLocaleString("es-MX")}
+                        {t(`admin.statusLabel.${r.status}`)} ·{" "}
+                        {new Date(r.createdAt).toLocaleString(i18n.language)}
                       </span>
                     </div>
 
                     <div className={styles.cardBody}>
                       <div>
-                        <strong>Reportado por:</strong> {r.reporterNickname}
+                        <strong>{t("admin.reports.reportedBy")}</strong>{" "}
+                        {r.reporterNickname}
                       </div>
                       {r.type === "USER" && (
                         <div>
-                          <strong>Usuario reportado:</strong>{" "}
+                          <strong>{t("admin.reports.reportedUser")}</strong>{" "}
                           {r.targetNickname ?? "?"}
                         </div>
                       )}
                       {(r.type === "PUBLICATION" || r.type === "COMMENT") && (
                         <>
                           <div>
-                            <strong>Autor del contenido:</strong>{" "}
+                            <strong>{t("admin.reports.contentAuthor")}</strong>{" "}
                             {r.contentAuthorNickname ?? "?"}
                           </div>
                           <div className={styles.preview}>
@@ -377,14 +380,14 @@ export default function AdminPage() {
                       )}
                       {r.type === "CANVAS" && (
                         <div>
-                          <strong>Zona reportada:</strong>{" "}
+                          <strong>{t("admin.reports.reportedZone")}</strong>{" "}
                           {r.x1 != null
                             ? `(${r.x1}, ${r.y1}) – (${r.x2}, ${r.y2})`
                             : "?"}
                         </div>
                       )}
                       <div style={{ marginTop: "4px" }}>
-                        <strong>Motivo:</strong> {r.reason}
+                        <strong>{t("admin.reports.reason")}</strong> {r.reason}
                       </div>
                       {r.details && (
                         <div className={styles.details}>{r.details}</div>
@@ -399,11 +402,15 @@ export default function AdminPage() {
                             target="_blank"
                             className={`${styles.actionBtn} ${styles.actionNeutral}`}
                           >
-                            Ver publicación
+                            {t("admin.reports.viewPublication")}
                           </a>
                           <button
                             onClick={() => {
-                              if (confirm("¿Borrar esta publicación?"))
+                              if (
+                                confirm(
+                                  t("admin.reports.confirmDeletePublication"),
+                                )
+                              )
                                 action(
                                   `/moderation/publication/${r.publicationId}`,
                                   "DELETE",
@@ -411,14 +418,16 @@ export default function AdminPage() {
                             }}
                             className={`${styles.actionBtn} ${styles.actionWarn}`}
                           >
-                            Borrar publicación
+                            {t("admin.reports.deletePublication")}
                           </button>
                         </>
                       )}
                       {r.type === "COMMENT" && r.commentId && (
                         <button
                           onClick={() => {
-                            if (confirm("¿Borrar este comentario?"))
+                            if (
+                              confirm(t("admin.reports.confirmDeleteComment"))
+                            )
                               action(
                                 `/moderation/comment/${r.commentId}`,
                                 "DELETE",
@@ -426,7 +435,7 @@ export default function AdminPage() {
                           }}
                           className={`${styles.actionBtn} ${styles.actionWarn}`}
                         >
-                          Borrar comentario
+                          {t("admin.reports.deleteComment")}
                         </button>
                       )}
                       {responsible && (
@@ -434,7 +443,9 @@ export default function AdminPage() {
                           onClick={() => setBanTarget(responsible)}
                           className={`${styles.actionBtn} ${styles.actionDanger}`}
                         >
-                          Banear a {responsible.nickname}
+                          {t("admin.banUser", {
+                            nickname: responsible.nickname,
+                          })}
                         </button>
                       )}
                       {r.status === "PENDING" && (
@@ -448,7 +459,7 @@ export default function AdminPage() {
                             }
                             className={`${styles.actionBtn} ${styles.actionSuccess}`}
                           >
-                            Resolver
+                            {t("admin.reports.resolve")}
                           </button>
                           <button
                             onClick={() =>
@@ -459,7 +470,7 @@ export default function AdminPage() {
                             }
                             className={`${styles.actionBtn} ${styles.actionNeutral}`}
                           >
-                            Descartar
+                            {t("admin.reports.dismiss")}
                           </button>
                         </>
                       )}
@@ -470,7 +481,7 @@ export default function AdminPage() {
                           rel="noreferrer"
                           className={`${styles.actionBtn} ${styles.actionNeutral}`}
                         >
-                          Ir a la zona
+                          {t("admin.reports.goToZone")}
                         </a>
                       )}
                     </div>
@@ -485,26 +496,29 @@ export default function AdminPage() {
       {tab === "log" && (
         <div className={styles.logList}>
           {loadingLog ? (
-            <p className={styles.muted}>Cargando registro...</p>
+            <p className={styles.muted}>{t("admin.log.loading")}</p>
           ) : log.length === 0 ? (
-            <p className={styles.muted}>No hay acciones registradas todavía.</p>
+            <p className={styles.muted}>{t("admin.log.empty")}</p>
           ) : (
             log.map((entry) => (
               <div key={entry.id} className={styles.logEntry}>
                 <div className={styles.logTop}>
                   <span className={styles.logAction}>
-                    {ACTION_LABELS[entry.action] ?? entry.action}
+                    {t(`admin.actionLabel.${entry.action}`, {
+                      defaultValue: entry.action,
+                    })}
                   </span>
                   <span className={styles.cardMeta}>
-                    {new Date(entry.createdAt).toLocaleString("es-MX")}
+                    {new Date(entry.createdAt).toLocaleString(i18n.language)}
                   </span>
                 </div>
                 <div className={styles.logMeta}>
-                  Por <strong>{entry.moderator}</strong>
+                  {t("admin.log.by")} <strong>{entry.moderator}</strong>
                   {entry.targetNickname && (
                     <>
                       {" "}
-                      · sobre <strong>{entry.targetNickname}</strong>
+                      · {t("admin.log.about")}{" "}
+                      <strong>{entry.targetNickname}</strong>
                     </>
                   )}
                   {entry.details && <> · {entry.details}</>}
