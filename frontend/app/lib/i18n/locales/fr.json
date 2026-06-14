@@ -1,4 +1,270 @@
 {
+  "seasons": {
+    "san_valentin": "Saint-Valentin",
+    "carnaval": "Carnaval",
+    "primavera": "Printemps",
+    "verano": "Été",
+    "otono": "Automne",
+    "halloween": "Halloween",
+    "dia_muertos": "Jour des Morts",
+    "invierno": "Hiver",
+    "navidad": "Noël",
+    "ano_nuevo": "Nouvel An",
+    "ano_lunar": "Nouvel An lunaire"
+  },
+  "bitPackages": {
+    "bits_punado": "Poignée de Bits",
+    "bits_bolsa": "Sac de Bits",
+    "bits_cofre": "Coffre de Bits",
+    "bits_baul": "Malle de Bits",
+    "bits_tesoro": "Trésor de Bits"
+  },
+  "palettes": {
+    "palette_exotica": {
+      "name": "Palette exotique",
+      "desc": "Les cinq couleurs exotiques, en promo."
+    },
+    "palette_neon": {
+      "name": "Palette néon",
+      "desc": "Synthwave, Vaporwave et Galaxie."
+    },
+    "palette_elementos": {
+      "name": "Palette éléments",
+      "desc": "Lave, Automne et Aurore."
+    }
+  },
+  "cosmetics": {
+    "title_aprendiz": {
+      "name": "Apprenti",
+      "desc": "Tu commences à peine ton chemin."
+    },
+    "title_pixelero": {
+      "name": "Pixeleur",
+      "desc": "Pixel par pixel se fait le canevas."
+    },
+    "title_virtuoso": {
+      "name": "Virtuose",
+      "desc": "Tu maîtrises l'art du pixel."
+    },
+    "title_leyenda_shop": { "name": "Légende", "desc": "Réservé aux grands." },
+    "title_artista": {
+      "name": "Artiste",
+      "desc": "Ton canevas parle pour toi."
+    },
+    "title_creador": {
+      "name": "Créateur",
+      "desc": "Tu donnes vie au canevas."
+    },
+    "title_visionario": {
+      "name": "Visionnaire",
+      "desc": "Tu vois ce que les autres ne voient pas."
+    },
+    "title_y2k": { "desc": "Né pour le nouveau millénaire." },
+    "title_vaporwave": { "desc": "L'esthétique avant tout." },
+    "title_halloween": {
+      "name": "Âme en peine",
+      "desc": "Erre parmi les pixels."
+    },
+    "title_navidad": {
+      "name": "Esprit de Noël",
+      "desc": "Pure magie de décembre."
+    },
+    "title_invierno": {
+      "name": "Cœur de glace",
+      "desc": "Froid dehors, art dedans."
+    },
+    "title_main_character": { "desc": "Le monde tourne autour de toi." },
+    "title_npc": { "desc": "Tu suis juste le scénario." },
+    "title_touch_grass": { "desc": "Tu devrais peut-être sortir un peu." },
+    "title_pov": { "desc": "Point de vue." },
+    "title_gg": { "desc": "Bien joué." },
+    "title_cupido": {
+      "name": "Cupidon",
+      "desc": "Des flèches qui font mouche."
+    },
+    "title_verano": {
+      "name": "Soleil d'été",
+      "desc": "Tu brilles comme un mois d'août."
+    },
+    "title_ano_nuevo": { "name": "Compte à rebours" },
+    "title_primavera": { "name": "Printemps", "desc": "Tout fleurit." },
+    "title_ano_lunar": {
+      "name": "Année du Dragon",
+      "desc": "Force et fortune."
+    },
+    "title_based": { "desc": "Fidèle à toi-même." },
+    "title_rizz": { "desc": "Charisme de niveau divin." },
+    "title_sigma": { "name": "Mode Sigma", "desc": "À ton propre rythme." },
+    "title_no_cap": { "desc": "Aucun mensonge." },
+    "title_404": { "desc": "Titre introuvable." },
+    "title_pionero": {
+      "name": "Pionnier",
+      "desc": "Tu étais là dès le début."
+    },
+    "title_leyenda": {
+      "name": "Légende du canevas",
+      "desc": "Réservé aux grands."
+    },
+    "title_og": { "desc": "Tu es là depuis le lancement." },
+    "badge_chispa": {
+      "name": "Étincelle",
+      "desc": "Une petite étincelle créative."
+    },
+    "badge_corona": {
+      "name": "Couronne",
+      "desc": "Pour qui règne sur le canevas."
+    },
+    "badge_corazon": { "name": "Cœur", "desc": "Tu peins avec amour." },
+    "badge_michi": { "name": "Minou", "desc": "Internet adore les chats." },
+    "badge_rayo": { "name": "Éclair", "desc": "Rapide comme la foudre." },
+    "badge_cohete": { "name": "Fusée", "desc": "Jusqu'à l'infini." },
+    "badge_fuego": { "name": "En feu", "desc": "Tu es en feu." },
+    "badge_trofeo": { "name": "Trophée", "desc": "Pour les champions." },
+    "badge_diamante": { "name": "Diamant", "desc": "Tu brilles autrement." },
+    "badge_calabaza": {
+      "name": "Citrouille",
+      "desc": "Des bonbons ou un sort."
+    },
+    "badge_fantasma": { "name": "Fantôme", "desc": "Bouh." },
+    "badge_calavera": { "name": "Crâne", "desc": "Esprit du Jour des Morts." },
+    "badge_copo": { "name": "Flocon de neige", "desc": "Unique comme toi." },
+    "badge_regalo": {
+      "name": "Cadeau",
+      "desc": "Quelque chose sous le sapin."
+    },
+    "badge_trebol": { "name": "Trèfle", "desc": "La chance est avec toi." },
+    "badge_alien": { "desc": "Tu n'es pas de ce monde." },
+    "badge_arcoiris": {
+      "name": "Arc-en-ciel",
+      "desc": "De la couleur partout."
+    },
+    "badge_flor": { "name": "Petite fleur", "desc": "Ambiance cottagecore." },
+    "badge_flechazo": { "name": "Coup de foudre", "desc": "Droit au cœur." },
+    "badge_dos_corazones": {
+      "name": "Deux cœurs",
+      "desc": "Deux fois plus d'amour."
+    },
+    "badge_rosa": { "name": "Rose", "desc": "Une touche classique." },
+    "badge_sol": { "name": "Soleil", "desc": "Pure énergie." },
+    "badge_palmera": { "name": "Palmier", "desc": "Ambiance tropicale." },
+    "badge_helado": { "name": "Glace", "desc": "Avant qu'elle ne fonde." },
+    "badge_fuegos": { "name": "Feu d'artifice", "desc": "Bonne année !" },
+    "badge_fiesta": { "name": "Fête", "desc": "Que ça ne s'arrête pas." },
+    "badge_brindis": { "name": "Toast", "desc": "Santé !" },
+    "badge_conejo": { "name": "Lapin", "desc": "Sautillant." },
+    "badge_tulipan": { "name": "Tulipe", "desc": "La couleur renaît." },
+    "badge_brote": {
+      "name": "Pousse",
+      "desc": "Quelque chose de nouveau pousse."
+    },
+    "badge_farol": { "name": "Lanterne", "desc": "Lumière de la fortune." },
+    "badge_dragon": { "name": "Dragon", "desc": "Pouvoir ancestral." },
+    "badge_mascara": { "name": "Masque", "desc": "Que la fête commence." },
+    "badge_confeti": { "name": "Confettis", "desc": "De la couleur partout." },
+    "badge_fundador": {
+      "name": "Fondateur",
+      "desc": "Badge des premiers utilisateurs."
+    },
+    "badge_top10": {
+      "name": "Top 10 mondial",
+      "desc": "Tu as terminé dans le Top 10 mondial."
+    },
+    "frame_acero": { "name": "Acier", "desc": "Un cadre sobre." },
+    "frame_neon": { "name": "Néon", "desc": "Une lueur néon tout autour." },
+    "frame_oro": { "name": "Or", "desc": "Réservé aux grands." },
+    "frame_calabaza": { "name": "Citrouille", "desc": "Parfum d'automne." },
+    "frame_telarana": {
+      "name": "Toile d'araignée",
+      "desc": "Tissée dans la pénombre."
+    },
+    "frame_navidad": { "name": "Lumières de Noël", "desc": "Éclat festif." },
+    "frame_escarcha": { "name": "Givre", "desc": "Cristaux de glace." },
+    "frame_synthwave": { "desc": "Tout droit des années 80." },
+    "frame_vaporwave": { "desc": "Rose et turquoise éternels." },
+    "frame_glitch": { "desc": "Erreur... ou style." },
+    "frame_prisma": {
+      "name": "Prisme",
+      "desc": "Tout le spectre autour de toi."
+    },
+    "frame_san_valentin": { "desc": "Un cadre amoureux." },
+    "frame_verano": { "name": "Été", "desc": "Un cadre ensoleillé." },
+    "frame_ano_nuevo": { "name": "Nouvel An", "desc": "Éclat de minuit." },
+    "frame_primavera": { "name": "Printemps", "desc": "Un cadre floral." },
+    "frame_lunar": {
+      "name": "Nouvel An lunaire",
+      "desc": "Rouge et or porte-bonheur."
+    },
+    "frame_fuego": { "name": "Feu", "desc": "L'élément ardent." },
+    "frame_agua": { "name": "Eau", "desc": "L'élément fluide." },
+    "frame_tierra": { "name": "Terre", "desc": "L'élément stable." },
+    "frame_viento": { "name": "Vent", "desc": "L'élément libre." },
+    "bg_menta": { "name": "Menthe", "desc": "Un arrière-plan frais." },
+    "bg_atardecer": {
+      "name": "Coucher de soleil",
+      "desc": "Teintes de crépuscule."
+    },
+    "bg_espacio": {
+      "name": "Espace",
+      "desc": "Perds ton regard dans le cosmos."
+    },
+    "bg_halloween": {
+      "name": "Nuit des sorcières",
+      "desc": "Ombres et citrouilles."
+    },
+    "bg_navidad": {
+      "name": "Réveillon de Noël",
+      "desc": "Chaleur de décembre."
+    },
+    "bg_invierno": { "name": "Blizzard", "desc": "Bleu glacial." },
+    "bg_otono": { "name": "Automne", "desc": "Feuilles qui tombent." },
+    "bg_aurora": { "name": "Aurore", "desc": "Lumières du nord." },
+    "bg_synthwave": { "desc": "Un soleil néon au crépuscule." },
+    "bg_san_valentin": {
+      "name": "Saint-Valentin",
+      "desc": "Atmosphère romantique."
+    },
+    "bg_playa": { "name": "Plage", "desc": "Sable et mer." },
+    "bg_fuegos": { "name": "Feux d'artifice", "desc": "Un ciel de fête." },
+    "bg_primavera": { "name": "Jardin", "desc": "Le vert renaît." },
+    "bg_lunar": { "desc": "Nuit des lanternes." },
+    "color_tornasol_fuego": {
+      "name": "Chatoyant feu",
+      "desc": "Un dégradé ardent."
+    },
+    "color_tornasol_oceano": {
+      "name": "Chatoyant océan",
+      "desc": "Du turquoise au bleu profond."
+    },
+    "color_plata": { "name": "Argent", "desc": "Éclat métallique argenté." },
+    "color_oro": { "name": "Or", "desc": "Éclat métallique doré." },
+    "color_arcoiris": { "name": "Arc-en-ciel", "desc": "Tout le spectre." },
+    "color_synthwave": { "desc": "Du rose néon au violet." },
+    "color_vaporwave": { "desc": "Rose et turquoise." },
+    "color_galaxia": { "name": "Galaxie", "desc": "Profondeurs du cosmos." },
+    "color_aurora": { "name": "Aurore", "desc": "Vert et violet boréal." },
+    "color_otono": { "name": "Automne", "desc": "De l'ambre au cramoisi." },
+    "color_lava": { "name": "Lave", "desc": "Roche en fusion." },
+    "color_romance": { "desc": "Du rouge au rose." },
+    "color_tropical": { "desc": "Du soleil à la mer." }
+  },
+  "spaces": {
+    "loading": "Chargement de tes espaces...",
+    "empty": "Tu n'as pas encore d'espaces privés. Utilise l'outil d'espace privé sur le canevas pour en acheter un.",
+    "updateFailed": "Impossible de mettre à jour",
+    "releaseFailed": "Impossible de libérer",
+    "errorGeneric": "Erreur",
+    "confirmRelease": "Libérer cet espace ? Cette action est irréversible.",
+    "defaultName": "Espace n°{{id}}",
+    "expired": "Expiré",
+    "position": "Position ({{x}}, {{y}}) · {{w}}×{{h}} ({{px}} px)",
+    "renewsOn": "Renouvellement le {{date}}",
+    "expiredOn": "Expiré le {{date}}",
+    "removeMember": "Retirer {{nick}}",
+    "noMembers": "Aucun utilisateur autorisé pour le moment.",
+    "addPlaceholder": "Ajouter par pseudo",
+    "add": "Ajouter",
+    "release": "Libérer l'espace"
+  },
   "admin": {
     "title": "Panneau de modération",
     "tabs": { "reports": "Signalements", "log": "Journal" },
@@ -327,7 +593,8 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "saving": "Enregistrement...",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "close": "Fermer"
   },
   "canvas": {
     "overlay": {
@@ -344,6 +611,48 @@
       "reportHint": "Glissez pour sélectionner la zone à signaler",
       "reportBtn": "Signaler la zone",
       "dragArea": "Glissez pour sélectionner une zone"
+    },
+    "pixels": "Pixels :",
+    "cooldown": "Délai :",
+    "tooltip": {
+      "levelShort": "Niv",
+      "ctrlClick": "Ctrl+Clic pour voir le profil"
+    },
+    "publish": {
+      "title": "Publier la création",
+      "area": "Zone : {{w}} × {{h}} pixels",
+      "titlePlaceholder": "Titre (optionnel, max 60)",
+      "confirm": "Confirmer",
+      "publishing": "Publication...",
+      "error": "Erreur lors de la publication",
+      "success": "Publication créée avec succès !"
+    },
+    "purchase": {
+      "title": "Acheter un espace privé",
+      "area": "Zone : {{w}} × {{h}} ({{px}} px)",
+      "type": "Type d'achat",
+      "monthly": "Mensuel",
+      "permanent": "Permanent",
+      "whoCanPaint": "Qui peut peindre",
+      "ownerOnly": "Moi seulement",
+      "friends": "Amis",
+      "specific": "Spécifiques",
+      "membersPlaceholder": "Pseudos séparés par des virgules",
+      "price": "Prix :",
+      "perMonth": " / mois",
+      "oneTime": " (paiement unique)",
+      "calculating": "Calcul...",
+      "invalidArea": "Zone invalide",
+      "confirm": "Confirmer l'achat",
+      "purchasing": "Achat...",
+      "error": "Erreur lors de l'achat",
+      "failed": "Impossible d'acheter l'espace",
+      "success": "Espace privé acheté !"
+    },
+    "manage": { "title": "Mes espaces privés" },
+    "eraseArea": {
+      "failed": "Impossible d'effacer la zone",
+      "connError": "Erreur de connexion lors de l'effacement de la zone"
     }
   },
   "settings": { "language": "Langue" },

@@ -1,4 +1,258 @@
 {
+  "seasons": {
+    "san_valentin": "Valentinstag",
+    "carnaval": "Karneval",
+    "primavera": "Frühling",
+    "verano": "Sommer",
+    "otono": "Herbst",
+    "halloween": "Halloween",
+    "dia_muertos": "Tag der Toten",
+    "invierno": "Winter",
+    "navidad": "Weihnachten",
+    "ano_nuevo": "Neujahr",
+    "ano_lunar": "Mondneujahr"
+  },
+  "bitPackages": {
+    "bits_punado": "Handvoll Bits",
+    "bits_bolsa": "Beutel voll Bits",
+    "bits_cofre": "Truhe voll Bits",
+    "bits_baul": "Kiste voll Bits",
+    "bits_tesoro": "Schatz voll Bits"
+  },
+  "palettes": {
+    "palette_exotica": {
+      "name": "Exotische Palette",
+      "desc": "Alle fünf exotischen Farben, mit Rabatt."
+    },
+    "palette_neon": {
+      "name": "Neon-Palette",
+      "desc": "Synthwave, Vaporwave und Galaxie."
+    },
+    "palette_elementos": {
+      "name": "Elemente-Palette",
+      "desc": "Lava, Herbst und Aurora."
+    }
+  },
+  "cosmetics": {
+    "title_aprendiz": {
+      "name": "Lehrling",
+      "desc": "Du beginnst gerade deinen Weg."
+    },
+    "title_pixelero": {
+      "name": "Pixler",
+      "desc": "Pixel für Pixel entsteht die Leinwand."
+    },
+    "title_virtuoso": {
+      "name": "Virtuose",
+      "desc": "Du beherrschst die Kunst des Pixels."
+    },
+    "title_leyenda_shop": {
+      "name": "Legende",
+      "desc": "Den Großen vorbehalten."
+    },
+    "title_artista": {
+      "name": "Künstler",
+      "desc": "Deine Leinwand spricht für dich."
+    },
+    "title_creador": {
+      "name": "Schöpfer",
+      "desc": "Du erweckst die Leinwand zum Leben."
+    },
+    "title_visionario": {
+      "name": "Visionär",
+      "desc": "Du siehst, was andere nicht sehen."
+    },
+    "title_y2k": { "desc": "Geboren für das neue Jahrtausend." },
+    "title_vaporwave": { "desc": "Ästhetik über alles." },
+    "title_halloween": {
+      "name": "Verlorene Seele",
+      "desc": "Wandert zwischen den Pixeln."
+    },
+    "title_navidad": {
+      "name": "Weihnachtsgeist",
+      "desc": "Pure Dezembermagie."
+    },
+    "title_invierno": { "name": "Eisherz", "desc": "Kalt außen, Kunst innen." },
+    "title_main_character": { "desc": "Die Welt dreht sich um dich." },
+    "title_npc": { "desc": "Du folgst nur dem Skript." },
+    "title_touch_grass": { "desc": "Vielleicht solltest du rausgehen." },
+    "title_pov": { "desc": "Sichtweise." },
+    "title_gg": { "desc": "Gutes Spiel." },
+    "title_cupido": { "name": "Amor", "desc": "Treffsichere Pfeile." },
+    "title_verano": {
+      "name": "Sommersonne",
+      "desc": "Du strahlst wie der August."
+    },
+    "title_ano_nuevo": { "name": "Countdown" },
+    "title_primavera": { "name": "Frühling", "desc": "Alles blüht." },
+    "title_ano_lunar": {
+      "name": "Jahr des Drachen",
+      "desc": "Stärke und Glück."
+    },
+    "title_based": { "desc": "Dir selbst treu." },
+    "title_rizz": { "desc": "Charisma auf Gott-Niveau." },
+    "title_sigma": {
+      "name": "Sigma-Modus",
+      "desc": "In deinem eigenen Tempo."
+    },
+    "title_no_cap": { "desc": "Keine Lügen." },
+    "title_404": { "desc": "Titel nicht gefunden." },
+    "title_pionero": {
+      "name": "Pionier",
+      "desc": "Du warst von Anfang an dabei."
+    },
+    "title_leyenda": {
+      "name": "Legende der Leinwand",
+      "desc": "Den Großen vorbehalten."
+    },
+    "title_og": { "desc": "Du bist seit dem Start dabei." },
+    "badge_chispa": { "name": "Funke", "desc": "Ein kleiner kreativer Funke." },
+    "badge_corona": {
+      "name": "Krone",
+      "desc": "Für wen über die Leinwand herrscht."
+    },
+    "badge_corazon": { "name": "Herz", "desc": "Du malst mit Liebe." },
+    "badge_michi": { "name": "Mietz", "desc": "Das Internet liebt Katzen." },
+    "badge_rayo": { "name": "Blitz", "desc": "Schnell wie der Blitz." },
+    "badge_cohete": { "name": "Rakete", "desc": "Bis ins Unendliche." },
+    "badge_fuego": { "name": "In Flammen", "desc": "Du bist in Topform." },
+    "badge_trofeo": { "name": "Trophäe", "desc": "Für die Champions." },
+    "badge_diamante": { "name": "Diamant", "desc": "Du glänzt anders." },
+    "badge_calabaza": { "name": "Kürbis", "desc": "Süßes oder Saures." },
+    "badge_fantasma": { "name": "Geist", "desc": "Buh." },
+    "badge_calavera": {
+      "name": "Totenkopf",
+      "desc": "Geist des Día de Muertos."
+    },
+    "badge_copo": { "name": "Schneeflocke", "desc": "Einzigartig wie du." },
+    "badge_regalo": { "name": "Geschenk", "desc": "Etwas unter dem Baum." },
+    "badge_trebol": {
+      "name": "Kleeblatt",
+      "desc": "Das Glück ist auf deiner Seite."
+    },
+    "badge_alien": { "desc": "Du bist nicht von dieser Welt." },
+    "badge_arcoiris": { "name": "Regenbogen", "desc": "Farbe überall." },
+    "badge_flor": { "name": "Blümchen", "desc": "Cottagecore-Vibes." },
+    "badge_flechazo": { "name": "Liebespfeil", "desc": "Direkt ins Herz." },
+    "badge_dos_corazones": { "name": "Zwei Herzen", "desc": "Doppelte Liebe." },
+    "badge_rosa": { "name": "Rose", "desc": "Ein klassisches Detail." },
+    "badge_sol": { "name": "Sonne", "desc": "Pure Energie." },
+    "badge_palmera": { "name": "Palme", "desc": "Tropische Vibes." },
+    "badge_helado": { "name": "Eis", "desc": "Bevor es schmilzt." },
+    "badge_fuegos": { "name": "Feuerwerk", "desc": "Frohes neues Jahr!" },
+    "badge_fiesta": { "name": "Party", "desc": "Lass es nicht aufhören." },
+    "badge_brindis": { "name": "Anstoßen", "desc": "Prost!" },
+    "badge_conejo": { "name": "Hase", "desc": "Hüpffreudig." },
+    "badge_tulipan": { "name": "Tulpe", "desc": "Wiedergeborene Farbe." },
+    "badge_brote": { "name": "Keimling", "desc": "Etwas Neues wächst." },
+    "badge_farol": { "name": "Laterne", "desc": "Licht des Glücks." },
+    "badge_dragon": { "name": "Drache", "desc": "Uralte Macht." },
+    "badge_mascara": { "name": "Maske", "desc": "Lasst die Party beginnen." },
+    "badge_confeti": { "name": "Konfetti", "desc": "Farbe überall." },
+    "badge_fundador": {
+      "name": "Gründer",
+      "desc": "Abzeichen der ersten Nutzer."
+    },
+    "badge_top10": {
+      "name": "Globale Top 10",
+      "desc": "Du hast die weltweite Top 10 erreicht."
+    },
+    "frame_acero": { "name": "Stahl", "desc": "Ein schlichter Rahmen." },
+    "frame_neon": { "name": "Neon", "desc": "Ein Neonleuchten ringsum." },
+    "frame_oro": { "name": "Gold", "desc": "Nur für die Großen." },
+    "frame_calabaza": { "name": "Kürbis", "desc": "Duft des Herbstes." },
+    "frame_telarana": {
+      "name": "Spinnennetz",
+      "desc": "Im Halbdunkel gewoben."
+    },
+    "frame_navidad": {
+      "name": "Weihnachtslichter",
+      "desc": "Festlicher Glanz."
+    },
+    "frame_escarcha": { "name": "Raureif", "desc": "Eiskristalle." },
+    "frame_synthwave": { "desc": "Direkt aus den 80ern." },
+    "frame_vaporwave": { "desc": "Ewiges Pink und Türkis." },
+    "frame_glitch": { "desc": "Fehler... oder Stil." },
+    "frame_prisma": { "desc": "Das ganze Spektrum ringsum." },
+    "frame_san_valentin": {
+      "name": "Romanze",
+      "desc": "Ein verliebter Rahmen."
+    },
+    "frame_verano": { "name": "Sommer", "desc": "Ein sonniger Rahmen." },
+    "frame_ano_nuevo": { "name": "Neujahr", "desc": "Mitternachtsglanz." },
+    "frame_primavera": { "name": "Frühling", "desc": "Ein floraler Rahmen." },
+    "frame_lunar": {
+      "name": "Mondneujahr",
+      "desc": "Glücksbringendes Rot und Gold."
+    },
+    "frame_fuego": { "name": "Feuer", "desc": "Das brennende Element." },
+    "frame_agua": { "name": "Wasser", "desc": "Das fließende Element." },
+    "frame_tierra": { "name": "Erde", "desc": "Das beständige Element." },
+    "frame_viento": { "name": "Wind", "desc": "Das freie Element." },
+    "bg_menta": { "name": "Minze", "desc": "Ein frischer Hintergrund." },
+    "bg_atardecer": {
+      "name": "Sonnenuntergang",
+      "desc": "Töne des Sonnenuntergangs."
+    },
+    "bg_espacio": {
+      "name": "Weltraum",
+      "desc": "Verliere deinen Blick im Kosmos."
+    },
+    "bg_halloween": { "name": "Hexennacht", "desc": "Schatten und Kürbisse." },
+    "bg_navidad": { "name": "Heiligabend", "desc": "Dezemberwärme." },
+    "bg_invierno": { "name": "Schneesturm", "desc": "Eisiges Blau." },
+    "bg_otono": { "name": "Herbst", "desc": "Fallende Blätter." },
+    "bg_aurora": { "name": "Polarlicht", "desc": "Nordlichter." },
+    "bg_synthwave": { "desc": "Eine Neonsonne in der Dämmerung." },
+    "bg_san_valentin": {
+      "name": "Valentinstag",
+      "desc": "Romantische Atmosphäre."
+    },
+    "bg_playa": { "name": "Strand", "desc": "Sand und Meer." },
+    "bg_fuegos": { "name": "Feuerwerk", "desc": "Ein festlicher Himmel." },
+    "bg_primavera": { "name": "Garten", "desc": "Wiedergeborenes Grün." },
+    "bg_lunar": { "desc": "Nacht der Laternen." },
+    "color_tornasol_fuego": {
+      "name": "Feuerschimmer",
+      "desc": "Ein feuriger Verlauf."
+    },
+    "color_tornasol_oceano": {
+      "name": "Ozeanschimmer",
+      "desc": "Von Türkis zu tiefem Blau."
+    },
+    "color_plata": { "name": "Silber", "desc": "Silbriger Metallglanz." },
+    "color_oro": { "name": "Gold", "desc": "Goldener Metallglanz." },
+    "color_arcoiris": { "name": "Regenbogen", "desc": "Das ganze Spektrum." },
+    "color_synthwave": { "desc": "Von Neonpink zu Violett." },
+    "color_vaporwave": { "desc": "Pink und Türkis." },
+    "color_galaxia": { "name": "Galaxie", "desc": "Tiefen des Kosmos." },
+    "color_aurora": {
+      "name": "Polarlicht",
+      "desc": "Boreales Grün und Violett."
+    },
+    "color_otono": { "name": "Herbst", "desc": "Von Bernstein zu Karmesin." },
+    "color_lava": { "desc": "Geschmolzenes Gestein." },
+    "color_romance": { "name": "Romanze", "desc": "Von Rot zu Rosa." },
+    "color_tropical": { "name": "Tropisch", "desc": "Von der Sonne zum Meer." }
+  },
+  "spaces": {
+    "loading": "Deine Bereiche werden geladen...",
+    "empty": "Du hast noch keine privaten Bereiche. Nutze das Werkzeug für private Bereiche auf der Leinwand, um einen zu kaufen.",
+    "updateFailed": "Konnte nicht aktualisiert werden",
+    "releaseFailed": "Konnte nicht freigegeben werden",
+    "errorGeneric": "Fehler",
+    "confirmRelease": "Diesen Bereich freigeben? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "defaultName": "Bereich #{{id}}",
+    "expired": "Abgelaufen",
+    "position": "Position ({{x}}, {{y}}) · {{w}}×{{h}} ({{px}} px)",
+    "renewsOn": "Verlängert am {{date}}",
+    "expiredOn": "Abgelaufen am {{date}}",
+    "removeMember": "{{nick}} entfernen",
+    "noMembers": "Noch keine autorisierten Nutzer.",
+    "addPlaceholder": "Per Nickname hinzufügen",
+    "add": "Hinzufügen",
+    "release": "Bereich freigeben"
+  },
   "admin": {
     "title": "Moderationsbereich",
     "tabs": { "reports": "Meldungen", "log": "Protokoll" },
@@ -327,7 +581,8 @@
     "cancel": "Abbrechen",
     "save": "Speichern",
     "saving": "Wird gespeichert...",
-    "loading": "Wird geladen..."
+    "loading": "Wird geladen...",
+    "close": "Schließen"
   },
   "canvas": {
     "overlay": {
@@ -344,6 +599,45 @@
       "reportHint": "Ziehe, um den zu meldenden Bereich auszuwählen",
       "reportBtn": "Bereich melden",
       "dragArea": "Ziehe, um einen Bereich auszuwählen"
+    },
+    "pixels": "Pixel:",
+    "cooldown": "Abklingzeit:",
+    "tooltip": { "levelShort": "Stufe", "ctrlClick": "Strg+Klick für Profil" },
+    "publish": {
+      "title": "Werk veröffentlichen",
+      "area": "Bereich: {{w}} × {{h}} Pixel",
+      "titlePlaceholder": "Titel (optional, max. 60)",
+      "confirm": "Bestätigen",
+      "publishing": "Wird veröffentlicht...",
+      "error": "Fehler beim Veröffentlichen",
+      "success": "Veröffentlichung erfolgreich erstellt!"
+    },
+    "purchase": {
+      "title": "Privaten Bereich kaufen",
+      "area": "Bereich: {{w}} × {{h}} ({{px}} px)",
+      "type": "Kaufart",
+      "monthly": "Monatlich",
+      "permanent": "Dauerhaft",
+      "whoCanPaint": "Wer malen darf",
+      "ownerOnly": "Nur ich",
+      "friends": "Freunde",
+      "specific": "Bestimmte",
+      "membersPlaceholder": "Nicknames durch Kommas getrennt",
+      "price": "Preis:",
+      "perMonth": " / Monat",
+      "oneTime": " (einmalig)",
+      "calculating": "Wird berechnet...",
+      "invalidArea": "Ungültiger Bereich",
+      "confirm": "Kauf bestätigen",
+      "purchasing": "Wird gekauft...",
+      "error": "Fehler beim Kauf",
+      "failed": "Bereich konnte nicht gekauft werden",
+      "success": "Privater Bereich gekauft!"
+    },
+    "manage": { "title": "Meine privaten Bereiche" },
+    "eraseArea": {
+      "failed": "Bereich konnte nicht gelöscht werden",
+      "connError": "Verbindungsfehler beim Löschen des Bereichs"
     }
   },
   "settings": { "language": "Sprache" },

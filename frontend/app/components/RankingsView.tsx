@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { COUNTRIES } from "../lib/countries";
+import { countryName } from "@/app/lib/countryName";
 import Flag from "./Flag";
 import styles from "./RankingsView.module.css";
 import { API_URL } from "@/app/lib/api";
@@ -238,11 +239,16 @@ export default function RankingsView({
           onChange={(e) => setCountry(e.target.value)}
           className={styles.select}
         >
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
+          {COUNTRIES.map((c) => ({
+            code: c.code,
+            label: countryName(c.code, i18n.language),
+          }))
+            .sort((a, b) => a.label.localeCompare(b.label, i18n.language))
+            .map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.label}
+              </option>
+            ))}
         </select>
       )}
 

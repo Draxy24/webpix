@@ -4,18 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
-import { COUNTRIES } from "../lib/countries";
 import PhoneCountrySelect from "./PhoneCountrySelect";
 import Button from "./Button";
 import styles from "./AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
+import { COUNTRIES } from "../lib/countries";
+import { countryName } from "@/app/lib/countryName";
 
 export default function RegisterForm({
   switchToLogin,
 }: {
   switchToLogin?: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { login } = useAuth();
   const router = useRouter();
   const [nickname, setNickname] = useState("");
@@ -126,11 +127,16 @@ export default function RegisterForm({
         className={styles.input}
       >
         <option value="">{t("auth.countryOptional")}</option>
-        {COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.name}
-          </option>
-        ))}
+        {COUNTRIES.map((c) => ({
+          code: c.code,
+          label: countryName(c.code, i18n.language),
+        }))
+          .sort((a, b) => a.label.localeCompare(b.label, i18n.language))
+          .map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.label}
+            </option>
+          ))}
       </select>
       {error && <p className={styles.error}>{error}</p>}
       <Button type="submit" disabled={loading} fullWidth size="lg">

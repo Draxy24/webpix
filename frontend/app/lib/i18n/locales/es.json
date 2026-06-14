@@ -1,4 +1,22 @@
 {
+  "spaces": {
+    "loading": "Cargando tus espacios...",
+    "empty": "Aún no tienes espacios privados. Usa la herramienta de espacio privado en el lienzo para comprar uno.",
+    "updateFailed": "No se pudo actualizar",
+    "releaseFailed": "No se pudo liberar",
+    "errorGeneric": "Error",
+    "confirmRelease": "¿Liberar este espacio? Esta acción no se puede deshacer.",
+    "defaultName": "Espacio #{{id}}",
+    "expired": "Expirado",
+    "position": "Posición ({{x}}, {{y}}) · {{w}}×{{h}} ({{px}} px)",
+    "renewsOn": "Renueva el {{date}}",
+    "expiredOn": "Expiró el {{date}}",
+    "removeMember": "Quitar a {{nick}}",
+    "noMembers": "Sin usuarios autorizados aún.",
+    "addPlaceholder": "Agregar por nickname",
+    "add": "Agregar",
+    "release": "Liberar espacio"
+  },
   "admin": {
     "title": "Panel de moderación",
     "tabs": { "reports": "Reportes", "log": "Registro" },
@@ -327,7 +345,8 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "saving": "Guardando...",
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "close": "Cerrar"
   },
   "canvas": {
     "overlay": {
@@ -344,6 +363,48 @@
       "reportHint": "Arrastra para seleccionar el área a reportar",
       "reportBtn": "Reportar zona",
       "dragArea": "Arrastra para seleccionar un área"
+    },
+    "pixels": "Píxeles:",
+    "cooldown": "Cooldown:",
+    "tooltip": {
+      "levelShort": "Nv",
+      "ctrlClick": "Ctrl+Clic para ver perfil"
+    },
+    "publish": {
+      "title": "Publicar creación",
+      "area": "Área: {{w}} × {{h}} píxeles",
+      "titlePlaceholder": "Título (opcional, máx 60)",
+      "confirm": "Confirmar",
+      "publishing": "Publicando...",
+      "error": "Error al publicar",
+      "success": "¡Publicación creada exitosamente!"
+    },
+    "purchase": {
+      "title": "Comprar espacio privado",
+      "area": "Área: {{w}} × {{h}} ({{px}} px)",
+      "type": "Tipo de compra",
+      "monthly": "Mensual",
+      "permanent": "Permanente",
+      "whoCanPaint": "Quién puede pintar",
+      "ownerOnly": "Solo yo",
+      "friends": "Amigos",
+      "specific": "Específicos",
+      "membersPlaceholder": "Nicknames separados por coma",
+      "price": "Precio:",
+      "perMonth": " / mes",
+      "oneTime": " (único pago)",
+      "calculating": "Calculando...",
+      "invalidArea": "Área inválida",
+      "confirm": "Confirmar compra",
+      "purchasing": "Comprando...",
+      "error": "Error al comprar",
+      "failed": "No se pudo comprar el espacio",
+      "success": "¡Espacio privado comprado!"
+    },
+    "manage": { "title": "Mis espacios privados" },
+    "eraseArea": {
+      "failed": "No se pudo borrar el área",
+      "connError": "Error de conexión al borrar el área"
     }
   },
   "settings": { "language": "Idioma" },

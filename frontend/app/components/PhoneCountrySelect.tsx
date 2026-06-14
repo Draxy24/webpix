@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { COUNTRIES } from "../lib/countries";
+import { countryName } from "../lib/countryName";
 import Flag from "./Flag";
 
 export default function PhoneCountrySelect({
@@ -11,6 +13,7 @@ export default function PhoneCountrySelect({
   value: string;
   onChange: (code: string) => void;
 }) {
+  const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = COUNTRIES.find((c) => c.code === value);
@@ -85,7 +88,9 @@ export default function PhoneCountrySelect({
               }}
             >
               <Flag code={c.code} />
-              <span style={{ flex: 1, fontSize: "13px" }}>{c.name}</span>
+              <span style={{ flex: 1, fontSize: "13px" }}>
+                {countryName(c.code, i18n.language)}
+              </span>
               <span style={{ color: "#888", fontSize: "13px" }}>
                 {c.dialCode}
               </span>

@@ -928,7 +928,7 @@ export default function Home() {
           setQuoteError("");
         } else {
           setQuote(null);
-          setQuoteError(data.message || "Área inválida");
+          setQuoteError(data.message || t("canvas.purchase.invalidArea"));
         }
       })
       .catch(() => {});
@@ -1067,14 +1067,16 @@ export default function Home() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al publicar");
+      if (!res.ok) throw new Error(data.message || t("canvas.publish.error"));
       setShowPublishModal(false);
       setSelection(null);
       setPublishTitle("");
       if (soundEnabledRef.current) playPublish();
-      alert("¡Publicación creada exitosamente!");
+      alert(t("canvas.publish.success"));
     } catch (err) {
-      setPublishError(err instanceof Error ? err.message : "Error al publicar");
+      setPublishError(
+        err instanceof Error ? err.message : t("canvas.publish.error"),
+      );
     } finally {
       setPublishing(false);
     }
@@ -1099,7 +1101,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(data.message || "No se pudo borrar el área");
+        alert(data.message || t("canvas.eraseArea.failed"));
         return;
       }
       // El evento 'erase' del WebSocket quita los píxeles del lienzo en todos.
@@ -1111,7 +1113,7 @@ export default function Home() {
       setSelection(null);
       if (soundEnabledRef.current) playErase();
     } catch {
-      alert("Error de conexión al borrar el área");
+      alert(t("canvas.eraseArea.connError"));
     } finally {
       setErasingArea(false);
     }
@@ -1285,7 +1287,7 @@ export default function Home() {
       <div style={overlayBox(16, 16, "left")}>
         <div style={{ fontSize: "var(--text-sm)" }}>
           <span style={{ color: "var(--color-text-secondary)" }}>
-            Píxeles:{" "}
+            {t("canvas.pixels")}{" "}
           </span>
           <strong style={{ color: "var(--color-brand)" }}>
             {clicksLeft === Infinity ? "∞" : clicksLeft}
@@ -1299,7 +1301,7 @@ export default function Home() {
               marginTop: "4px",
             }}
           >
-            Cooldown: {Math.floor(cooldown / 60)}m {cooldown % 60}s
+            {t("canvas.cooldown")} {Math.floor(cooldown / 60)}m {cooldown % 60}s
           </div>
         )}
       </div>
@@ -1512,7 +1514,7 @@ export default function Home() {
                 <strong>{tooltip.nickname}</strong>
                 {card?.level != null && (
                   <span style={{ color: "var(--color-text-secondary)" }}>
-                    · Nv {card.level}
+                    · {t("canvas.tooltip.levelShort")} {card.level}
                   </span>
                 )}
               </div>
@@ -1537,7 +1539,7 @@ export default function Home() {
                 </div>
               )}
               <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>
-                Ctrl+Clic para ver perfil
+                {t("canvas.tooltip.ctrlClick")}
               </div>
             </div>
           );
@@ -1566,19 +1568,21 @@ export default function Home() {
               width: "90%",
             }}
           >
-            <h2 style={{ marginTop: 0 }}>Publicar creación</h2>
+            <h2 style={{ marginTop: 0 }}>{t("canvas.publish.title")}</h2>
             <p
               style={{
                 fontSize: "var(--text-sm)",
                 color: "var(--color-text-secondary)",
               }}
             >
-              Área: {selection.x2 - selection.x1 + 1} ×{" "}
-              {selection.y2 - selection.y1 + 1} píxeles
+              {t("canvas.publish.area", {
+                w: selection.x2 - selection.x1 + 1,
+                h: selection.y2 - selection.y1 + 1,
+              })}
             </p>
             <input
               type="text"
-              placeholder="Título (opcional, máx 60)"
+              placeholder={t("canvas.publish.titlePlaceholder")}
               maxLength={60}
               value={publishTitle}
               onChange={(e) => setPublishTitle(e.target.value)}
@@ -1614,7 +1618,7 @@ export default function Home() {
                 }}
                 style={{ padding: "8px 16px", cursor: "pointer" }}
               >
-                Cancelar
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handlePublish}
@@ -1624,7 +1628,9 @@ export default function Home() {
                   cursor: publishing ? "not-allowed" : "pointer",
                 }}
               >
-                {publishing ? "Publicando..." : "Confirmar"}
+                {publishing
+                  ? t("canvas.publish.publishing")
+                  : t("canvas.publish.confirm")}
               </button>
             </div>
           </div>
@@ -1665,66 +1671,68 @@ export default function Home() {
               width: "90%",
             }}
           >
-            <h2 style={{ marginTop: 0 }}>Comprar espacio privado</h2>
+            <h2 style={{ marginTop: 0 }}>{t("canvas.purchase.title")}</h2>
             <p
               style={{
                 fontSize: "var(--text-sm)",
                 color: "var(--color-text-secondary)",
               }}
             >
-              Área: {selection.x2 - selection.x1 + 1} ×{" "}
-              {selection.y2 - selection.y1 + 1} (
-              {(selection.x2 - selection.x1 + 1) *
-                (selection.y2 - selection.y1 + 1)}{" "}
-              px)
+              {t("canvas.purchase.area", {
+                w: selection.x2 - selection.x1 + 1,
+                h: selection.y2 - selection.y1 + 1,
+                px:
+                  (selection.x2 - selection.x1 + 1) *
+                  (selection.y2 - selection.y1 + 1),
+              })}
             </p>
 
             <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
-              Tipo de compra
+              {t("canvas.purchase.type")}
             </p>
             <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
               <button
                 onClick={() => setPurchaseType("MONTHLY")}
                 style={toggleButton(purchaseType === "MONTHLY")}
               >
-                Mensual
+                {t("canvas.purchase.monthly")}
               </button>
               <button
                 onClick={() => setPurchaseType("PERMANENT")}
                 style={toggleButton(purchaseType === "PERMANENT")}
               >
-                Permanente
+                {t("canvas.purchase.permanent")}
               </button>
             </div>
 
             <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
-              Quién puede pintar
+              {t("canvas.purchase.whoCanPaint")}
             </p>
             <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
               <button
                 onClick={() => setAccessMode("OWNER_ONLY")}
                 style={toggleButton(accessMode === "OWNER_ONLY")}
               >
-                Solo yo
+                {t("canvas.purchase.ownerOnly")}
               </button>
               <button
                 onClick={() => setAccessMode("FRIENDS")}
                 style={toggleButton(accessMode === "FRIENDS")}
               >
-                Amigos
+                {t("canvas.purchase.friends")}
               </button>
               <button
                 onClick={() => setAccessMode("SPECIFIC")}
                 style={toggleButton(accessMode === "SPECIFIC")}
               >
-                Específicos
+                {t("canvas.purchase.specific")}
               </button>
             </div>
 
             {accessMode === "SPECIFIC" && (
               <input
                 type="text"
-                placeholder="Nicknames separados por coma"
+                placeholder={t("canvas.purchase.membersPlaceholder")}
                 value={memberInput}
                 onChange={(e) => setMemberInput(e.target.value)}
                 style={{
@@ -1739,15 +1747,17 @@ export default function Home() {
             <div style={{ fontSize: "var(--text-base)", marginBottom: "12px" }}>
               {quote ? (
                 <span>
-                  Precio:{" "}
+                  {t("canvas.purchase.price")}{" "}
                   <strong style={{ color: "var(--color-brand)" }}>
                     ${(quote.priceCents / 100).toFixed(2)}
                   </strong>
-                  {purchaseType === "MONTHLY" ? " / mes" : " (único pago)"}
+                  {purchaseType === "MONTHLY"
+                    ? t("canvas.purchase.perMonth")
+                    : t("canvas.purchase.oneTime")}
                 </span>
               ) : (
                 <span style={{ color: "var(--color-danger)" }}>
-                  {quoteError || "Calculando..."}
+                  {quoteError || t("canvas.purchase.calculating")}
                 </span>
               )}
             </div>
@@ -1778,7 +1788,7 @@ export default function Home() {
                 }}
                 style={{ padding: "8px 16px", cursor: "pointer" }}
               >
-                Cancelar
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handlePurchase}
@@ -1788,7 +1798,9 @@ export default function Home() {
                   cursor: purchasing || !quote ? "not-allowed" : "pointer",
                 }}
               >
-                {purchasing ? "Comprando..." : "Confirmar compra"}
+                {purchasing
+                  ? t("canvas.purchase.purchasing")
+                  : t("canvas.purchase.confirm")}
               </button>
             </div>
           </div>
@@ -1850,7 +1862,7 @@ export default function Home() {
                 marginBottom: "var(--space-4)",
               }}
             >
-              <h2 style={{ margin: 0 }}>Mis espacios privados</h2>
+              <h2 style={{ margin: 0 }}>{t("canvas.manage.title")}</h2>
               <button
                 onClick={() => {
                   setShowManageModal(false);

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import Flag from "./Flag";
 import { COUNTRIES } from "../lib/countries";
+import { countryName } from "@/app/lib/countryName";
 import { useAuth } from "../context/auth";
 import styles from "./MenuPanel.module.css";
 import LoginForm from "./LoginForm";
@@ -141,11 +142,16 @@ export default function MenuPanel({
                 className={styles.editInput}
               >
                 <option value="">{t("menu.edit.noCountry")}</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
-                  </option>
-                ))}
+                {COUNTRIES.map((c) => ({
+                  code: c.code,
+                  label: countryName(c.code, i18n.language),
+                }))
+                  .sort((a, b) => a.label.localeCompare(b.label, i18n.language))
+                  .map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
               </select>
               <Button
                 variant="primary"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./PrivateSpacesView.module.css";
@@ -21,13 +22,14 @@ type Space = {
   members: string[];
 };
 
-const ACCESS_LABELS: Record<Space["accessMode"], string> = {
-  OWNER_ONLY: "Solo yo",
-  FRIENDS: "Amigos",
-  SPECIFIC: "Específicos",
+const ACCESS_KEY: Record<Space["accessMode"], string> = {
+  OWNER_ONLY: "canvas.purchase.ownerOnly",
+  FRIENDS: "canvas.purchase.friends",
+  SPECIFIC: "canvas.purchase.specific",
 };
 
 export default function PrivateSpacesView() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,15 +54,10 @@ export default function PrivateSpacesView() {
   }, [load]);
 
   if (loading) {
-    return <p className={styles.muted}>Cargando tus espacios...</p>;
+    return <p className={styles.muted}>{t("spaces.loading")}</p>;
   }
   if (spaces.length === 0) {
-    return (
-      <p className={styles.muted}>
-        Aún no tienes espacios privados. Usa la herramienta de espacio privado
-        en el lienzo para comprar uno.
-      </p>
-    );
+    return <p className={styles.muted}>{t("spaces.empty")}</p>;
   }
 
   return (
@@ -81,6 +78,7 @@ function SpaceCard({
   token: string;
   onChanged: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const [memberInput, setMemberInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -89,24 +87,21 @@ function SpaceCard({
     setBusy(true);
     setError("");
     try {
-      const res = await fetch(
-        `${API_URL}/private-spaces/${space.id}/access`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
+      const res = await fetch(`${API_URL}/private-spaces/${space.id}/access`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(body),
+      });
       const data = await res.json();
       if (!res.ok || data.success === false) {
-        throw new Error(data.message || "No se pudo actualizar");
+        throw new Error(data.message || t("spaces.updateFailed"));
       }
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof Error ? err.message : t("spaces.errorGeneric"));
     } finally {
       setBusy(false);
     }
@@ -129,30 +124,23 @@ function SpaceCard({
   };
 
   const release = async () => {
-    if (
-      !window.confirm(
-        "¿Liberar este espacio? Esta acción no se puede deshacer.",
-      )
-    ) {
+    if (!window.confirm(t("spaces.confirmRelease"))) {
       return;
     }
     setBusy(true);
     setError("");
     try {
-      const res = await fetch(
-        `${API_URL}/private-spaces/${space.id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const res = await fetch(`${API_URL}/private-spaces/${space.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       if (!res.ok || data.success === false) {
-        throw new Error(data.message || "No se pudo liberar");
+        throw new Error(data.message || t("spaces.releaseFailed"));
       }
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof Error ? err.message : t("spaces.errorGeneric"));
     } finally {
       setBusy(false);
     }
@@ -165,27 +153,44 @@ function SpaceCard({
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <span className={styles.title}>
-          {space.name || `Espacio #${space.id}`}
+          {space.name || t("spaces.defaultName", { id: space.id })}
         </span>
         <div className={styles.badges}>
           <span className={styles.badge}>
-            {space.purchaseType === "MONTHLY" ? "Mensual" : "Permanente"}
+            {space.purchaseType === "MONTHLY"
+              ? t("canvas.purchase.monthly")
+              : t("canvas.purchase.permanent")}
           </span>
           {!space.active && (
             <span className={`${styles.badge} ${styles.badgeExpired}`}>
-              Expirado
+              {t("spaces.expired")}
             </span>
           )}
         </div>
       </div>
 
       <div className={styles.meta}>
-        Posición ({space.x1}, {space.y1}) · {width}×{height} ({space.pixels} px)
+        {t("spaces.position", {
+          x: space.x1,
+          y: space.y1,
+          w: width,
+          h: height,
+          px: space.pixels,
+        })}
       </div>
       {space.purchaseType === "MONTHLY" && space.expiresAt && (
         <div className={styles.meta}>
-          {space.active ? "Renueva el " : "Expiró el "}
-          {new Date(space.expiresAt).toLocaleDateString("es-MX")}
+          {space.active
+            ? t("spaces.renewsOn", {
+                date: new Date(space.expiresAt).toLocaleDateString(
+                  i18n.language,
+                ),
+              })
+            : t("spaces.expiredOn", {
+                date: new Date(space.expiresAt).toLocaleDateString(
+                  i18n.language,
+                ),
+              })}
         </div>
       )}
 
@@ -198,7 +203,7 @@ function SpaceCard({
               onClick={() => changeMode(mode)}
               disabled={busy}
             >
-              {ACCESS_LABELS[mode]}
+              {t(ACCESS_KEY[mode])}
             </button>
           ),
         )}
@@ -215,7 +220,7 @@ function SpaceCard({
                     className={styles.chipRemove}
                     onClick={() => removeMember(m)}
                     disabled={busy}
-                    aria-label={`Quitar a ${m}`}
+                    aria-label={t("spaces.removeMember", { nick: m })}
                   >
                     ×
                   </button>
@@ -223,13 +228,13 @@ function SpaceCard({
               ))}
             </div>
           ) : (
-            <span className={styles.muted}>Sin usuarios autorizados aún.</span>
+            <span className={styles.muted}>{t("spaces.noMembers")}</span>
           )}
           <div className={styles.addRow}>
             <input
               type="text"
               className={styles.input}
-              placeholder="Agregar por nickname"
+              placeholder={t("spaces.addPlaceholder")}
               value={memberInput}
               onChange={(e) => setMemberInput(e.target.value)}
               onKeyDown={(e) => {
@@ -242,7 +247,7 @@ function SpaceCard({
               onClick={addMember}
               disabled={busy || !memberInput.trim()}
             >
-              Agregar
+              {t("spaces.add")}
             </Button>
           </div>
         </div>
@@ -257,7 +262,7 @@ function SpaceCard({
         onClick={release}
         disabled={busy}
       >
-        Liberar espacio
+        {t("spaces.release")}
       </Button>
     </div>
   );

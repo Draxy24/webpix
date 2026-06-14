@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./ShopView.module.css";
 import { badgeIcon } from "../lib/badges";
+import { cosmeticName, cosmeticDesc } from "../lib/cosmeticText";
 import { API_URL } from "@/app/lib/api";
 
 type ShopItem = {
@@ -141,7 +142,9 @@ export default function ShopView() {
       if (!res.ok) {
         setMessage(result.message || t("shop.msg.buyFail"));
       } else {
-        setMessage(t("shop.msg.bought", { name: item.name }));
+        setMessage(
+          t("shop.msg.bought", { name: cosmeticName(item.key, item.name, t) }),
+        );
         window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }
@@ -169,7 +172,11 @@ export default function ShopView() {
       if (!res.ok) {
         setMessage(result.message || t("shop.msg.paletteFail"));
       } else {
-        setMessage(t("shop.msg.boughtPalette", { name: p.name }));
+        setMessage(
+          t("shop.msg.boughtPalette", {
+            name: t(`palettes.${p.key}.name`, { defaultValue: p.name }),
+          }),
+        );
         window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }
@@ -275,13 +282,17 @@ export default function ShopView() {
               className={styles.titleSample}
               style={item.data?.color ? { color: item.data.color } : undefined}
             >
-              {item.name}
+              {cosmeticName(item.key, item.name, t)}
             </span>
           )}
         </div>
-        <div className={styles.cardName}>{item.name}</div>
-        {item.description && (
-          <div className={styles.cardDesc}>{item.description}</div>
+        <div className={styles.cardName}>
+          {cosmeticName(item.key, item.name, t)}
+        </div>
+        {cosmeticDesc(item.key, item.description, t) && (
+          <div className={styles.cardDesc}>
+            {cosmeticDesc(item.key, item.description, t)}
+          </div>
         )}
         <div className={styles.cardFooter}>
           {item.originalPriceBits ? (
@@ -351,7 +362,9 @@ export default function ShopView() {
                   <span className={styles.coin}>B</span>
                   {pkg.total.toLocaleString(i18n.language)}
                 </div>
-                <div className={styles.cardName}>{pkg.name}</div>
+                <div className={styles.cardName}>
+                  {t(`bitPackages.${pkg.key}`, { defaultValue: pkg.name })}
+                </div>
                 {pkg.bonus > 0 && (
                   <div className={styles.bitsBonus}>
                     {t("shop.bonus", {
@@ -485,8 +498,14 @@ export default function ShopView() {
                           />
                         ))}
                       </div>
-                      <div className={styles.cardName}>{p.name}</div>
-                      <div className={styles.cardDesc}>{p.description}</div>
+                      <div className={styles.cardName}>
+                        {t(`palettes.${p.key}.name`, { defaultValue: p.name })}
+                      </div>
+                      <div className={styles.cardDesc}>
+                        {t(`palettes.${p.key}.desc`, {
+                          defaultValue: p.description,
+                        })}
+                      </div>
                       <div className={styles.paletteProgress}>
                         {t("shop.paletteProgress", {
                           owned: p.ownedCount,
