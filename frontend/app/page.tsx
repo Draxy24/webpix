@@ -34,6 +34,7 @@ import {
 } from "./lib/sounds";
 import ReportModal from "./components/ReportModal";
 import { useTranslation } from "react-i18next";
+import CommunityView from "./components/CommunityView";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -1919,9 +1920,11 @@ export default function Home() {
                 ? t("panel.titles.achievements")
                 : panelSection === "tasks"
                   ? t("panel.titles.tasks")
-                  : panelSection === "bug"
-                    ? t("panel.titles.bug")
-                    : ""
+                  : panelSection === "community"
+                    ? t("panel.titles.community")
+                    : panelSection === "bug"
+                      ? t("panel.titles.bug")
+                      : ""
         }
         onClose={() => setPanelSection(null)}
       >
@@ -1946,6 +1949,7 @@ export default function Home() {
         )}
         {panelSection === "achievements" && <AchievementsView />}
         {panelSection === "tasks" && <WeeklyTasksView />}
+        {panelSection === "community" && <CommunityView isAdmin={isAdmin} />}
         {panelSection === "bug" && <BugReportView />}
       </SidePanel>
     </main>

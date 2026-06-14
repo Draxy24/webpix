@@ -4,8 +4,10 @@ import { useEffect } from "react";
 import { useAuth } from "../context/auth";
 import { useRouter } from "next/navigation";
 import BugReportView from "../components/BugReportView";
+import { useTranslation } from "react-i18next";
 
 export default function ReportBugPage() {
+  const { t } = useTranslation();
   const { token, loading } = useAuth();
   const router = useRouter();
 
@@ -25,7 +27,7 @@ export default function ReportBugPage() {
           color: "var(--color-text-secondary)",
         }}
       >
-        Cargando...
+        {t("common.loading")}
       </main>
     );
   }
@@ -65,13 +67,13 @@ export default function ReportBugPage() {
               fontSize: "var(--text-lg)",
             }}
           >
-            Reportar un bug 🐛
+            {t("bug.pageTitle")} 🐛
           </h1>
           <a
             href="/"
             style={{ fontSize: "var(--text-sm)", color: "var(--color-brand)" }}
           >
-            ← Volver
+            ← {t("common.back")}
           </a>
         </div>
         <BugReportView />

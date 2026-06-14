@@ -45,6 +45,7 @@ model User {
   weeklyTasks UserWeeklyTask[]
   monthlyScores MonthlyScore[]
   rankingWins RankingWinner[]
+  announcements Announcement[]
 }
 
 model Pixel {
@@ -379,4 +380,23 @@ model RankingWinner {
 
   @@index([period])
   @@index([userId])
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  authorId  Int?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([pinned, createdAt])
+}
+
+model CanvasSnapshot {
+  id        Int      @id @default(autoincrement())
+  weekStart DateTime @unique
+  imageUrl  String
+  createdAt DateTime @default(now())
 }

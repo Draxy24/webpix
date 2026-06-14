@@ -387,7 +387,10 @@ export default function AdminPage() {
                         </div>
                       )}
                       <div style={{ marginTop: "4px" }}>
-                        <strong>{t("admin.reports.reason")}</strong> {r.reason}
+                        <strong>{t("admin.reports.reason")}</strong>{" "}
+                        {t(`report.reasons.${r.reason}`, {
+                          defaultValue: r.reason,
+                        })}
                       </div>
                       {r.details && (
                         <div className={styles.details}>{r.details}</div>

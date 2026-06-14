@@ -1,4 +1,50 @@
 {
+  "community": {
+    "tabs": { "announcements": "公告", "snapshots": "快照" },
+    "empty": { "announcements": "暂无公告。", "snapshots": "暂无每周快照。" },
+    "pinned": "置顶",
+    "meta": "{{author}} · {{date}}",
+    "official": "WebPix",
+    "form": {
+      "heading": "新公告",
+      "titlePlaceholder": "标题",
+      "bodyPlaceholder": "撰写公告...",
+      "pin": "置顶",
+      "publish": "发布",
+      "publishing": "正在发布...",
+      "error": "无法发布"
+    },
+    "delete": "删除",
+    "confirmDelete": "删除此公告？",
+    "weekOf": "{{date}} 那一周"
+  },
+  "report": {
+    "titles": {
+      "USER": "举报用户",
+      "PUBLICATION": "举报作品",
+      "COMMENT": "举报评论",
+      "CANVAS": "举报画布区域"
+    },
+    "reasons": {
+      "nsfw": "露骨内容 / NSFW",
+      "harassment": "骚扰",
+      "spam": "垃圾信息",
+      "hate": "仇恨言论",
+      "impersonation": "冒充身份",
+      "explicit": "露骨内容",
+      "offensive_symbol": "冒犯性符号或内容",
+      "other": "其他"
+    },
+    "reasonLabel": "原因",
+    "detailsLabel": "详情（可选）",
+    "detailsPlaceholder": "补充信息...",
+    "submit": "举报",
+    "submitting": "正在发送...",
+    "error": "发送举报时出错",
+    "errorGeneric": "错误",
+    "sentTitle": "举报已发送",
+    "sentBody": "谢谢。我们的团队会进行审核。"
+  },
   "seasons": {
     "san_valentin": "情人节",
     "carnaval": "狂欢节",
@@ -307,6 +353,7 @@
   },
   "bug": {
     "loginRequired": "登录后即可报告错误。打开菜单并从“个人资料”标签登录。",
+    "pageTitle": "举报 Bug",
     "success": {
       "title": "感谢你的反馈！",
       "text": "你的报告已发送。我们的团队会查看并修复该问题。",
@@ -476,7 +523,8 @@
       "achievements": "成就",
       "tasks": "每周任务",
       "bug": "报告错误",
-      "shop": "商店"
+      "shop": "商店",
+      "community": "社区"
     }
   },
   "common": {
@@ -484,7 +532,8 @@
     "save": "保存",
     "saving": "正在保存...",
     "loading": "加载中...",
-    "close": "关闭"
+    "close": "关闭",
+    "back": "返回"
   },
   "canvas": {
     "overlay": {

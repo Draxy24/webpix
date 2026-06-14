@@ -1,4 +1,53 @@
 {
+  "community": {
+    "tabs": { "announcements": "Announcements", "snapshots": "Snapshots" },
+    "empty": {
+      "announcements": "No announcements for now.",
+      "snapshots": "No weekly snapshots yet."
+    },
+    "pinned": "Pinned",
+    "meta": "by {{author}} · {{date}}",
+    "official": "WebPix",
+    "form": {
+      "heading": "New announcement",
+      "titlePlaceholder": "Title",
+      "bodyPlaceholder": "Write the announcement...",
+      "pin": "Pin to top",
+      "publish": "Publish",
+      "publishing": "Publishing...",
+      "error": "Could not publish"
+    },
+    "delete": "Delete",
+    "confirmDelete": "Delete this announcement?",
+    "weekOf": "Week of {{date}}"
+  },
+  "report": {
+    "titles": {
+      "USER": "Report user",
+      "PUBLICATION": "Report publication",
+      "COMMENT": "Report comment",
+      "CANVAS": "Report canvas zone"
+    },
+    "reasons": {
+      "nsfw": "Explicit content / NSFW",
+      "harassment": "Harassment",
+      "spam": "Spam",
+      "hate": "Hate speech",
+      "impersonation": "Impersonation",
+      "explicit": "Explicit content",
+      "offensive_symbol": "Offensive symbol or content",
+      "other": "Other"
+    },
+    "reasonLabel": "Reason",
+    "detailsLabel": "Details (optional)",
+    "detailsPlaceholder": "Additional information...",
+    "submit": "Report",
+    "submitting": "Sending...",
+    "error": "Error sending the report",
+    "errorGeneric": "Error",
+    "sentTitle": "Report sent",
+    "sentBody": "Thanks. Our team will review it."
+  },
   "seasons": {
     "san_valentin": "Valentine's Day",
     "carnaval": "Carnival",
@@ -379,6 +428,7 @@
   },
   "bug": {
     "loginRequired": "Log in to report a bug. Open the menu and sign in from the Profile tab.",
+    "pageTitle": "Report a Bug",
     "success": {
       "title": "Thanks for reporting!",
       "text": "Your report was sent. Our team will review it to fix the issue.",
@@ -556,7 +606,8 @@
       "achievements": "Achievements",
       "tasks": "Weekly tasks",
       "bug": "Report bug",
-      "shop": "Shop"
+      "shop": "Shop",
+      "community": "Community"
     }
   },
   "common": {
@@ -564,7 +615,8 @@
     "save": "Save",
     "saving": "Saving...",
     "loading": "Loading...",
-    "close": "Close"
+    "close": "Close",
+    "back": "Back"
   },
   "canvas": {
     "overlay": {

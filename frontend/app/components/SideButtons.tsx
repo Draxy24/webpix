@@ -8,6 +8,7 @@ export type PanelSection =
   | "settings"
   | "achievements"
   | "tasks"
+  | "community"
   | "bug";
 
 function Icon({ section }: { section: PanelSection | "bug" | "cart" }) {
@@ -59,6 +60,18 @@ function Icon({ section }: { section: PanelSection | "bug" | "cart" }) {
           <rect x="9" y="7" width="2" height="2" />
         </svg>
       );
+    case "community":
+      return (
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="2" y="7" width="2" height="2" />
+          <rect x="4" y="6" width="2" height="4" />
+          <rect x="6" y="5" width="2" height="6" />
+          <rect x="8" y="4" width="2" height="8" />
+          <rect x="10" y="3" width="2" height="10" />
+          <rect x="13" y="3" width="2" height="2" />
+          <rect x="13" y="11" width="2" height="2" />
+        </svg>
+      );
     case "bug":
       return (
         <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
@@ -101,6 +114,7 @@ export default function SideButtons({
     "settings",
     "achievements",
     "tasks",
+    "community",
   ];
 
   return (

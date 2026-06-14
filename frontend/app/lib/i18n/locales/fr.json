@@ -1,4 +1,53 @@
 {
+  "community": {
+    "tabs": { "announcements": "Annonces", "snapshots": "Captures" },
+    "empty": {
+      "announcements": "Aucune annonce pour le moment.",
+      "snapshots": "Aucune capture hebdomadaire pour le moment."
+    },
+    "pinned": "Épinglé",
+    "meta": "par {{author}} · {{date}}",
+    "official": "WebPix",
+    "form": {
+      "heading": "Nouvelle annonce",
+      "titlePlaceholder": "Titre",
+      "bodyPlaceholder": "Rédige l'annonce...",
+      "pin": "Épingler en haut",
+      "publish": "Publier",
+      "publishing": "Publication...",
+      "error": "Impossible de publier"
+    },
+    "delete": "Supprimer",
+    "confirmDelete": "Supprimer cette annonce ?",
+    "weekOf": "Semaine du {{date}}"
+  },
+  "report": {
+    "titles": {
+      "USER": "Signaler l'utilisateur",
+      "PUBLICATION": "Signaler la publication",
+      "COMMENT": "Signaler le commentaire",
+      "CANVAS": "Signaler la zone du canevas"
+    },
+    "reasons": {
+      "nsfw": "Contenu explicite / NSFW",
+      "harassment": "Harcèlement",
+      "spam": "Spam",
+      "hate": "Discours haineux",
+      "impersonation": "Usurpation d'identité",
+      "explicit": "Contenu explicite",
+      "offensive_symbol": "Symbole ou contenu offensant",
+      "other": "Autre"
+    },
+    "reasonLabel": "Motif",
+    "detailsLabel": "Détails (optionnel)",
+    "detailsPlaceholder": "Informations supplémentaires...",
+    "submit": "Signaler",
+    "submitting": "Envoi...",
+    "error": "Erreur lors de l'envoi du signalement",
+    "errorGeneric": "Erreur",
+    "sentTitle": "Signalement envoyé",
+    "sentBody": "Merci. Notre équipe l'examinera."
+  },
   "seasons": {
     "san_valentin": "Saint-Valentin",
     "carnaval": "Carnaval",
@@ -409,6 +458,7 @@
   },
   "bug": {
     "loginRequired": "Connecte-toi pour signaler un bug. Ouvre le menu et connecte-toi depuis l'onglet Profil.",
+    "pageTitle": "Signaler un bug",
     "success": {
       "title": "Merci pour ton signalement !",
       "text": "Ton signalement a été envoyé. Notre équipe l'examinera pour corriger le problème.",
@@ -586,7 +636,8 @@
       "achievements": "Succès",
       "tasks": "Tâches hebdomadaires",
       "bug": "Signaler un bug",
-      "shop": "Boutique"
+      "shop": "Boutique",
+      "community": "Communauté"
     }
   },
   "common": {
@@ -594,7 +645,8 @@
     "save": "Enregistrer",
     "saving": "Enregistrement...",
     "loading": "Chargement...",
-    "close": "Fermer"
+    "close": "Fermer",
+    "back": "Retour"
   },
   "canvas": {
     "overlay": {

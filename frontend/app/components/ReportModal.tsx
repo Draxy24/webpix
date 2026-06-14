@@ -1,41 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import { API_URL } from "@/app/lib/api";
 
 type ReportType = "USER" | "PUBLICATION" | "COMMENT" | "CANVAS";
 
 const REASONS: Record<ReportType, string[]> = {
-  USER: [
-    "Contenido explícito / NSFW",
-    "Acoso",
-    "Spam",
-    "Discurso de odio",
-    "Suplantación de identidad",
-    "Otro",
-  ],
-  PUBLICATION: [
-    "Contenido explícito / NSFW",
-    "Spam",
-    "Discurso de odio",
-    "Otro",
-  ],
-  COMMENT: ["Acoso", "Spam", "Discurso de odio", "Contenido explícito", "Otro"],
-  CANVAS: [
-    "Contenido explícito / NSFW",
-    "Discurso de odio",
-    "Símbolo o contenido ofensivo",
-    "Spam",
-    "Otro",
-  ],
-};
-
-const TITLES: Record<ReportType, string> = {
-  USER: "Reportar usuario",
-  PUBLICATION: "Reportar publicación",
-  COMMENT: "Reportar comentario",
-  CANVAS: "Reportar zona del lienzo",
+  USER: ["nsfw", "harassment", "spam", "hate", "impersonation", "other"],
+  PUBLICATION: ["nsfw", "spam", "hate", "other"],
+  COMMENT: ["harassment", "spam", "hate", "explicit", "other"],
+  CANVAS: ["nsfw", "hate", "offensive_symbol", "spam", "other"],
 };
 
 export default function ReportModal({
@@ -59,6 +35,7 @@ export default function ReportModal({
   y2?: number;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [reason, setReason] = useState(REASONS[type][0]);
   const [details, setDetails] = useState("");
@@ -90,11 +67,10 @@ export default function ReportModal({
         }),
       });
       const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message ?? "Error al enviar el reporte");
+      if (!res.ok) throw new Error(data.message ?? t("report.error"));
       setDone(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof Error ? err.message : t("report.errorGeneric"));
     } finally {
       setSubmitting(false);
     }
@@ -128,21 +104,19 @@ export default function ReportModal({
       >
         {done ? (
           <>
-            <h3 style={{ margin: 0 }}>Reporte enviado</h3>
-            <p style={{ fontSize: "14px" }}>
-              Gracias. Nuestro equipo lo revisará.
-            </p>
+            <h3 style={{ margin: 0 }}>{t("report.sentTitle")}</h3>
+            <p style={{ fontSize: "14px" }}>{t("report.sentBody")}</p>
             <button
               onClick={onClose}
               style={{ padding: "8px 12px", cursor: "pointer" }}
             >
-              Cerrar
+              {t("common.close")}
             </button>
           </>
         ) : (
           <>
-            <h3 style={{ margin: 0 }}>{TITLES[type]}</h3>
-            <label style={{ fontSize: "13px" }}>Motivo</label>
+            <h3 style={{ margin: 0 }}>{t(`report.titles.${type}`)}</h3>
+            <label style={{ fontSize: "13px" }}>{t("report.reasonLabel")}</label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -155,17 +129,19 @@ export default function ReportModal({
             >
               {REASONS[type].map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {t(`report.reasons.${r}`)}
                 </option>
               ))}
             </select>
-            <label style={{ fontSize: "13px" }}>Detalles (opcional)</label>
+            <label style={{ fontSize: "13px" }}>
+              {t("report.detailsLabel")}
+            </label>
             <textarea
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               maxLength={500}
               rows={3}
-              placeholder="Información adicional..."
+              placeholder={t("report.detailsPlaceholder")}
               style={{
                 padding: "8px",
                 fontSize: "14px",
@@ -184,7 +160,7 @@ export default function ReportModal({
                 onClick={onClose}
                 style={{ padding: "8px 12px", cursor: "pointer", flex: 1 }}
               >
-                Cancelar
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -199,7 +175,7 @@ export default function ReportModal({
                   borderRadius: "4px",
                 }}
               >
-                {submitting ? "Enviando..." : "Reportar"}
+                {submitting ? t("report.submitting") : t("report.submit")}
               </button>
             </div>
           </>

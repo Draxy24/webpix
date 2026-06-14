@@ -14,6 +14,7 @@ import { AchievementsModule } from './achievements/achievements.module';
 import { WeeklyTasksModule } from './weekly-tasks/weekly-tasks.module';
 import { ShopModule } from './shop/shop.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     WeeklyTasksModule,
     ShopModule,
     ScheduleModule.forRoot(),
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [],

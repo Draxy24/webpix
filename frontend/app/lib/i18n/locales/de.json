@@ -1,4 +1,53 @@
 {
+  "community": {
+    "tabs": { "announcements": "Ankündigungen", "snapshots": "Aufnahmen" },
+    "empty": {
+      "announcements": "Derzeit keine Ankündigungen.",
+      "snapshots": "Noch keine wöchentlichen Aufnahmen."
+    },
+    "pinned": "Angeheftet",
+    "meta": "von {{author}} · {{date}}",
+    "official": "WebPix",
+    "form": {
+      "heading": "Neue Ankündigung",
+      "titlePlaceholder": "Titel",
+      "bodyPlaceholder": "Schreibe die Ankündigung...",
+      "pin": "Oben anheften",
+      "publish": "Veröffentlichen",
+      "publishing": "Wird veröffentlicht...",
+      "error": "Konnte nicht veröffentlicht werden"
+    },
+    "delete": "Löschen",
+    "confirmDelete": "Diese Ankündigung löschen?",
+    "weekOf": "Woche vom {{date}}"
+  },
+  "report": {
+    "titles": {
+      "USER": "Nutzer melden",
+      "PUBLICATION": "Veröffentlichung melden",
+      "COMMENT": "Kommentar melden",
+      "CANVAS": "Leinwandzone melden"
+    },
+    "reasons": {
+      "nsfw": "Explizite Inhalte / NSFW",
+      "harassment": "Belästigung",
+      "spam": "Spam",
+      "hate": "Hassrede",
+      "impersonation": "Identitätsdiebstahl",
+      "explicit": "Explizite Inhalte",
+      "offensive_symbol": "Anstößiges Symbol oder Inhalt",
+      "other": "Sonstiges"
+    },
+    "reasonLabel": "Grund",
+    "detailsLabel": "Details (optional)",
+    "detailsPlaceholder": "Zusätzliche Informationen...",
+    "submit": "Melden",
+    "submitting": "Wird gesendet...",
+    "error": "Fehler beim Senden der Meldung",
+    "errorGeneric": "Fehler",
+    "sentTitle": "Meldung gesendet",
+    "sentBody": "Danke. Unser Team wird sie prüfen."
+  },
   "seasons": {
     "san_valentin": "Valentinstag",
     "carnaval": "Karneval",
@@ -397,6 +446,7 @@
   },
   "bug": {
     "loginRequired": "Melde dich an, um einen Fehler zu melden. Öffne das Menü und melde dich über den Tab Profil an.",
+    "pageTitle": "Bug melden",
     "success": {
       "title": "Danke für die Meldung!",
       "text": "Deine Meldung wurde gesendet. Unser Team wird sie prüfen, um das Problem zu beheben.",
@@ -574,7 +624,8 @@
       "achievements": "Erfolge",
       "tasks": "Wöchentliche Aufgaben",
       "bug": "Fehler melden",
-      "shop": "Shop"
+      "shop": "Shop",
+      "community": "Community"
     }
   },
   "common": {
@@ -582,7 +633,8 @@
     "save": "Speichern",
     "saving": "Wird gespeichert...",
     "loading": "Wird geladen...",
-    "close": "Schließen"
+    "close": "Schließen",
+    "back": "Zurück"
   },
   "canvas": {
     "overlay": {

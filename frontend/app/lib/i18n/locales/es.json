@@ -1,4 +1,53 @@
 {
+  "community": {
+    "tabs": { "announcements": "Avisos", "snapshots": "Capturas" },
+    "empty": {
+      "announcements": "No hay avisos por ahora.",
+      "snapshots": "Aún no hay capturas semanales."
+    },
+    "pinned": "Fijado",
+    "meta": "por {{author}} · {{date}}",
+    "official": "WebPix",
+    "form": {
+      "heading": "Nuevo aviso",
+      "titlePlaceholder": "Título",
+      "bodyPlaceholder": "Escribe el aviso...",
+      "pin": "Fijar arriba",
+      "publish": "Publicar",
+      "publishing": "Publicando...",
+      "error": "No se pudo publicar"
+    },
+    "delete": "Borrar",
+    "confirmDelete": "¿Borrar este aviso?",
+    "weekOf": "Semana del {{date}}"
+  },
+  "report": {
+    "titles": {
+      "USER": "Reportar usuario",
+      "PUBLICATION": "Reportar publicación",
+      "COMMENT": "Reportar comentario",
+      "CANVAS": "Reportar zona del lienzo"
+    },
+    "reasons": {
+      "nsfw": "Contenido explícito / NSFW",
+      "harassment": "Acoso",
+      "spam": "Spam",
+      "hate": "Discurso de odio",
+      "impersonation": "Suplantación de identidad",
+      "explicit": "Contenido explícito",
+      "offensive_symbol": "Símbolo o contenido ofensivo",
+      "other": "Otro"
+    },
+    "reasonLabel": "Motivo",
+    "detailsLabel": "Detalles (opcional)",
+    "detailsPlaceholder": "Información adicional...",
+    "submit": "Reportar",
+    "submitting": "Enviando...",
+    "error": "Error al enviar el reporte",
+    "errorGeneric": "Error",
+    "sentTitle": "Reporte enviado",
+    "sentBody": "Gracias. Nuestro equipo lo revisará."
+  },
   "spaces": {
     "loading": "Cargando tus espacios...",
     "empty": "Aún no tienes espacios privados. Usa la herramienta de espacio privado en el lienzo para comprar uno.",
@@ -161,6 +210,7 @@
   },
   "bug": {
     "loginRequired": "Inicia sesión para reportar un bug. Abre la hamburguesa y entra desde la pestaña Perfil.",
+    "pageTitle": "Reportar un bug",
     "success": {
       "title": "¡Gracias por reportar!",
       "text": "Tu reporte fue enviado. Nuestro equipo lo revisará para corregir el problema.",
@@ -338,7 +388,8 @@
       "achievements": "Logros",
       "tasks": "Tareas semanales",
       "bug": "Reportar bug",
-      "shop": "Tienda"
+      "shop": "Tienda",
+      "community": "Comunidad"
     }
   },
   "common": {
@@ -346,7 +397,8 @@
     "save": "Guardar",
     "saving": "Guardando...",
     "loading": "Cargando...",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "back": "Volver"
   },
   "canvas": {
     "overlay": {
