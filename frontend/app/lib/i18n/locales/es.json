@@ -438,7 +438,8 @@
     "saving": "Guardando...",
     "loading": "Cargando...",
     "close": "Cerrar",
-    "back": "Volver"
+    "back": "Volver",
+    "confirm": "Confirmar"
   },
   "canvas": {
     "overlay": {

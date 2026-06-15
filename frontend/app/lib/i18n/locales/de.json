@@ -843,7 +843,8 @@
     "saving": "Wird gespeichert...",
     "loading": "Wird geladen...",
     "close": "Schließen",
-    "back": "Zurück"
+    "back": "Zurück",
+    "confirm": "Bestätigen"
   },
   "canvas": {
     "overlay": {

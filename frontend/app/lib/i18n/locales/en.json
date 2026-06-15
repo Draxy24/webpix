@@ -816,7 +816,8 @@
     "saving": "Saving...",
     "loading": "Loading...",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "confirm": "Confirm"
   },
   "canvas": {
     "overlay": {

@@ -852,7 +852,8 @@
     "saving": "Enregistrement...",
     "loading": "Chargement...",
     "close": "Fermer",
-    "back": "Retour"
+    "back": "Retour",
+    "confirm": "Confirmer"
   },
   "canvas": {
     "overlay": {

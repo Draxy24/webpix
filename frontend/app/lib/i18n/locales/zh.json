@@ -676,7 +676,8 @@
     "saving": "正在保存...",
     "loading": "加载中...",
     "close": "关闭",
-    "back": "返回"
+    "back": "返回",
+    "confirm": "确认"
   },
   "canvas": {
     "overlay": {

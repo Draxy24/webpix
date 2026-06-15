@@ -21,6 +21,7 @@ import WeeklyTasksView from "./components/WeeklyTasksView";
 import { useProfileModal } from "./components/ProfileModalContext";
 import { useShopModal } from "./components/ShopModalContext";
 import { resolveColor } from "./lib/colors";
+import { useNotify } from "./components/NotificationProvider";
 import { API_URL } from "@/app/lib/api";
 import Flag from "./components/Flag";
 import { badgeIcon } from "./lib/badges";
@@ -40,6 +41,7 @@ import CommunityView from "./components/CommunityView";
 
 export default function Home() {
   const { t } = useTranslation();
+  const { success, error } = useNotify();
   const tRef = useRef(t);
   useEffect(() => {
     tRef.current = t;
@@ -1090,7 +1092,7 @@ export default function Home() {
       setSelection(null);
       setPublishTitle("");
       if (soundEnabledRef.current) playPublish();
-      alert(t("canvas.publish.success"));
+      success(t("canvas.publish.success"));
     } catch (err) {
       setPublishError(
         err instanceof Error ? err.message : t("canvas.publish.error"),
@@ -1119,7 +1121,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(apiErrorText(data, t, t("canvas.eraseArea.failed")));
+        error(apiErrorText(data, t, t("canvas.eraseArea.failed")));
         return;
       }
       // El evento 'erase' del WebSocket quita los píxeles del lienzo en todos.
@@ -1131,7 +1133,7 @@ export default function Home() {
       setSelection(null);
       if (soundEnabledRef.current) playErase();
     } catch {
-      alert(t("canvas.eraseArea.connError"));
+      error(t("canvas.eraseArea.connError"));
     } finally {
       setErasingArea(false);
     }
@@ -1176,7 +1178,7 @@ export default function Home() {
       setMemberInput("");
       setAccessMode("OWNER_ONLY");
       if (soundEnabledRef.current) playPurchase();
-      alert(t("canvas.purchase.success"));
+      success(t("canvas.purchase.success"));
     } catch (err) {
       setPurchaseError(
         err instanceof Error ? err.message : t("canvas.purchase.genericError"),

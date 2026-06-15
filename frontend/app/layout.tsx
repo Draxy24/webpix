@@ -5,6 +5,7 @@ import { SettingsProvider } from "./context/settings";
 import { ProfileModalProvider } from "./components/ProfileModalContext";
 import { ShopModalProvider } from "./components/ShopModalContext";
 import I18nProvider from "./components/I18nProvider";
+import { NotificationProvider } from "./components/NotificationProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,13 +34,15 @@ export default function RootLayout({
     <html lang="es" className={`${inter.variable} ${pressStart.variable}`}>
       <body>
         <I18nProvider>
-          <AuthProvider>
-            <SettingsProvider>
-              <ProfileModalProvider>
-                <ShopModalProvider>{children}</ShopModalProvider>
-              </ProfileModalProvider>
-            </SettingsProvider>
-          </AuthProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <SettingsProvider>
+                <ProfileModalProvider>
+                  <ShopModalProvider>{children}</ShopModalProvider>
+                </ProfileModalProvider>
+              </SettingsProvider>
+            </AuthProvider>
+          </NotificationProvider>
         </I18nProvider>
       </body>
     </html>
