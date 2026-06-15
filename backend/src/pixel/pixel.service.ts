@@ -23,7 +23,12 @@ type PaintResult =
         cooldownSeconds: number;
       };
     }
-  | { success: false; cooldownSeconds: number; message: string };
+  | {
+      success: false;
+      cooldownSeconds: number;
+      message: string;
+      code: string;
+    };
 
 type EraseResult =
   | {
@@ -35,7 +40,7 @@ type EraseResult =
         cooldownSeconds: number;
       } | null;
     }
-  | { success: false; message: string };
+  | { success: false; message: string; code: string };
 
 const anonymousCooldowns = new Map<
   string,
@@ -83,6 +88,7 @@ export class PixelService {
         success: false,
         cooldownSeconds: 0,
         message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
       };
 
     // Color exótico (token): el usuario debe poseerlo
@@ -91,6 +97,7 @@ export class PixelService {
         success: false,
         cooldownSeconds: 0,
         message: 'No posees este color exótico',
+        code: 'COLOR_NOT_OWNED',
       };
     }
 
@@ -103,6 +110,7 @@ export class PixelService {
           success: false,
           cooldownSeconds: 0,
           message: 'Este píxel pertenece a un espacio privado',
+          code: 'PIXEL_IN_PRIVATE_SPACE',
         };
       }
 
@@ -152,7 +160,12 @@ export class PixelService {
         const cooldownSeconds = Math.ceil(
           (user.cooldownUntil.getTime() - now.getTime()) / 1000,
         );
-        return { success: false, cooldownSeconds, message: 'En cooldown' };
+        return {
+          success: false,
+          cooldownSeconds,
+          message: 'En cooldown',
+          code: 'COOLDOWN',
+        };
       }
 
       if (user.cooldownUntil && user.cooldownUntil <= now) {
@@ -173,7 +186,12 @@ export class PixelService {
           data: { cooldownUntil },
         });
         const cooldownSeconds = limit.cooldownHours * 60 * 60;
-        return { success: false, cooldownSeconds, message: 'Límite alcanzado' };
+        return {
+          success: false,
+          cooldownSeconds,
+          message: 'Límite alcanzado',
+          code: 'LIMIT_REACHED',
+        };
       }
     }
 
@@ -241,6 +259,7 @@ export class PixelService {
         success: false,
         cooldownSeconds: 0,
         message: 'Inicia sesión para usar colores exóticos',
+        code: 'LOGIN_FOR_EXOTIC',
       };
     }
     // Los anónimos no pueden pintar dentro de espacios privados
@@ -250,6 +269,7 @@ export class PixelService {
         success: false,
         cooldownSeconds: 0,
         message: 'Este píxel pertenece a un espacio privado',
+        code: 'PIXEL_IN_PRIVATE_SPACE',
       };
     }
 
@@ -263,7 +283,12 @@ export class PixelService {
       const cooldownSeconds = Math.ceil(
         (state.cooldownUntil.getTime() - now.getTime()) / 1000,
       );
-      return { success: false, cooldownSeconds, message: 'En cooldown' };
+      return {
+        success: false,
+        cooldownSeconds,
+        message: 'En cooldown',
+        code: 'COOLDOWN',
+      };
     }
 
     if (state.cooldownUntil && state.cooldownUntil <= now) {
@@ -278,6 +303,7 @@ export class PixelService {
         success: false,
         cooldownSeconds: 3 * 60 * 60,
         message: 'Límite alcanzado',
+        code: 'LIMIT_REACHED',
       };
     }
 
@@ -373,13 +399,22 @@ export class PixelService {
 
   async eraseOne(userId: number, x: number, y: number): Promise<EraseResult> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return { success: false, message: 'Usuario no encontrado' };
+    if (!user)
+      return {
+        success: false,
+        message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
+      };
 
     const pixel = await this.prisma.pixel.findUnique({
       where: { x_y: { x, y } },
     });
     if (!pixel)
-      return { success: false, message: 'No hay nada que borrar aquí' };
+      return {
+        success: false,
+        message: 'No hay nada que borrar aquí',
+        code: 'NOTHING_TO_ERASE',
+      };
 
     // Admin borra cualquier cosa (moderación), sin reembolso
     if (user.isAdmin) {
@@ -395,6 +430,7 @@ export class PixelService {
         return {
           success: false,
           message: 'Este píxel pertenece a un espacio privado',
+          code: 'PIXEL_IN_PRIVATE_SPACE',
         };
       }
       // Con acceso: puedes borrar, pero sin reembolso (pintar ahí fue gratis)
@@ -408,6 +444,7 @@ export class PixelService {
       return {
         success: false,
         message: 'Solo puedes borrar tus propios píxeles',
+        code: 'ERASE_ONLY_OWN',
       };
     }
 
@@ -425,7 +462,12 @@ export class PixelService {
     y2: number,
   ): Promise<EraseResult> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return { success: false, message: 'Usuario no encontrado' };
+    if (!user)
+      return {
+        success: false,
+        message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
+      };
 
     const minX = Math.min(x1, x2);
     const maxX = Math.max(x1, x2);
@@ -445,6 +487,7 @@ export class PixelService {
           success: false,
           message:
             'El área toca un espacio privado. Usa el modo punto dentro de espacios privados.',
+          code: 'AREA_TOUCHES_PRIVATE',
         };
       }
     }
@@ -457,6 +500,7 @@ export class PixelService {
       return {
         success: false,
         message: 'No hay píxeles que borrar en esta área',
+        code: 'AREA_EMPTY_ERASE',
       };
     }
 
@@ -476,6 +520,7 @@ export class PixelService {
           success: false,
           message:
             'El área contiene píxeles de otro usuario. Píntalos primero para reclamarlos.',
+          code: 'AREA_HAS_FOREIGN',
         };
       }
       const mine = pixels.filter((p) => p.userId === userId);
@@ -483,6 +528,7 @@ export class PixelService {
         return {
           success: false,
           message: 'No tienes píxeles propios en esta área',
+          code: 'AREA_NO_OWN',
         };
       }
       cells = mine.map((p) => ({ x: p.x, y: p.y }));

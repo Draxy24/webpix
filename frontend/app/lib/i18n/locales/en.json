@@ -1,4 +1,83 @@
 {
+  "errors": {
+    "USER_NOT_FOUND": "User not found",
+    "COLOR_NOT_OWNED": "You don't own this exotic color",
+    "PIXEL_IN_PRIVATE_SPACE": "This pixel belongs to a private space",
+    "COOLDOWN": "On cooldown",
+    "LIMIT_REACHED": "Limit reached",
+    "LOGIN_FOR_EXOTIC": "Sign in to use exotic colors",
+    "NOTHING_TO_ERASE": "Nothing to erase here",
+    "ERASE_ONLY_OWN": "You can only erase your own pixels",
+    "AREA_TOUCHES_PRIVATE": "The area touches a private space. Use point mode inside private spaces.",
+    "AREA_EMPTY_ERASE": "No pixels to erase in this area",
+    "AREA_HAS_FOREIGN": "The area contains another user's pixels. Paint over them first to claim them.",
+    "AREA_NO_OWN": "You don't have any pixels of your own in this area",
+    "PUB_AREA_TOO_SMALL": "The area must be at least {{area}} pixels total and at least {{side}} on each side",
+    "PUB_TITLE_TOO_LONG": "The title can't be longer than {{max}} characters",
+    "PUB_AREA_EMPTY": "The selected area is empty",
+    "PUB_NOT_ENOUGH_PIXELS": "You must have painted at least {{min}} pixels in this area",
+    "PUB_OWNERSHIP_TOO_LOW": "You must own at least {{required}}% of the painted pixels in the area. Currently: {{current}}%",
+    "PUB_NOT_FOUND": "Publication not found",
+    "PUB_DELETE_FORBIDDEN": "You can't delete this publication",
+    "COMMENT_LENGTH": "The comment must be between 1 and {{max}} characters",
+    "COMMENT_NOT_FOUND": "Comment not found",
+    "COMMENT_DELETE_FORBIDDEN": "You can't delete this comment",
+    "SPACE_SIDE_TOO_SMALL": "No side can be smaller than {{min}} pixels",
+    "SPACE_AREA_TOO_SMALL": "The space must have an area of at least {{min}} pixels",
+    "SPACE_SIDE_TOO_BIG": "No side can exceed {{max}} pixels",
+    "SPACE_MAX_COUNT": "You already have the maximum of {{max}} active spaces",
+    "SPACE_MAX_PIXELS": "You'd exceed your cap of {{max}} private pixels",
+    "SPACE_OVERLAP": "The area overlaps with another existing private space",
+    "SPACE_HAS_FOREIGN": "The area contains another user's pixels. You can only buy empty areas or ones with your own pixels.",
+    "SPACE_USERS_NOT_FOUND": "These users were not found: {{users}}",
+    "SPACE_NOT_FOUND": "Space not found",
+    "SPACE_NOT_YOURS": "This isn't your space",
+    "NICKNAME_TAKEN": "The nickname is already in use",
+    "EMAIL_TAKEN": "The email is already registered",
+    "PHONE_TAKEN": "The phone number is already registered",
+    "INVALID_CREDENTIALS": "Invalid credentials",
+    "ACCOUNT_SUSPENDED": "Your account is suspended",
+    "INVALID_CODE": "Invalid code",
+    "CODE_EXPIRED": "The code has expired",
+    "ALREADY_VERIFIED": "The account is already verified",
+    "INVALID_RESET_DATA": "Invalid data",
+    "PASSWORD_TOO_SHORT": "The password must be at least {{min}} characters"
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "successTitle": "Password updated!",
+    "successText": "Your password has been reset successfully.",
+    "login": "Sign in",
+    "emailOrPhone": "Email or phone",
+    "code": "Code",
+    "newPassword": "New password",
+    "saving": "Saving...",
+    "submit": "Reset password",
+    "error": "Couldn't reset the password"
+  },
+  "forgotPassword": {
+    "title": "Reset password",
+    "sentText": "If an account exists, we've sent instructions to reset your password.",
+    "haveCode": "I already have my code",
+    "intro": "Enter your email or phone and we'll send you instructions.",
+    "placeholder": "Email or phone",
+    "sending": "Sending...",
+    "submit": "Send instructions",
+    "backToLogin": "Back to sign in"
+  },
+  "publication": {
+    "notFound": "Publication not found",
+    "by": "By",
+    "delete": "Delete publication",
+    "report": "Report publication",
+    "confirmDelete": "Are you sure you want to delete this publication?",
+    "comments": "Comments ({{n}})",
+    "commentPlaceholder": "Write a comment (max 100)",
+    "send": "Send",
+    "noComments": "No comments yet.",
+    "deleteComment": "Delete",
+    "reportComment": "Report"
+  },
   "community": {
     "tabs": { "announcements": "Announcements", "snapshots": "Snapshots" },
     "empty": {
@@ -385,6 +464,7 @@
     "backToCanvas": "Back to the canvas"
   },
   "shop": {
+    "modalTitle": "Shop",
     "rarity": {
       "COMMON": "Common",
       "RARE": "Rare",
@@ -474,7 +554,97 @@
     "loading": "Loading achievements...",
     "empty": "No achievements available yet.",
     "title": "Achievements",
-    "completed": "Completed"
+    "completed": "Completed",
+    "items": {
+      "pixels_100": { "name": "First strokes", "desc": "Place 100 pixels." },
+      "pixels_1000": {
+        "name": "Dedicated painter",
+        "desc": "Place 1,000 pixels."
+      },
+      "pixels_10000": {
+        "name": "Canvas master",
+        "desc": "Place 10,000 pixels."
+      },
+      "pixels_50000": {
+        "name": "Tireless craftsman",
+        "desc": "Place 50,000 pixels."
+      },
+      "pixels_100000": {
+        "name": "Pixel legend",
+        "desc": "Place 100,000 pixels."
+      },
+      "pixels_500000": {
+        "name": "Unstoppable force",
+        "desc": "Place 500,000 pixels."
+      },
+      "pixels_1000000": {
+        "name": "A million strokes",
+        "desc": "Place 1,000,000 pixels."
+      },
+      "pubs_1": {
+        "name": "First work",
+        "desc": "Create your first publication."
+      },
+      "pubs_10": { "name": "Gallery", "desc": "Create 10 publications." },
+      "pubs_25": { "name": "Curator", "desc": "Create 25 publications." },
+      "pubs_100": {
+        "name": "Living museum",
+        "desc": "Create 100 publications."
+      },
+      "likes_10": {
+        "name": "First applause",
+        "desc": "Receive 10 likes on your works."
+      },
+      "likes_50": {
+        "name": "Recognized",
+        "desc": "Receive 50 likes on your works."
+      },
+      "likes_500": {
+        "name": "Crowd favorite",
+        "desc": "Receive 500 likes on your works."
+      },
+      "likes_1000": {
+        "name": "Idol",
+        "desc": "Receive 1,000 likes on your works."
+      },
+      "likes_5000": {
+        "name": "Viral phenomenon",
+        "desc": "Receive 5,000 likes on your works."
+      },
+      "level_5": { "name": "Climbing", "desc": "Reach level 5." },
+      "level_10": { "name": "On a roll", "desc": "Reach level 10." },
+      "level_25": { "name": "Veteran", "desc": "Reach level 25." },
+      "level_50": { "name": "Elite", "desc": "Reach level 50." },
+      "level_75": { "name": "Grandmaster", "desc": "Reach level 75." },
+      "level_100": { "name": "Living legend", "desc": "Reach level 100." },
+      "collect_1": {
+        "name": "Style debut",
+        "desc": "Get your first cosmetic."
+      },
+      "collect_10": { "name": "Collector", "desc": "Gather 10 cosmetics." },
+      "collect_25": { "name": "Hoarder", "desc": "Gather 25 cosmetics." },
+      "collect_50": {
+        "name": "Master collector",
+        "desc": "Gather 50 cosmetics."
+      },
+      "legendary_1": {
+        "name": "Legendary piece",
+        "desc": "Get your first legendary cosmetic."
+      },
+      "mythic_1": {
+        "name": "Myth made real",
+        "desc": "Get your first mythic cosmetic."
+      },
+      "palette_1": {
+        "name": "Complete palette",
+        "desc": "Complete any color palette."
+      },
+      "friends_1": {
+        "name": "First friend",
+        "desc": "Make your first friend."
+      },
+      "friends_10": { "name": "Social circle", "desc": "Reach 10 friends." }
+    }
   },
   "tasks": {
     "loginRequired": "Log in to see your tasks.",
@@ -482,9 +652,36 @@
     "empty": "No tasks available yet.",
     "header": "Tasks of the week",
     "subtitle": "They reset every week.",
-    "completed": "Completed"
+    "completed": "Completed",
+    "items": {
+      "weekly_pixels_200": {
+        "name": "Painter of the week",
+        "desc": "Paint 200 pixels this week."
+      },
+      "weekly_pixels_500": {
+        "name": "Canvas on fire",
+        "desc": "Paint 500 pixels this week."
+      },
+      "weekly_pixels_1000": {
+        "name": "Weekly marathon",
+        "desc": "Paint 1,000 pixels this week."
+      },
+      "weekly_pub_1": {
+        "name": "Work of the week",
+        "desc": "Create a publication this week."
+      },
+      "weekly_pub_3": {
+        "name": "Creative trio",
+        "desc": "Create 3 publications this week."
+      },
+      "weekly_likes_25": {
+        "name": "Applause of the week",
+        "desc": "Receive 25 likes this week."
+      }
+    }
   },
   "friends": {
+    "title": "Friends",
     "tabs": {
       "friends": "Friends ({{count}})",
       "incoming": "Received ({{count}})",
@@ -520,6 +717,7 @@
     }
   },
   "rankings": {
+    "title": "Rankings",
     "views": {
       "monthly": "This month",
       "historical": "All-time",
@@ -554,7 +752,8 @@
       "submitting": "Registering...",
       "error": "Registration failed",
       "haveAccount": "Already have an account?",
-      "login": "Log in"
+      "login": "Log in",
+      "title": "Create account"
     },
     "login": {
       "emailOrPhone": "Email or phone",
@@ -563,7 +762,8 @@
       "error": "Login failed",
       "noAccount": "Don't have an account?",
       "register": "Sign up",
-      "forgot": "Forgot your password?"
+      "forgot": "Forgot your password?",
+      "title": "Sign in"
     },
     "ban": {
       "title": "Account suspended",
@@ -668,6 +868,7 @@
       "confirm": "Confirm purchase",
       "purchasing": "Buying...",
       "error": "Error buying",
+      "genericError": "Purchase error",
       "failed": "Could not buy the space",
       "success": "Private space purchased!"
     },

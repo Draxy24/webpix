@@ -31,18 +31,27 @@ export class AuthService {
       data.nickname,
     );
     if (existingNickname)
-      throw new BadRequestException('El nickname ya está en uso');
+      throw new BadRequestException({
+        message: 'El nickname ya está en uso',
+        code: 'NICKNAME_TAKEN',
+      });
 
     if (data.email) {
       const existingEmail = await this.usersService.findByEmail(data.email);
       if (existingEmail)
-        throw new BadRequestException('El email ya está registrado');
+        throw new BadRequestException({
+          message: 'El email ya está registrado',
+          code: 'EMAIL_TAKEN',
+        });
     }
 
     if (data.phone) {
       const existingPhone = await this.usersService.findByPhone(data.phone);
       if (existingPhone)
-        throw new BadRequestException('El teléfono ya está registrado');
+        throw new BadRequestException({
+          message: 'El teléfono ya está registrado',
+          code: 'PHONE_TAKEN',
+        });
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
@@ -74,10 +83,18 @@ export class AuthService {
       (await this.usersService.findByEmail(data.emailOrPhone)) ??
       (await this.usersService.findByPhone(data.emailOrPhone));
 
-    if (!user) throw new UnauthorizedException('Credenciales inválidas');
+    if (!user)
+      throw new UnauthorizedException({
+        message: 'Credenciales inválidas',
+        code: 'INVALID_CREDENTIALS',
+      });
 
     const valid = await bcrypt.compare(data.password, user.passwordHash);
-    if (!valid) throw new UnauthorizedException('Credenciales inválidas');
+    if (!valid)
+      throw new UnauthorizedException({
+        message: 'Credenciales inválidas',
+        code: 'INVALID_CREDENTIALS',
+      });
 
     const banned =
       user.banPermanent ||
@@ -86,6 +103,7 @@ export class AuthService {
     if (banned) {
       throw new ForbiddenException({
         message: 'Tu cuenta está suspendida',
+        code: 'ACCOUNT_SUSPENDED',
         banned: true,
         banReason: user.banReason,
         bannedUntil: user.bannedUntil,
@@ -124,9 +142,16 @@ export class AuthService {
     const record = await this.prisma.verificationCode.findFirst({
       where: { code, type: 'EMAIL' },
     });
-    if (!record) throw new BadRequestException('Código inválido');
+    if (!record)
+      throw new BadRequestException({
+        message: 'Código inválido',
+        code: 'INVALID_CODE',
+      });
     if (record.expiresAt < new Date())
-      throw new BadRequestException('El código ha expirado');
+      throw new BadRequestException({
+        message: 'El código ha expirado',
+        code: 'CODE_EXPIRED',
+      });
 
     await this.prisma.user.update({
       where: { id: record.userId },
@@ -140,9 +165,16 @@ export class AuthService {
     const record = await this.prisma.verificationCode.findFirst({
       where: { userId, code, type: 'PHONE' },
     });
-    if (!record) throw new BadRequestException('Código inválido');
+    if (!record)
+      throw new BadRequestException({
+        message: 'Código inválido',
+        code: 'INVALID_CODE',
+      });
     if (record.expiresAt < new Date())
-      throw new BadRequestException('El código ha expirado');
+      throw new BadRequestException({
+        message: 'El código ha expirado',
+        code: 'CODE_EXPIRED',
+      });
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -154,9 +186,16 @@ export class AuthService {
 
   async resendVerification(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new BadRequestException('Usuario no encontrado');
+    if (!user)
+      throw new BadRequestException({
+        message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
+      });
     if (user.verified)
-      throw new BadRequestException('La cuenta ya está verificada');
+      throw new BadRequestException({
+        message: 'La cuenta ya está verificada',
+        code: 'ALREADY_VERIFIED',
+      });
 
     await this.prisma.verificationCode.deleteMany({
       where: { userId, type: { in: ['EMAIL', 'PHONE'] } },
@@ -212,18 +251,31 @@ export class AuthService {
     const user =
       (await this.usersService.findByEmail(emailOrPhone)) ??
       (await this.usersService.findByPhone(emailOrPhone));
-    if (!user) throw new BadRequestException('Datos inválidos');
+    if (!user)
+      throw new BadRequestException({
+        message: 'Datos inválidos',
+        code: 'INVALID_RESET_DATA',
+      });
 
     const record = await this.prisma.verificationCode.findFirst({
       where: { userId: user.id, code, type: 'PASSWORD_RESET' },
     });
-    if (!record) throw new BadRequestException('Código inválido');
+    if (!record)
+      throw new BadRequestException({
+        message: 'Código inválido',
+        code: 'INVALID_CODE',
+      });
     if (record.expiresAt < new Date())
-      throw new BadRequestException('El código ha expirado');
+      throw new BadRequestException({
+        message: 'El código ha expirado',
+        code: 'CODE_EXPIRED',
+      });
     if (newPassword.length < 6)
-      throw new BadRequestException(
-        'La contraseña debe tener al menos 6 caracteres',
-      );
+      throw new BadRequestException({
+        message: 'La contraseña debe tener al menos 6 caracteres',
+        code: 'PASSWORD_TOO_SHORT',
+        params: { min: 6 },
+      });
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
     await this.prisma.user.update({

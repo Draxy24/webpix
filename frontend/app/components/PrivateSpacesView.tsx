@@ -6,6 +6,7 @@ import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./PrivateSpacesView.module.css";
 import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 
 type Space = {
   id: number;
@@ -97,7 +98,7 @@ function SpaceCard({
       });
       const data = await res.json();
       if (!res.ok || data.success === false) {
-        throw new Error(data.message || t("spaces.updateFailed"));
+        throw new Error(apiErrorText(data, t, t("spaces.updateFailed")));
       }
       onChanged();
     } catch (err) {
@@ -136,7 +137,7 @@ function SpaceCard({
       });
       const data = await res.json();
       if (!res.ok || data.success === false) {
-        throw new Error(data.message || t("spaces.releaseFailed"));
+        throw new Error(apiErrorText(data, t, t("spaces.releaseFailed")));
       }
       onChanged();
     } catch (err) {

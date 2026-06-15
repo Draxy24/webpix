@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./AchievementsView.module.css";
 import { API_URL } from "@/app/lib/api";
+import { achievementName, achievementDesc } from "@/app/lib/achievementText";
 
 type Achievement = {
   key: string;
@@ -62,6 +63,8 @@ export default function AchievementsView() {
             100,
             Math.round((a.progress / a.threshold) * 100),
           );
+          const name = achievementName(a.key, a.name, t);
+          const desc = achievementDesc(a.key, a.description, t);
           return (
             <div
               key={a.key}
@@ -70,13 +73,13 @@ export default function AchievementsView() {
               <div className={styles.cardHead}>
                 <span className={styles.name}>
                   {a.completed ? "✓ " : ""}
-                  {a.name}
+                  {name}
                 </span>
                 <span className={styles.reward}>
                   +{a.rewardXp} XP · +{a.rewardBits} Bits
                 </span>
               </div>
-              {a.description && <p className={styles.desc}>{a.description}</p>}
+              {desc && <p className={styles.desc}>{desc}</p>}
               <div className={styles.bar}>
                 <div className={styles.fill} style={{ width: `${pct}%` }} />
               </div>

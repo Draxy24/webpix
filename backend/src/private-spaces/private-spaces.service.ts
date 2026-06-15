@@ -30,19 +30,25 @@ export class PrivateSpacesService {
     const pixels = width * height;
     const { MIN_SIDE, MIN_PIXELS, MAX_SIDE } = PRIVATE_SPACE_CONFIG;
     if (width < MIN_SIDE || height < MIN_SIDE) {
-      throw new BadRequestException(
-        `Ningún lado puede ser menor a ${MIN_SIDE} píxeles`,
-      );
+      throw new BadRequestException({
+        message: `Ningún lado puede ser menor a ${MIN_SIDE} píxeles`,
+        code: 'SPACE_SIDE_TOO_SMALL',
+        params: { min: MIN_SIDE },
+      });
     }
     if (pixels < MIN_PIXELS) {
-      throw new BadRequestException(
-        `El espacio debe tener al menos ${MIN_PIXELS} píxeles de área`,
-      );
+      throw new BadRequestException({
+        message: `El espacio debe tener al menos ${MIN_PIXELS} píxeles de área`,
+        code: 'SPACE_AREA_TOO_SMALL',
+        params: { min: MIN_PIXELS },
+      });
     }
     if (width > MAX_SIDE || height > MAX_SIDE) {
-      throw new BadRequestException(
-        `Ningún lado puede exceder ${MAX_SIDE} píxeles`,
-      );
+      throw new BadRequestException({
+        message: `Ningún lado puede exceder ${MAX_SIDE} píxeles`,
+        code: 'SPACE_SIDE_TOO_BIG',
+        params: { max: MAX_SIDE },
+      });
     }
     return pixels;
   }
@@ -99,18 +105,22 @@ export class PrivateSpacesService {
       where: { ownerId: userId, ...this.activeWhere(now) },
     });
     if (myActive.length >= PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER) {
-      throw new BadRequestException(
-        `Ya tienes el máximo de ${PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER} espacios activos`,
-      );
+      throw new BadRequestException({
+        message: `Ya tienes el máximo de ${PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER} espacios activos`,
+        code: 'SPACE_MAX_COUNT',
+        params: { max: PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER },
+      });
     }
     const myPixels = myActive.reduce(
       (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
       0,
     );
     if (myPixels + pixels > PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER) {
-      throw new BadRequestException(
-        `Superarías tu tope de ${PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER} píxeles privados`,
-      );
+      throw new BadRequestException({
+        message: `Superarías tu tope de ${PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER} píxeles privados`,
+        code: 'SPACE_MAX_PIXELS',
+        params: { max: PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER },
+      });
     }
 
     // Sin traslape con otro espacio activo
@@ -128,9 +138,10 @@ export class PrivateSpacesService {
       },
     });
     if (overlap) {
-      throw new BadRequestException(
-        'El área se traslapa con otro espacio privado existente',
-      );
+      throw new BadRequestException({
+        message: 'El área se traslapa con otro espacio privado existente',
+        code: 'SPACE_OVERLAP',
+      });
     }
 
     // Sin píxeles de otro usuario (vacío o tuyo está bien)
@@ -142,9 +153,11 @@ export class PrivateSpacesService {
       },
     });
     if (foreign) {
-      throw new BadRequestException(
-        'El área contiene píxeles de otro usuario. Solo puedes comprar zonas vacías o con tus propios píxeles.',
-      );
+      throw new BadRequestException({
+        message:
+          'El área contiene píxeles de otro usuario. Solo puedes comprar zonas vacías o con tus propios píxeles.',
+        code: 'SPACE_HAS_FOREIGN',
+      });
     }
 
     // Resolver miembros (solo modo específico)
@@ -158,9 +171,11 @@ export class PrivateSpacesService {
       const found = new Set(users.map((u) => u.nickname));
       const missing = unique.filter((n) => !found.has(n));
       if (missing.length) {
-        throw new BadRequestException(
-          `No se encontraron estos usuarios: ${missing.join(', ')}`,
-        );
+        throw new BadRequestException({
+          message: `No se encontraron estos usuarios: ${missing.join(', ')}`,
+          code: 'SPACE_USERS_NOT_FOUND',
+          params: { users: missing.join(', ') },
+        });
       }
       memberIds = users.map((u) => u.id).filter((id) => id !== userId);
     }
@@ -317,9 +332,16 @@ export class PrivateSpacesService {
     const space = await this.prisma.privateSpace.findUnique({
       where: { id: spaceId },
     });
-    if (!space) throw new NotFoundException('Espacio no encontrado');
+    if (!space)
+      throw new NotFoundException({
+        message: 'Espacio no encontrado',
+        code: 'SPACE_NOT_FOUND',
+      });
     if (space.ownerId !== userId)
-      throw new ForbiddenException('No es tu espacio');
+      throw new ForbiddenException({
+        message: 'No es tu espacio',
+        code: 'SPACE_NOT_YOURS',
+      });
 
     if (data.accessMode) {
       await this.prisma.privateSpace.update({
@@ -357,9 +379,16 @@ export class PrivateSpacesService {
     const space = await this.prisma.privateSpace.findUnique({
       where: { id: spaceId },
     });
-    if (!space) throw new NotFoundException('Espacio no encontrado');
+    if (!space)
+      throw new NotFoundException({
+        message: 'Espacio no encontrado',
+        code: 'SPACE_NOT_FOUND',
+      });
     if (space.ownerId !== userId)
-      throw new ForbiddenException('No es tu espacio');
+      throw new ForbiddenException({
+        message: 'No es tu espacio',
+        code: 'SPACE_NOT_YOURS',
+      });
     await this.prisma.privateSpace.delete({ where: { id: spaceId } });
     return { success: true };
   }

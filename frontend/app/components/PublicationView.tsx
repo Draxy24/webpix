@@ -6,6 +6,7 @@ import ReportModal from "./ReportModal";
 import Button from "./Button";
 import styles from "./PublicationView.module.css";
 import { useEffect, useState, useCallback, type ElementType } from "react";
+import { useTranslation } from "react-i18next";
 import { API_URL } from "@/app/lib/api";
 
 interface Comment {
@@ -39,6 +40,7 @@ export default function PublicationView({
   id: string;
   onOpenProfile?: (nickname: string) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const { token, nickname: myNickname } = useAuth();
   const inModal = !!onOpenProfile;
   const [pub, setPub] = useState<PublicationDetail | null>(null);
@@ -51,9 +53,7 @@ export default function PublicationView({
   const fetchPublication = useCallback(async () => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
-    const res = await fetch(`${API_URL}/publications/${id}`, {
-      headers,
-    });
+    const res = await fetch(`${API_URL}/publications/${id}`, { headers });
     if (res.ok) {
       const data = await res.json();
       setPub(data);
@@ -67,34 +67,28 @@ export default function PublicationView({
 
   const handleReact = async (type: "LIKE" | "DISLIKE") => {
     if (!token || !pub) return;
-    const res = await fetch(
-      `${API_URL}/publications/${pub.id}/react`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ type }),
+    const res = await fetch(`${API_URL}/publications/${pub.id}/react`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({ type }),
+    });
     if (res.ok) fetchPublication();
   };
 
   const handleAddComment = async () => {
     if (!token || !pub || !newComment.trim()) return;
     setSubmittingComment(true);
-    const res = await fetch(
-      `${API_URL}/publications/${pub.id}/comments`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: newComment }),
+    const res = await fetch(`${API_URL}/publications/${pub.id}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({ content: newComment }),
+    });
     if (res.ok) {
       const comment = await res.json();
       setPub((prev) =>
@@ -107,13 +101,10 @@ export default function PublicationView({
 
   const handleDeleteComment = async (commentId: number) => {
     if (!token) return;
-    const res = await fetch(
-      `${API_URL}/publications/comments/${commentId}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    const res = await fetch(`${API_URL}/publications/comments/${commentId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) {
       setPub((prev) =>
         prev
@@ -128,7 +119,7 @@ export default function PublicationView({
 
   const handleDeletePublication = async () => {
     if (!token || !pub) return;
-    if (!confirm("¿Estás seguro de eliminar esta publicación?")) return;
+    if (!confirm(t("publication.confirmDelete"))) return;
     const res = await fetch(`${API_URL}/publications/${pub.id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
@@ -142,23 +133,26 @@ export default function PublicationView({
     }
   };
 
-  if (loading) return <div className={styles.centered}>Cargando...</div>;
+  if (loading)
+    return <div className={styles.centered}>{t("common.loading")}</div>;
   if (!pub)
-    return <div className={styles.centered}>Publicación no encontrada</div>;
+    return <div className={styles.centered}>{t("publication.notFound")}</div>;
 
   const isMine = myNickname === pub.author.nickname;
   const Wrapper: ElementType = inModal ? "div" : "main";
 
+  // ...existing code...
   return (
     <Wrapper className={styles.main}>
       {!inModal && (
         <a href="/" className={styles.backLink}>
-          ← Volver al lienzo
+          ← {t("profile.backToCanvas")}
         </a>
       )}
 
       <div className={styles.header}>
         {pub.title && <h1 className={styles.title}>{pub.title}</h1>}
+
         <div className={styles.canvasWrap}>
           <PublicationCanvas
             pixelData={pub.pixelData}
@@ -169,11 +163,12 @@ export default function PublicationView({
             maxSize={500}
           />
         </div>
+
         <div className={styles.meta}>
-          Por{" "}
+          {t("publication.by")}{" "}
           <a
             href={`/profile/${pub.author.nickname}`}
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
               if (onOpenProfile) {
                 e.preventDefault();
                 onOpenProfile(pub.author.nickname);
@@ -184,7 +179,7 @@ export default function PublicationView({
             {pub.author.nickname}
           </a>
           {" · "}
-          {new Date(pub.createdAt).toLocaleDateString("es-MX")}
+          {new Date(pub.createdAt).toLocaleDateString(i18n.language)}
         </div>
 
         {token ? (
@@ -211,29 +206,30 @@ export default function PublicationView({
 
         {isMine && (
           <Button variant="danger" size="sm" onClick={handleDeletePublication}>
-            Eliminar publicación
+            {t("publication.delete")}
           </Button>
         )}
+
         {token && !isMine && (
           <button
             className={styles.reportButton}
             onClick={() => setShowReportPub(true)}
           >
-            Reportar publicación
+            {t("publication.report")}
           </button>
         )}
       </div>
 
       <div className={styles.commentsSection}>
         <h2 className={styles.commentsTitle}>
-          Comentarios ({pub.comments.length})
+          {t("publication.comments", { n: pub.comments.length })}
         </h2>
 
         {token && (
           <div className={styles.commentForm}>
             <input
               type="text"
-              placeholder="Escribe un comentario (máx 100)"
+              placeholder={t("publication.commentPlaceholder")}
               maxLength={100}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -243,14 +239,14 @@ export default function PublicationView({
               onClick={handleAddComment}
               disabled={submittingComment || !newComment.trim()}
             >
-              Enviar
+              {t("publication.send")}
             </Button>
           </div>
         )}
 
         <div className={styles.commentList}>
           {pub.comments.length === 0 ? (
-            <p className={styles.muted}>No hay comentarios todavía.</p>
+            <p className={styles.muted}>{t("publication.noComments")}</p>
           ) : (
             pub.comments.map((c) => (
               <div key={c.id} className={styles.comment}>
@@ -266,7 +262,7 @@ export default function PublicationView({
                   <a
                     href={`/profile/${c.author.nickname}`}
                     className={styles.commentAuthor}
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                       if (onOpenProfile) {
                         e.preventDefault();
                         onOpenProfile(c.author.nickname);
@@ -277,23 +273,25 @@ export default function PublicationView({
                   </a>
                   <div className={styles.commentContent}>{c.content}</div>
                   <div className={styles.commentDate}>
-                    {new Date(c.createdAt).toLocaleString("es-MX")}
+                    {new Date(c.createdAt).toLocaleString(i18n.language)}
                   </div>
                 </div>
+
                 {c.isMine && (
                   <button
                     className={styles.commentAction}
                     onClick={() => handleDeleteComment(c.id)}
                   >
-                    Eliminar
+                    {t("publication.deleteComment")}
                   </button>
                 )}
+
                 {token && !c.isMine && (
                   <button
                     className={styles.commentAction}
                     onClick={() => setReportCommentId(c.id)}
                   >
-                    Reportar
+                    {t("publication.reportComment")}
                   </button>
                 )}
               </div>
@@ -309,6 +307,7 @@ export default function PublicationView({
           onClose={() => setShowReportPub(false)}
         />
       )}
+
       {reportCommentId !== null && (
         <ReportModal
           type="COMMENT"

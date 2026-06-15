@@ -6,6 +6,7 @@ import { useAuth } from "../context/auth";
 import Button from "./Button";
 import styles from "./AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 
 export default function LoginForm({
   onSuccess,
@@ -49,7 +50,7 @@ export default function LoginForm({
           });
           return;
         }
-        throw new Error(data.message ?? t("auth.login.error"));
+        throw new Error(apiErrorText(data, t, t("auth.login.error")));
       }
       login(data.token, data.nickname);
       onSuccess?.();

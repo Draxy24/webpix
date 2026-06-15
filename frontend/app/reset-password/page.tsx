@@ -2,12 +2,15 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
 import styles from "../components/AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 
 function ResetPasswordInner() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [emailOrPhone, setEmailOrPhone] = useState(
@@ -31,10 +34,10 @@ function ResetPasswordInner() {
       });
       const data = await res.json();
       if (!res.ok)
-        throw new Error(data.message ?? "Error al restablecer la contraseña");
+        throw new Error(apiErrorText(data, t, t("resetPassword.error")));
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof Error ? err.message : t("resetPassword.error"));
     } finally {
       setLoading(false);
     }
@@ -42,7 +45,7 @@ function ResetPasswordInner() {
 
   if (success) {
     return (
-      <AuthPageLayout title="¡Contraseña actualizada!">
+      <AuthPageLayout title={t("resetPassword.successTitle")}>
         <div
           style={{
             display: "flex",
@@ -58,10 +61,10 @@ function ResetPasswordInner() {
               margin: 0,
             }}
           >
-            Tu contraseña ha sido restablecida correctamente.
+            {t("resetPassword.successText")}
           </p>
           <Button fullWidth size="lg" onClick={() => router.push("/login")}>
-            Iniciar sesión
+            {t("resetPassword.login")}
           </Button>
         </div>
       </AuthPageLayout>
@@ -69,11 +72,11 @@ function ResetPasswordInner() {
   }
 
   return (
-    <AuthPageLayout title="Restablecer contraseña">
+    <AuthPageLayout title={t("resetPassword.title")}>
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
-          placeholder="Email o teléfono"
+          placeholder={t("resetPassword.emailOrPhone")}
           value={emailOrPhone}
           onChange={(e) => setEmailOrPhone(e.target.value)}
           required
@@ -81,7 +84,7 @@ function ResetPasswordInner() {
         />
         <input
           type="text"
-          placeholder="Código"
+          placeholder={t("resetPassword.code")}
           value={code}
           onChange={(e) => setCode(e.target.value)}
           required
@@ -89,7 +92,7 @@ function ResetPasswordInner() {
         />
         <input
           type="password"
-          placeholder="Nueva contraseña"
+          placeholder={t("resetPassword.newPassword")}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
@@ -97,7 +100,7 @@ function ResetPasswordInner() {
         />
         {error && <p className={styles.error}>{error}</p>}
         <Button type="submit" disabled={loading} fullWidth size="lg">
-          {loading ? "Guardando..." : "Restablecer contraseña"}
+          {loading ? t("resetPassword.saving") : t("resetPassword.submit")}
         </Button>
       </form>
     </AuthPageLayout>
@@ -105,10 +108,11 @@ function ResetPasswordInner() {
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
-        <AuthPageLayout title="Cargando...">
+        <AuthPageLayout title={t("common.loading")}>
           <p
             style={{
               textAlign: "center",

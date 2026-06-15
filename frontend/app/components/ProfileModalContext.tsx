@@ -10,6 +10,7 @@ import {
 import ProfileView from "./ProfileView";
 import PublicationView from "./PublicationView";
 import styles from "./UserModal.module.css";
+import { useTranslation } from "react-i18next";
 
 type View =
   | { type: "profile"; nickname: string }
@@ -32,6 +33,7 @@ export function useProfileModal() {
 }
 
 export function ProfileModalProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [stack, setStack] = useState<View[]>([]);
 
   const openProfile = useCallback((nickname: string) => {
@@ -55,7 +57,7 @@ export function ProfileModalProvider({ children }: { children: ReactNode }) {
             <div className={styles.bar}>
               {stack.length > 1 ? (
                 <button className={styles.backBtn} onClick={back}>
-                  ← Volver
+                  ← {t("common.back")}
                 </button>
               ) : (
                 <span />
@@ -63,7 +65,7 @@ export function ProfileModalProvider({ children }: { children: ReactNode }) {
               <button
                 className={styles.closeBtn}
                 onClick={close}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
               >
                 ×
               </button>

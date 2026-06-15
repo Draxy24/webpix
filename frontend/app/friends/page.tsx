@@ -3,9 +3,11 @@
 import { useEffect } from "react";
 import { useAuth } from "../context/auth";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import FriendsView from "../components/FriendsView";
 
 export default function FriendsPage() {
+  const { t } = useTranslation();
   const { token, loading } = useAuth();
   const router = useRouter();
 
@@ -25,7 +27,7 @@ export default function FriendsPage() {
           color: "var(--color-text-secondary)",
         }}
       >
-        Cargando...
+        {t("common.loading")}
       </main>
     );
   }
@@ -53,13 +55,13 @@ export default function FriendsPage() {
             fontSize: "var(--text-lg)",
           }}
         >
-          Amigos
+          {t("friends.title")}
         </h1>
         <a
           href="/"
           style={{ fontSize: "var(--text-sm)", color: "var(--color-brand)" }}
         >
-          ← Volver al lienzo
+          ← {t("profile.backToCanvas")}
         </a>
       </div>
       <FriendsView />

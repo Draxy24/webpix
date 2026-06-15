@@ -1,4 +1,83 @@
 {
+  "errors": {
+    "USER_NOT_FOUND": "未找到用户",
+    "COLOR_NOT_OWNED": "你尚未拥有这种特殊颜色",
+    "PIXEL_IN_PRIVATE_SPACE": "该像素属于一个私人空间",
+    "COOLDOWN": "冷却中",
+    "LIMIT_REACHED": "已达上限",
+    "LOGIN_FOR_EXOTIC": "登录后才能使用特殊颜色",
+    "NOTHING_TO_ERASE": "这里没有可擦除的内容",
+    "ERASE_ONLY_OWN": "你只能擦除自己的像素",
+    "AREA_TOUCHES_PRIVATE": "该区域触及私人空间。请在私人空间内使用单点模式。",
+    "AREA_EMPTY_ERASE": "该区域没有可擦除的像素",
+    "AREA_HAS_FOREIGN": "该区域包含其他用户的像素。请先覆盖它们以将其据为己有。",
+    "AREA_NO_OWN": "该区域没有你自己的像素",
+    "PUB_AREA_TOO_SMALL": "该区域总面积至少需 {{area}} 个像素，且每边至少 {{side}} 个像素",
+    "PUB_TITLE_TOO_LONG": "标题不能超过 {{max}} 个字符",
+    "PUB_AREA_EMPTY": "所选区域为空",
+    "PUB_NOT_ENOUGH_PIXELS": "你必须在该区域至少绘制 {{min}} 个像素",
+    "PUB_OWNERSHIP_TOO_LOW": "你必须拥有该区域已绘制像素的至少 {{required}}%。当前：{{current}}%",
+    "PUB_NOT_FOUND": "未找到该作品",
+    "PUB_DELETE_FORBIDDEN": "你无法删除该作品",
+    "COMMENT_LENGTH": "评论长度必须在 1 到 {{max}} 个字符之间",
+    "COMMENT_NOT_FOUND": "未找到该评论",
+    "COMMENT_DELETE_FORBIDDEN": "你无法删除该评论",
+    "SPACE_SIDE_TOO_SMALL": "任何一边都不能小于 {{min}} 个像素",
+    "SPACE_AREA_TOO_SMALL": "该空间的面积至少需 {{min}} 个像素",
+    "SPACE_SIDE_TOO_BIG": "任何一边都不能超过 {{max}} 个像素",
+    "SPACE_MAX_COUNT": "你已达到 {{max}} 个活跃空间的上限",
+    "SPACE_MAX_PIXELS": "你将超出 {{max}} 个私人像素的上限",
+    "SPACE_OVERLAP": "该区域与另一个现有的私人空间重叠",
+    "SPACE_HAS_FOREIGN": "该区域包含其他用户的像素。你只能购买空白区域或仅含你自己像素的区域。",
+    "SPACE_USERS_NOT_FOUND": "未找到这些用户：{{users}}",
+    "SPACE_NOT_FOUND": "未找到该空间",
+    "SPACE_NOT_YOURS": "这不是你的空间",
+    "NICKNAME_TAKEN": "该昵称已被使用",
+    "EMAIL_TAKEN": "该邮箱已被注册",
+    "PHONE_TAKEN": "该手机号已被注册",
+    "INVALID_CREDENTIALS": "凭据无效",
+    "ACCOUNT_SUSPENDED": "你的账户已被封禁",
+    "INVALID_CODE": "验证码无效",
+    "CODE_EXPIRED": "验证码已过期",
+    "ALREADY_VERIFIED": "该账户已验证",
+    "INVALID_RESET_DATA": "数据无效",
+    "PASSWORD_TOO_SHORT": "密码至少需 {{min}} 个字符"
+  },
+  "resetPassword": {
+    "title": "重置密码",
+    "successTitle": "密码已更新！",
+    "successText": "你的密码已成功重置。",
+    "login": "登录",
+    "emailOrPhone": "邮箱或手机号",
+    "code": "验证码",
+    "newPassword": "新密码",
+    "saving": "保存中…",
+    "submit": "重置密码",
+    "error": "重置密码失败"
+  },
+  "forgotPassword": {
+    "title": "重置密码",
+    "sentText": "如果该账号存在，我们已向你发送了重置密码的说明。",
+    "haveCode": "我已经有验证码了",
+    "intro": "输入你的邮箱或手机号，我们会向你发送说明。",
+    "placeholder": "邮箱或手机号",
+    "sending": "发送中…",
+    "submit": "发送说明",
+    "backToLogin": "返回登录"
+  },
+  "publication": {
+    "notFound": "未找到该作品",
+    "by": "作者",
+    "delete": "删除作品",
+    "report": "举报作品",
+    "confirmDelete": "确定要删除这个作品吗？",
+    "comments": "评论（{{n}}）",
+    "commentPlaceholder": "写下评论（最多 100 字）",
+    "send": "发送",
+    "noComments": "还没有评论。",
+    "deleteComment": "删除",
+    "reportComment": "举报"
+  },
   "community": {
     "tabs": { "announcements": "公告", "snapshots": "快照" },
     "empty": { "announcements": "暂无公告。", "snapshots": "暂无每周快照。" },
@@ -310,6 +389,7 @@
     "backToCanvas": "返回画布"
   },
   "shop": {
+    "modalTitle": "商店",
     "rarity": {
       "COMMON": "普通",
       "RARE": "稀有",
@@ -399,7 +479,49 @@
     "loading": "正在加载成就...",
     "empty": "暂无可用成就。",
     "title": "成就",
-    "completed": "已完成"
+    "completed": "已完成",
+    "items": {
+      "pixels_100": { "name": "初次落笔", "desc": "放置 100 个像素。" },
+      "pixels_1000": { "name": "专注画师", "desc": "放置 1000 个像素。" },
+      "pixels_10000": { "name": "画布大师", "desc": "放置 10000 个像素。" },
+      "pixels_50000": {
+        "name": "不知疲倦的工匠",
+        "desc": "放置 50000 个像素。"
+      },
+      "pixels_100000": { "name": "像素传奇", "desc": "放置 100000 个像素。" },
+      "pixels_500000": { "name": "势不可挡", "desc": "放置 500000 个像素。" },
+      "pixels_1000000": { "name": "百万笔触", "desc": "放置 1000000 个像素。" },
+      "pubs_1": { "name": "首件作品", "desc": "创建你的第一件作品。" },
+      "pubs_10": { "name": "画廊", "desc": "创建 10 件作品。" },
+      "pubs_25": { "name": "策展人", "desc": "创建 25 件作品。" },
+      "pubs_100": { "name": "活的博物馆", "desc": "创建 100 件作品。" },
+      "likes_10": { "name": "初获掌声", "desc": "你的作品获得 10 个赞。" },
+      "likes_50": { "name": "受到认可", "desc": "你的作品获得 50 个赞。" },
+      "likes_500": { "name": "大众喜爱", "desc": "你的作品获得 500 个赞。" },
+      "likes_1000": { "name": "偶像", "desc": "你的作品获得 1000 个赞。" },
+      "likes_5000": {
+        "name": "病毒级现象",
+        "desc": "你的作品获得 5000 个赞。"
+      },
+      "level_5": { "name": "稳步上升", "desc": "达到 5 级。" },
+      "level_10": { "name": "渐入佳境", "desc": "达到 10 级。" },
+      "level_25": { "name": "老手", "desc": "达到 25 级。" },
+      "level_50": { "name": "精英", "desc": "达到 50 级。" },
+      "level_75": { "name": "大师", "desc": "达到 75 级。" },
+      "level_100": { "name": "活着的传奇", "desc": "达到 100 级。" },
+      "collect_1": { "name": "初试风格", "desc": "获得你的第一件装饰。" },
+      "collect_10": { "name": "收藏家", "desc": "收集 10 件装饰。" },
+      "collect_25": { "name": "囤积者", "desc": "收集 25 件装饰。" },
+      "collect_50": { "name": "收藏大家", "desc": "收集 50 件装饰。" },
+      "legendary_1": {
+        "name": "传说之作",
+        "desc": "获得你的第一件传说级装饰。"
+      },
+      "mythic_1": { "name": "神话成真", "desc": "获得你的第一件神话级装饰。" },
+      "palette_1": { "name": "完整调色板", "desc": "集齐任意一套调色板。" },
+      "friends_1": { "name": "第一位好友", "desc": "结交你的第一位好友。" },
+      "friends_10": { "name": "社交圈", "desc": "好友数达到 10 位。" }
+    }
   },
   "tasks": {
     "loginRequired": "登录后查看你的任务。",
@@ -407,9 +529,27 @@
     "empty": "暂无可用任务。",
     "header": "本周任务",
     "subtitle": "每周重置。",
-    "completed": "已完成"
+    "completed": "已完成",
+    "items": {
+      "weekly_pixels_200": {
+        "name": "本周画师",
+        "desc": "本周绘制 200 个像素。"
+      },
+      "weekly_pixels_500": {
+        "name": "画布燃烧",
+        "desc": "本周绘制 500 个像素。"
+      },
+      "weekly_pixels_1000": {
+        "name": "每周马拉松",
+        "desc": "本周绘制 1000 个像素。"
+      },
+      "weekly_pub_1": { "name": "本周作品", "desc": "本周创建一件作品。" },
+      "weekly_pub_3": { "name": "创意三连", "desc": "本周创建 3 件作品。" },
+      "weekly_likes_25": { "name": "本周掌声", "desc": "本周获得 25 个赞。" }
+    }
   },
   "friends": {
+    "title": "好友",
     "tabs": {
       "friends": "好友 ({{count}})",
       "incoming": "收到的 ({{count}})",
@@ -445,6 +585,7 @@
     }
   },
   "rankings": {
+    "title": "排行榜",
     "views": { "monthly": "本月", "historical": "历史", "winners": "获胜者" },
     "countdown": {
       "label": "结束于",
@@ -475,7 +616,8 @@
       "submitting": "正在注册...",
       "error": "注册失败",
       "haveAccount": "已有账户？",
-      "login": "登录"
+      "login": "登录",
+      "title": "创建账户"
     },
     "login": {
       "emailOrPhone": "邮箱或电话",
@@ -484,7 +626,8 @@
       "error": "登录失败",
       "noAccount": "还没有账户？",
       "register": "注册",
-      "forgot": "忘记密码？"
+      "forgot": "忘记密码？",
+      "title": "登录"
     },
     "ban": {
       "title": "账户已被封禁",
@@ -582,6 +725,7 @@
       "confirm": "确认购买",
       "purchasing": "正在购买...",
       "error": "购买出错",
+      "genericError": "购买出错",
       "failed": "无法购买该空间",
       "success": "已购买私人空间！"
     },

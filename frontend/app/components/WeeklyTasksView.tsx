@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./WeeklyTasksView.module.css";
 import { API_URL } from "@/app/lib/api";
+import { taskName, taskDesc } from "@/app/lib/achievementText";
 
 type WeeklyTask = {
   key: string;
@@ -68,6 +69,8 @@ export default function WeeklyTasksView() {
             100,
             Math.round((task.progress / task.threshold) * 100),
           );
+          const name = taskName(task.key, task.name, t);
+          const desc = taskDesc(task.key, task.description, t);
           return (
             <div
               key={task.key}
@@ -76,15 +79,13 @@ export default function WeeklyTasksView() {
               <div className={styles.cardHead}>
                 <span className={styles.name}>
                   {task.completed ? "✓ " : ""}
-                  {task.name}
+                  {name}
                 </span>
                 <span className={styles.reward}>
                   +{task.rewardXp} XP · +{task.rewardBits} Bits
                 </span>
               </div>
-              {task.description && (
-                <p className={styles.desc}>{task.description}</p>
-              )}
+              {desc && <p className={styles.desc}>{desc}</p>}
               <div className={styles.bar}>
                 <div className={styles.fill} style={{ width: `${pct}%` }} />
               </div>

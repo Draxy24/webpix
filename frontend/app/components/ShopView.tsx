@@ -33,7 +33,7 @@ type ShopItem = {
 
 type ShopData = {
   bits: number;
-  season: { label: string; themes: string[] } | null;
+  season: { key: string; label: string; themes: string[] } | null;
   items: ShopItem[];
 };
 
@@ -441,7 +441,7 @@ export default function ShopView() {
           {season && seasonItems.length > 0 && (
             <section className={styles.section}>
               <h3 className={`${styles.sectionTitle} ${styles.seasonTitle}`}>
-                ✨ {season.label}
+                ✨ {t(`seasons.${season.key}`, { defaultValue: season.label })}
               </h3>
               <div className={styles.grid}>{seasonItems.map(renderCard)}</div>
             </section>

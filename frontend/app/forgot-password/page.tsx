@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
 import styles from "../components/AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -26,7 +28,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthPageLayout title="Recuperar contraseña">
+    <AuthPageLayout title={t("forgotPassword.title")}>
       {submitted ? (
         <div
           style={{
@@ -43,15 +45,14 @@ export default function ForgotPasswordPage() {
               margin: 0,
             }}
           >
-            Si existe una cuenta asociada, te enviamos instrucciones para
-            recuperar tu contraseña.
+            {t("forgotPassword.sentText")}
           </p>
           <Button
             variant="secondary"
             fullWidth
             onClick={() => router.push("/reset-password")}
           >
-            Ya tengo mi código
+            {t("forgotPassword.haveCode")}
           </Button>
         </div>
       ) : (
@@ -64,18 +65,18 @@ export default function ForgotPasswordPage() {
               margin: 0,
             }}
           >
-            Ingresa tu correo o teléfono y te enviaremos instrucciones.
+            {t("forgotPassword.intro")}
           </p>
           <input
             type="text"
-            placeholder="Email o teléfono"
+            placeholder={t("forgotPassword.placeholder")}
             value={emailOrPhone}
             onChange={(e) => setEmailOrPhone(e.target.value)}
             required
             className={styles.input}
           />
           <Button type="submit" disabled={loading} fullWidth size="lg">
-            {loading ? "Enviando..." : "Enviar instrucciones"}
+            {loading ? t("forgotPassword.sending") : t("forgotPassword.submit")}
           </Button>
           <p
             style={{
@@ -85,7 +86,7 @@ export default function ForgotPasswordPage() {
             }}
           >
             <a href="/login" style={{ color: "var(--color-brand)" }}>
-              Volver a iniciar sesión
+              {t("forgotPassword.backToLogin")}
             </a>
           </p>
         </form>

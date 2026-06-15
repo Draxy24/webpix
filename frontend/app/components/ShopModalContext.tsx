@@ -9,6 +9,7 @@ import {
 } from "react";
 import ShopView from "./ShopView";
 import styles from "./UserModal.module.css";
+import { useTranslation } from "react-i18next";
 
 type ShopModalCtx = {
   openShop: () => void;
@@ -25,6 +26,7 @@ export function useShopModal() {
 }
 
 export function ShopModalProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const openShop = useCallback(() => setOpen(true), []);
   const closeShop = useCallback(() => setOpen(false), []);
@@ -47,12 +49,12 @@ export function ShopModalProvider({ children }: { children: ReactNode }) {
                   color: "var(--color-text)",
                 }}
               >
-                Tienda
+                {t("shop.modalTitle")}
               </span>
               <button
                 className={styles.closeBtn}
                 onClick={closeShop}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
               >
                 ×
               </button>

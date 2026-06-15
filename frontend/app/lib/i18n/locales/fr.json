@@ -1,4 +1,83 @@
 {
+  "errors": {
+    "USER_NOT_FOUND": "Utilisateur introuvable",
+    "COLOR_NOT_OWNED": "Tu ne possèdes pas cette couleur exotique",
+    "PIXEL_IN_PRIVATE_SPACE": "Ce pixel appartient à un espace privé",
+    "COOLDOWN": "En attente (cooldown)",
+    "LIMIT_REACHED": "Limite atteinte",
+    "LOGIN_FOR_EXOTIC": "Connecte-toi pour utiliser les couleurs exotiques",
+    "NOTHING_TO_ERASE": "Rien à effacer ici",
+    "ERASE_ONLY_OWN": "Tu ne peux effacer que tes propres pixels",
+    "AREA_TOUCHES_PRIVATE": "La zone touche un espace privé. Utilise le mode point dans les espaces privés.",
+    "AREA_EMPTY_ERASE": "Aucun pixel à effacer dans cette zone",
+    "AREA_HAS_FOREIGN": "La zone contient des pixels d'un autre utilisateur. Peins-les d'abord pour les revendiquer.",
+    "AREA_NO_OWN": "Tu n'as aucun pixel à toi dans cette zone",
+    "PUB_AREA_TOO_SMALL": "La zone doit faire au moins {{area}} pixels au total et au moins {{side}} de chaque côté",
+    "PUB_TITLE_TOO_LONG": "Le titre ne peut pas dépasser {{max}} caractères",
+    "PUB_AREA_EMPTY": "La zone sélectionnée est vide",
+    "PUB_NOT_ENOUGH_PIXELS": "Tu dois avoir peint au moins {{min}} pixels dans cette zone",
+    "PUB_OWNERSHIP_TOO_LOW": "Tu dois posséder au moins {{required}}% des pixels peints dans la zone. Actuellement : {{current}}%",
+    "PUB_NOT_FOUND": "Publication introuvable",
+    "PUB_DELETE_FORBIDDEN": "Tu ne peux pas supprimer cette publication",
+    "COMMENT_LENGTH": "Le commentaire doit faire entre 1 et {{max}} caractères",
+    "COMMENT_NOT_FOUND": "Commentaire introuvable",
+    "COMMENT_DELETE_FORBIDDEN": "Tu ne peux pas supprimer ce commentaire",
+    "SPACE_SIDE_TOO_SMALL": "Aucun côté ne peut être inférieur à {{min}} pixels",
+    "SPACE_AREA_TOO_SMALL": "L'espace doit avoir une surface d'au moins {{min}} pixels",
+    "SPACE_SIDE_TOO_BIG": "Aucun côté ne peut dépasser {{max}} pixels",
+    "SPACE_MAX_COUNT": "Tu as déjà le maximum de {{max}} espaces actifs",
+    "SPACE_MAX_PIXELS": "Tu dépasserais ta limite de {{max}} pixels privés",
+    "SPACE_OVERLAP": "La zone chevauche un autre espace privé existant",
+    "SPACE_HAS_FOREIGN": "La zone contient des pixels d'un autre utilisateur. Tu ne peux acheter que des zones vides ou avec tes propres pixels.",
+    "SPACE_USERS_NOT_FOUND": "Ces utilisateurs sont introuvables : {{users}}",
+    "SPACE_NOT_FOUND": "Espace introuvable",
+    "SPACE_NOT_YOURS": "Ce n'est pas ton espace",
+    "NICKNAME_TAKEN": "Ce pseudo est déjà utilisé",
+    "EMAIL_TAKEN": "Cet e-mail est déjà enregistré",
+    "PHONE_TAKEN": "Ce numéro de téléphone est déjà enregistré",
+    "INVALID_CREDENTIALS": "Identifiants invalides",
+    "ACCOUNT_SUSPENDED": "Ton compte est suspendu",
+    "INVALID_CODE": "Code invalide",
+    "CODE_EXPIRED": "Le code a expiré",
+    "ALREADY_VERIFIED": "Le compte est déjà vérifié",
+    "INVALID_RESET_DATA": "Données invalides",
+    "PASSWORD_TOO_SHORT": "Le mot de passe doit faire au moins {{min}} caractères"
+  },
+  "resetPassword": {
+    "title": "Réinitialiser le mot de passe",
+    "successTitle": "Mot de passe mis à jour !",
+    "successText": "Ton mot de passe a été réinitialisé avec succès.",
+    "login": "Se connecter",
+    "emailOrPhone": "E-mail ou téléphone",
+    "code": "Code",
+    "newPassword": "Nouveau mot de passe",
+    "saving": "Enregistrement...",
+    "submit": "Réinitialiser le mot de passe",
+    "error": "Impossible de réinitialiser le mot de passe"
+  },
+  "forgotPassword": {
+    "title": "Réinitialiser le mot de passe",
+    "sentText": "Si un compte existe, nous t'avons envoyé les instructions pour réinitialiser ton mot de passe.",
+    "haveCode": "J'ai déjà mon code",
+    "intro": "Saisis ton e-mail ou ton téléphone et nous t'enverrons les instructions.",
+    "placeholder": "E-mail ou téléphone",
+    "sending": "Envoi...",
+    "submit": "Envoyer les instructions",
+    "backToLogin": "Retour à la connexion"
+  },
+  "publication": {
+    "notFound": "Publication introuvable",
+    "by": "Par",
+    "delete": "Supprimer la publication",
+    "report": "Signaler la publication",
+    "confirmDelete": "Es-tu sûr de vouloir supprimer cette publication ?",
+    "comments": "Commentaires ({{n}})",
+    "commentPlaceholder": "Écris un commentaire (max 100)",
+    "send": "Envoyer",
+    "noComments": "Aucun commentaire pour l'instant.",
+    "deleteComment": "Supprimer",
+    "reportComment": "Signaler"
+  },
   "community": {
     "tabs": { "announcements": "Annonces", "snapshots": "Captures" },
     "empty": {
@@ -415,6 +494,7 @@
     "backToCanvas": "Retour au canevas"
   },
   "shop": {
+    "modalTitle": "Boutique",
     "rarity": {
       "COMMON": "Communs",
       "RARE": "Rares",
@@ -504,7 +584,103 @@
     "loading": "Chargement des succès...",
     "empty": "Aucun succès disponible pour le moment.",
     "title": "Succès",
-    "completed": "Terminé"
+    "completed": "Terminé",
+    "items": {
+      "pixels_100": { "name": "Premiers traits", "desc": "Place 100 pixels." },
+      "pixels_1000": {
+        "name": "Peintre dévoué",
+        "desc": "Place 1 000 pixels."
+      },
+      "pixels_10000": {
+        "name": "Maître de la toile",
+        "desc": "Place 10 000 pixels."
+      },
+      "pixels_50000": {
+        "name": "Artisan infatigable",
+        "desc": "Place 50 000 pixels."
+      },
+      "pixels_100000": {
+        "name": "Légende du pixel",
+        "desc": "Place 100 000 pixels."
+      },
+      "pixels_500000": {
+        "name": "Force imparable",
+        "desc": "Place 500 000 pixels."
+      },
+      "pixels_1000000": {
+        "name": "Un million de traits",
+        "desc": "Place 1 000 000 de pixels."
+      },
+      "pubs_1": {
+        "name": "Première œuvre",
+        "desc": "Crée ta première publication."
+      },
+      "pubs_10": { "name": "Galerie", "desc": "Crée 10 publications." },
+      "pubs_25": { "name": "Conservateur", "desc": "Crée 25 publications." },
+      "pubs_100": { "name": "Musée vivant", "desc": "Crée 100 publications." },
+      "likes_10": {
+        "name": "Premiers applaudissements",
+        "desc": "Reçois 10 j'aime sur tes œuvres."
+      },
+      "likes_50": {
+        "name": "Reconnu",
+        "desc": "Reçois 50 j'aime sur tes œuvres."
+      },
+      "likes_500": {
+        "name": "Favori du public",
+        "desc": "Reçois 500 j'aime sur tes œuvres."
+      },
+      "likes_1000": {
+        "name": "Idole",
+        "desc": "Reçois 1 000 j'aime sur tes œuvres."
+      },
+      "likes_5000": {
+        "name": "Phénomène viral",
+        "desc": "Reçois 5 000 j'aime sur tes œuvres."
+      },
+      "level_5": { "name": "En progression", "desc": "Atteins le niveau 5." },
+      "level_10": { "name": "Sur sa lancée", "desc": "Atteins le niveau 10." },
+      "level_25": { "name": "Vétéran", "desc": "Atteins le niveau 25." },
+      "level_50": { "name": "Élite", "desc": "Atteins le niveau 50." },
+      "level_75": { "name": "Grand maître", "desc": "Atteins le niveau 75." },
+      "level_100": {
+        "name": "Légende vivante",
+        "desc": "Atteins le niveau 100."
+      },
+      "collect_1": {
+        "name": "Premier style",
+        "desc": "Obtiens ton premier cosmétique."
+      },
+      "collect_10": {
+        "name": "Collectionneur",
+        "desc": "Rassemble 10 cosmétiques."
+      },
+      "collect_25": {
+        "name": "Accumulateur",
+        "desc": "Rassemble 25 cosmétiques."
+      },
+      "collect_50": {
+        "name": "Grand collectionneur",
+        "desc": "Rassemble 50 cosmétiques."
+      },
+      "legendary_1": {
+        "name": "Pièce légendaire",
+        "desc": "Obtiens ton premier cosmétique légendaire."
+      },
+      "mythic_1": {
+        "name": "Mythe devenu réalité",
+        "desc": "Obtiens ton premier cosmétique mythique."
+      },
+      "palette_1": {
+        "name": "Palette complète",
+        "desc": "Complète n'importe quelle palette de couleurs."
+      },
+      "friends_1": {
+        "name": "Premier ami",
+        "desc": "Fais-toi un premier ami."
+      },
+      "friends_10": { "name": "Cercle social", "desc": "Atteins 10 amis." }
+    }
   },
   "tasks": {
     "loginRequired": "Connecte-toi pour voir tes tâches.",
@@ -512,9 +688,36 @@
     "empty": "Aucune tâche disponible pour le moment.",
     "header": "Tâches de la semaine",
     "subtitle": "Elles sont réinitialisées chaque semaine.",
-    "completed": "Terminée"
+    "completed": "Terminée",
+    "items": {
+      "weekly_pixels_200": {
+        "name": "Peintre de la semaine",
+        "desc": "Peins 200 pixels cette semaine."
+      },
+      "weekly_pixels_500": {
+        "name": "Toile en feu",
+        "desc": "Peins 500 pixels cette semaine."
+      },
+      "weekly_pixels_1000": {
+        "name": "Marathon hebdomadaire",
+        "desc": "Peins 1 000 pixels cette semaine."
+      },
+      "weekly_pub_1": {
+        "name": "Œuvre de la semaine",
+        "desc": "Crée une publication cette semaine."
+      },
+      "weekly_pub_3": {
+        "name": "Trio créatif",
+        "desc": "Crée 3 publications cette semaine."
+      },
+      "weekly_likes_25": {
+        "name": "Applaudissements de la semaine",
+        "desc": "Reçois 25 j'aime cette semaine."
+      }
+    }
   },
   "friends": {
+    "title": "Amis",
     "tabs": {
       "friends": "Amis ({{count}})",
       "incoming": "Reçues ({{count}})",
@@ -550,6 +753,7 @@
     }
   },
   "rankings": {
+    "title": "Classements",
     "views": {
       "monthly": "Ce mois-ci",
       "historical": "Historique",
@@ -584,7 +788,8 @@
       "submitting": "Inscription...",
       "error": "Échec de l'inscription",
       "haveAccount": "Vous avez déjà un compte ?",
-      "login": "Se connecter"
+      "login": "Se connecter",
+      "title": "Créer un compte"
     },
     "login": {
       "emailOrPhone": "E-mail ou téléphone",
@@ -593,7 +798,8 @@
       "error": "Échec de la connexion",
       "noAccount": "Vous n'avez pas de compte ?",
       "register": "S'inscrire",
-      "forgot": "Mot de passe oublié ?"
+      "forgot": "Mot de passe oublié ?",
+      "title": "Se connecter"
     },
     "ban": {
       "title": "Compte suspendu",
@@ -698,6 +904,7 @@
       "confirm": "Confirmer l'achat",
       "purchasing": "Achat...",
       "error": "Erreur lors de l'achat",
+      "genericError": "Erreur lors de l'achat",
       "failed": "Impossible d'acheter l'espace",
       "success": "Espace privé acheté !"
     },

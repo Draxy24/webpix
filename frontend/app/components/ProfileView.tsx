@@ -10,6 +10,7 @@ import Button from "./Button";
 import styles from "./ProfileView.module.css";
 import { badgeIcon } from "../lib/badges";
 import { API_URL } from "@/app/lib/api";
+import { cosmeticName } from "../lib/cosmeticText";
 
 interface Profile {
   nickname: string;
@@ -18,16 +19,26 @@ interface Profile {
   createdAt: string;
   pixelCount: number;
   level: number;
-  title: { name: string; data: { color?: string } | null } | null;
+  title: {
+    key: string;
+    name: string;
+    data: { color?: string } | null;
+  } | null;
   badge: {
+    key: string;
     name: string;
     data: { icon?: string; medal?: string; color?: string } | null;
   } | null;
   frame: {
+    key: string;
     name: string;
     data: { ring?: string; image?: string } | null;
   } | null;
-  background: { name: string; data: { background?: string } | null } | null;
+  background: {
+    key: string;
+    name: string;
+    data: { background?: string } | null;
+  } | null;
 }
 
 interface PublicationSummary {
@@ -225,7 +236,7 @@ export default function ProfileView({
                     : undefined
                 }
               >
-                {profile.title.name}
+                {cosmeticName(profile.title.key, profile.title.name, t)}
               </span>
             )}
             {profile.badge && (
@@ -240,7 +251,8 @@ export default function ProfileView({
                     : undefined
                 }
               >
-                {badgeIcon(profile.badge.data?.icon)} {profile.badge.name}
+                {badgeIcon(profile.badge.data?.icon)}{" "}
+                {cosmeticName(profile.badge.key, profile.badge.name, t)}
               </span>
             )}
           </div>

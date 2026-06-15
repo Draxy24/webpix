@@ -8,6 +8,7 @@ import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
 import styles from "../components/AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 
 export default function VerifyPage() {
   const { t } = useTranslation();
@@ -58,7 +59,9 @@ export default function VerifyPage() {
       });
       const data = await res.json();
       if (!res.ok)
-        throw new Error(data.message ?? t("verify.phone.invalidCode"));
+        throw new Error(
+          apiErrorText(data, t, t("verify.phone.invalidCode")),
+        );
       router.push("/");
     } catch (err) {
       setError(

@@ -47,11 +47,17 @@ export class UsersController {
       createdAt: user.createdAt,
       pixelCount: user.pixelsPlaced,
       level: levelInfo(user.xp).level,
-      title: titleCos ? { name: titleCos.name, data: titleCos.data } : null,
-      badge: badgeCos ? { name: badgeCos.name, data: badgeCos.data } : null,
-      frame: frame ? { name: frame.name, data: frame.data } : null,
+      title: titleCos
+        ? { key: titleCos.key, name: titleCos.name, data: titleCos.data }
+        : null,
+      badge: badgeCos
+        ? { key: badgeCos.key, name: badgeCos.name, data: badgeCos.data }
+        : null,
+      frame: frame
+        ? { key: frame.key, name: frame.name, data: frame.data }
+        : null,
       background: background
-        ? { name: background.name, data: background.data }
+        ? { key: background.key, name: background.name, data: background.data }
         : null,
     };
   }

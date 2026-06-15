@@ -24,6 +24,8 @@ import { resolveColor } from "./lib/colors";
 import { API_URL } from "@/app/lib/api";
 import Flag from "./components/Flag";
 import { badgeIcon } from "./lib/badges";
+import { cosmeticName } from "./lib/cosmeticText";
+import { apiErrorText } from "./lib/apiError";
 import {
   playPaint,
   playError,
@@ -38,6 +40,10 @@ import CommunityView from "./components/CommunityView";
 
 export default function Home() {
   const { t } = useTranslation();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
   const { token, nickname, logout } = useAuth();
   const { openProfile } = useProfileModal();
   const { openShop } = useShopModal();
@@ -63,8 +69,13 @@ export default function Home() {
   type OwnerCard = {
     country: string | null;
     level: number | null;
-    title: { name: string; data: { color?: string } | null } | null;
+    title: {
+      key: string;
+      name: string;
+      data: { color?: string } | null;
+    } | null;
     badge: {
+      key: string;
       name: string;
       data: { icon?: string; medal?: string; color?: string } | null;
     } | null;
@@ -140,7 +151,7 @@ export default function Home() {
   const [publishError, setPublishError] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [exoticColors, setExoticColors] = useState<
-    { token: string; swatch: string; name: string }[]
+    { key: string; token: string; swatch: string; name: string }[]
   >([]);
   const [colorRefresh, setColorRefresh] = useState(0);
   const zoomRef = useRef(zoom);
@@ -388,7 +399,8 @@ export default function Home() {
             });
             setClicksLeft((prev) => prev + 1);
             if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
-            else if (data.message) setNotice(data.message);
+            else if (data.message || data.code)
+              setNotice(apiErrorText(data, tRef.current));
             return;
           }
           if (data.state) {
@@ -929,7 +941,9 @@ export default function Home() {
           setQuoteError("");
         } else {
           setQuote(null);
-          setQuoteError(data.message || t("canvas.purchase.invalidArea"));
+          setQuoteError(
+            apiErrorText(data, t, t("canvas.purchase.invalidArea")),
+          );
         }
       })
       .catch(() => {});
@@ -951,6 +965,7 @@ export default function Home() {
         (
           data: {
             type: string;
+            key: string;
             name: string;
             data: { token?: string; swatch?: string } | null;
           }[],
@@ -959,6 +974,7 @@ export default function Home() {
             data
               .filter((c) => c.type === "COLOR" && c.data?.token)
               .map((c) => ({
+                key: c.key,
                 token: c.data!.token!,
                 swatch: c.data!.swatch ?? "#000",
                 name: c.name,
@@ -1068,7 +1084,8 @@ export default function Home() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("canvas.publish.error"));
+      if (!res.ok)
+        throw new Error(apiErrorText(data, t, t("canvas.publish.error")));
       setShowPublishModal(false);
       setSelection(null);
       setPublishTitle("");
@@ -1102,7 +1119,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(data.message || t("canvas.eraseArea.failed"));
+        alert(apiErrorText(data, t, t("canvas.eraseArea.failed")));
         return;
       }
       // El evento 'erase' del WebSocket quita los píxeles del lienzo en todos.
@@ -1150,7 +1167,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "No se pudo comprar el espacio");
+        throw new Error(apiErrorText(data, t, t("canvas.purchase.failed")));
       }
       const r = await fetch(API_URL + "/private-spaces/canvas");
       setPrivateSpaces(await r.json());
@@ -1159,9 +1176,11 @@ export default function Home() {
       setMemberInput("");
       setAccessMode("OWNER_ONLY");
       if (soundEnabledRef.current) playPurchase();
-      alert("¡Espacio privado comprado!");
+      alert(t("canvas.purchase.success"));
     } catch (err) {
-      setPurchaseError(err instanceof Error ? err.message : "Error al comprar");
+      setPurchaseError(
+        err instanceof Error ? err.message : t("canvas.purchase.genericError"),
+      );
     } finally {
       setPurchasing(false);
     }
@@ -1526,7 +1545,7 @@ export default function Home() {
                     color: card.title.data?.color ?? undefined,
                   }}
                 >
-                  {card.title.name}
+                  {cosmeticName(card.title.key, card.title.name, t)}
                 </div>
               )}
               {card?.badge && (
@@ -1536,7 +1555,8 @@ export default function Home() {
                     color: card.badge.data?.color ?? undefined,
                   }}
                 >
-                  {badgeIcon(card.badge.data?.icon)} {card.badge.name}
+                  {badgeIcon(card.badge.data?.icon)}{" "}
+                  {cosmeticName(card.badge.key, card.badge.name, t)}
                 </div>
               )}
               <div style={{ fontSize: "10px", opacity: 0.7, marginTop: "2px" }}>
@@ -1882,7 +1902,7 @@ export default function Home() {
                   cursor: "pointer",
                   lineHeight: 1,
                 }}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
               >
                 ×
               </button>

@@ -1,4 +1,83 @@
 {
+  "errors": {
+    "USER_NOT_FOUND": "Benutzer nicht gefunden",
+    "COLOR_NOT_OWNED": "Du besitzt diese exotische Farbe nicht",
+    "PIXEL_IN_PRIVATE_SPACE": "Dieser Pixel gehört zu einem privaten Bereich",
+    "COOLDOWN": "Im Cooldown",
+    "LIMIT_REACHED": "Limit erreicht",
+    "LOGIN_FOR_EXOTIC": "Melde dich an, um exotische Farben zu nutzen",
+    "NOTHING_TO_ERASE": "Hier gibt es nichts zu löschen",
+    "ERASE_ONLY_OWN": "Du kannst nur deine eigenen Pixel löschen",
+    "AREA_TOUCHES_PRIVATE": "Der Bereich berührt einen privaten Bereich. Nutze den Punktmodus innerhalb privater Bereiche.",
+    "AREA_EMPTY_ERASE": "Keine Pixel zum Löschen in diesem Bereich",
+    "AREA_HAS_FOREIGN": "Der Bereich enthält Pixel anderer Nutzer. Übermale sie zuerst, um sie zu beanspruchen.",
+    "AREA_NO_OWN": "Du hast keine eigenen Pixel in diesem Bereich",
+    "PUB_AREA_TOO_SMALL": "Der Bereich muss insgesamt mindestens {{area}} Pixel und je Seite mindestens {{side}} haben",
+    "PUB_TITLE_TOO_LONG": "Der Titel darf nicht länger als {{max}} Zeichen sein",
+    "PUB_AREA_EMPTY": "Der ausgewählte Bereich ist leer",
+    "PUB_NOT_ENOUGH_PIXELS": "Du musst mindestens {{min}} Pixel in diesem Bereich gesetzt haben",
+    "PUB_OWNERSHIP_TOO_LOW": "Du musst mindestens {{required}}% der gesetzten Pixel im Bereich besitzen. Aktuell: {{current}}%",
+    "PUB_NOT_FOUND": "Veröffentlichung nicht gefunden",
+    "PUB_DELETE_FORBIDDEN": "Du kannst diese Veröffentlichung nicht löschen",
+    "COMMENT_LENGTH": "Der Kommentar muss zwischen 1 und {{max}} Zeichen lang sein",
+    "COMMENT_NOT_FOUND": "Kommentar nicht gefunden",
+    "COMMENT_DELETE_FORBIDDEN": "Du kannst diesen Kommentar nicht löschen",
+    "SPACE_SIDE_TOO_SMALL": "Keine Seite darf kleiner als {{min}} Pixel sein",
+    "SPACE_AREA_TOO_SMALL": "Der Bereich muss eine Fläche von mindestens {{min}} Pixeln haben",
+    "SPACE_SIDE_TOO_BIG": "Keine Seite darf {{max}} Pixel überschreiten",
+    "SPACE_MAX_COUNT": "Du hast bereits die maximale Anzahl von {{max}} aktiven Bereichen",
+    "SPACE_MAX_PIXELS": "Du würdest dein Limit von {{max}} privaten Pixeln überschreiten",
+    "SPACE_OVERLAP": "Der Bereich überschneidet sich mit einem anderen vorhandenen privaten Bereich",
+    "SPACE_HAS_FOREIGN": "Der Bereich enthält Pixel anderer Nutzer. Du kannst nur leere Bereiche oder solche mit deinen eigenen Pixeln kaufen.",
+    "SPACE_USERS_NOT_FOUND": "Diese Nutzer wurden nicht gefunden: {{users}}",
+    "SPACE_NOT_FOUND": "Bereich nicht gefunden",
+    "SPACE_NOT_YOURS": "Das ist nicht dein Bereich",
+    "NICKNAME_TAKEN": "Der Nickname ist bereits vergeben",
+    "EMAIL_TAKEN": "Die E-Mail ist bereits registriert",
+    "PHONE_TAKEN": "Die Telefonnummer ist bereits registriert",
+    "INVALID_CREDENTIALS": "Ungültige Anmeldedaten",
+    "ACCOUNT_SUSPENDED": "Dein Konto ist gesperrt",
+    "INVALID_CODE": "Ungültiger Code",
+    "CODE_EXPIRED": "Der Code ist abgelaufen",
+    "ALREADY_VERIFIED": "Das Konto ist bereits verifiziert",
+    "INVALID_RESET_DATA": "Ungültige Daten",
+    "PASSWORD_TOO_SHORT": "Das Passwort muss mindestens {{min}} Zeichen lang sein"
+  },
+  "resetPassword": {
+    "title": "Passwort zurücksetzen",
+    "successTitle": "Passwort aktualisiert!",
+    "successText": "Dein Passwort wurde erfolgreich zurückgesetzt.",
+    "login": "Anmelden",
+    "emailOrPhone": "E-Mail oder Telefon",
+    "code": "Code",
+    "newPassword": "Neues Passwort",
+    "saving": "Wird gespeichert...",
+    "submit": "Passwort zurücksetzen",
+    "error": "Passwort konnte nicht zurückgesetzt werden"
+  },
+  "forgotPassword": {
+    "title": "Passwort zurücksetzen",
+    "sentText": "Falls ein Konto existiert, haben wir dir Anweisungen zum Zurücksetzen deines Passworts gesendet.",
+    "haveCode": "Ich habe bereits meinen Code",
+    "intro": "Gib deine E-Mail oder Telefonnummer ein und wir senden dir Anweisungen.",
+    "placeholder": "E-Mail oder Telefon",
+    "sending": "Wird gesendet...",
+    "submit": "Anweisungen senden",
+    "backToLogin": "Zurück zur Anmeldung"
+  },
+  "publication": {
+    "notFound": "Veröffentlichung nicht gefunden",
+    "by": "Von",
+    "delete": "Veröffentlichung löschen",
+    "report": "Veröffentlichung melden",
+    "confirmDelete": "Möchtest du diese Veröffentlichung wirklich löschen?",
+    "comments": "Kommentare ({{n}})",
+    "commentPlaceholder": "Schreibe einen Kommentar (max. 100)",
+    "send": "Senden",
+    "noComments": "Noch keine Kommentare.",
+    "deleteComment": "Löschen",
+    "reportComment": "Melden"
+  },
   "community": {
     "tabs": { "announcements": "Ankündigungen", "snapshots": "Aufnahmen" },
     "empty": {
@@ -403,6 +482,7 @@
     "backToCanvas": "Zurück zur Leinwand"
   },
   "shop": {
+    "modalTitle": "Shop",
     "rarity": {
       "COMMON": "Gewöhnlich",
       "RARE": "Selten",
@@ -492,7 +572,106 @@
     "loading": "Erfolge werden geladen...",
     "empty": "Noch keine Erfolge verfügbar.",
     "title": "Erfolge",
-    "completed": "Abgeschlossen"
+    "completed": "Abgeschlossen",
+    "items": {
+      "pixels_100": { "name": "Erste Striche", "desc": "Setze 100 Pixel." },
+      "pixels_1000": {
+        "name": "Engagierter Maler",
+        "desc": "Setze 1.000 Pixel."
+      },
+      "pixels_10000": {
+        "name": "Meister der Leinwand",
+        "desc": "Setze 10.000 Pixel."
+      },
+      "pixels_50000": {
+        "name": "Unermüdlicher Handwerker",
+        "desc": "Setze 50.000 Pixel."
+      },
+      "pixels_100000": {
+        "name": "Pixel-Legende",
+        "desc": "Setze 100.000 Pixel."
+      },
+      "pixels_500000": {
+        "name": "Unaufhaltsame Kraft",
+        "desc": "Setze 500.000 Pixel."
+      },
+      "pixels_1000000": {
+        "name": "Eine Million Striche",
+        "desc": "Setze 1.000.000 Pixel."
+      },
+      "pubs_1": {
+        "name": "Erstes Werk",
+        "desc": "Erstelle deine erste Veröffentlichung."
+      },
+      "pubs_10": {
+        "name": "Galerie",
+        "desc": "Erstelle 10 Veröffentlichungen."
+      },
+      "pubs_25": {
+        "name": "Kurator",
+        "desc": "Erstelle 25 Veröffentlichungen."
+      },
+      "pubs_100": {
+        "name": "Lebendiges Museum",
+        "desc": "Erstelle 100 Veröffentlichungen."
+      },
+      "likes_10": {
+        "name": "Erster Applaus",
+        "desc": "Erhalte 10 Likes für deine Werke."
+      },
+      "likes_50": {
+        "name": "Anerkannt",
+        "desc": "Erhalte 50 Likes für deine Werke."
+      },
+      "likes_500": {
+        "name": "Publikumsliebling",
+        "desc": "Erhalte 500 Likes für deine Werke."
+      },
+      "likes_1000": {
+        "name": "Idol",
+        "desc": "Erhalte 1.000 Likes für deine Werke."
+      },
+      "likes_5000": {
+        "name": "Virales Phänomen",
+        "desc": "Erhalte 5.000 Likes für deine Werke."
+      },
+      "level_5": { "name": "Aufstieg", "desc": "Erreiche Level 5." },
+      "level_10": { "name": "In Fahrt", "desc": "Erreiche Level 10." },
+      "level_25": { "name": "Veteran", "desc": "Erreiche Level 25." },
+      "level_50": { "name": "Elite", "desc": "Erreiche Level 50." },
+      "level_75": { "name": "Großmeister", "desc": "Erreiche Level 75." },
+      "level_100": { "name": "Lebende Legende", "desc": "Erreiche Level 100." },
+      "collect_1": {
+        "name": "Stil-Debüt",
+        "desc": "Erhalte dein erstes Kosmetikobjekt."
+      },
+      "collect_10": { "name": "Sammler", "desc": "Sammle 10 Kosmetikobjekte." },
+      "collect_25": {
+        "name": "Hamsterer",
+        "desc": "Sammle 25 Kosmetikobjekte."
+      },
+      "collect_50": {
+        "name": "Meistersammler",
+        "desc": "Sammle 50 Kosmetikobjekte."
+      },
+      "legendary_1": {
+        "name": "Legendäres Stück",
+        "desc": "Erhalte dein erstes legendäres Kosmetikobjekt."
+      },
+      "mythic_1": {
+        "name": "Mythos wird wahr",
+        "desc": "Erhalte dein erstes mythisches Kosmetikobjekt."
+      },
+      "palette_1": {
+        "name": "Vollständige Palette",
+        "desc": "Vervollständige eine beliebige Farbpalette."
+      },
+      "friends_1": {
+        "name": "Erster Freund",
+        "desc": "Finde deinen ersten Freund."
+      },
+      "friends_10": { "name": "Sozialer Kreis", "desc": "Erreiche 10 Freunde." }
+    }
   },
   "tasks": {
     "loginRequired": "Melde dich an, um deine Aufgaben zu sehen.",
@@ -500,9 +679,36 @@
     "empty": "Noch keine Aufgaben verfügbar.",
     "header": "Aufgaben der Woche",
     "subtitle": "Sie werden jede Woche zurückgesetzt.",
-    "completed": "Abgeschlossen"
+    "completed": "Abgeschlossen",
+    "items": {
+      "weekly_pixels_200": {
+        "name": "Maler der Woche",
+        "desc": "Male diese Woche 200 Pixel."
+      },
+      "weekly_pixels_500": {
+        "name": "Leinwand in Flammen",
+        "desc": "Male diese Woche 500 Pixel."
+      },
+      "weekly_pixels_1000": {
+        "name": "Wochenmarathon",
+        "desc": "Male diese Woche 1.000 Pixel."
+      },
+      "weekly_pub_1": {
+        "name": "Werk der Woche",
+        "desc": "Erstelle diese Woche eine Veröffentlichung."
+      },
+      "weekly_pub_3": {
+        "name": "Kreatives Trio",
+        "desc": "Erstelle diese Woche 3 Veröffentlichungen."
+      },
+      "weekly_likes_25": {
+        "name": "Applaus der Woche",
+        "desc": "Erhalte diese Woche 25 Likes."
+      }
+    }
   },
   "friends": {
+    "title": "Freunde",
     "tabs": {
       "friends": "Freunde ({{count}})",
       "incoming": "Erhalten ({{count}})",
@@ -538,6 +744,7 @@
     }
   },
   "rankings": {
+    "title": "Ranglisten",
     "views": {
       "monthly": "Dieser Monat",
       "historical": "Allzeit",
@@ -572,7 +779,8 @@
       "submitting": "Wird registriert...",
       "error": "Registrierung fehlgeschlagen",
       "haveAccount": "Hast du schon ein Konto?",
-      "login": "Anmelden"
+      "login": "Anmelden",
+      "title": "Konto erstellen"
     },
     "login": {
       "emailOrPhone": "E-Mail oder Telefon",
@@ -581,7 +789,8 @@
       "error": "Anmeldung fehlgeschlagen",
       "noAccount": "Noch kein Konto?",
       "register": "Registrieren",
-      "forgot": "Passwort vergessen?"
+      "forgot": "Passwort vergessen?",
+      "title": "Anmelden"
     },
     "ban": {
       "title": "Konto gesperrt",
@@ -683,6 +892,7 @@
       "confirm": "Kauf bestätigen",
       "purchasing": "Wird gekauft...",
       "error": "Fehler beim Kauf",
+      "genericError": "Fehler beim Kauf",
       "failed": "Bereich konnte nicht gekauft werden",
       "success": "Privater Bereich gekauft!"
     },

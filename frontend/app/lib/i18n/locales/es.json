@@ -1,4 +1,39 @@
 {
+  "resetPassword": {
+    "title": "Restablecer contraseña",
+    "successTitle": "¡Contraseña actualizada!",
+    "successText": "Tu contraseña ha sido restablecida correctamente.",
+    "login": "Iniciar sesión",
+    "emailOrPhone": "Email o teléfono",
+    "code": "Código",
+    "newPassword": "Nueva contraseña",
+    "saving": "Guardando...",
+    "submit": "Restablecer contraseña",
+    "error": "Error al restablecer la contraseña"
+  },
+  "forgotPassword": {
+    "title": "Recuperar contraseña",
+    "sentText": "Si existe una cuenta asociada, te enviamos instrucciones para recuperar tu contraseña.",
+    "haveCode": "Ya tengo mi código",
+    "intro": "Ingresa tu correo o teléfono y te enviaremos instrucciones.",
+    "placeholder": "Email o teléfono",
+    "sending": "Enviando...",
+    "submit": "Enviar instrucciones",
+    "backToLogin": "Volver a iniciar sesión"
+  },
+  "publication": {
+    "notFound": "Publicación no encontrada",
+    "by": "Por",
+    "delete": "Eliminar publicación",
+    "report": "Reportar publicación",
+    "confirmDelete": "¿Estás seguro de eliminar esta publicación?",
+    "comments": "Comentarios ({{n}})",
+    "commentPlaceholder": "Escribe un comentario (máx 100)",
+    "send": "Enviar",
+    "noComments": "No hay comentarios todavía.",
+    "deleteComment": "Eliminar",
+    "reportComment": "Reportar"
+  },
   "community": {
     "tabs": { "announcements": "Avisos", "snapshots": "Capturas" },
     "empty": {
@@ -167,6 +202,7 @@
     "backToCanvas": "Volver al lienzo"
   },
   "shop": {
+    "modalTitle": "Tienda",
     "rarity": {
       "COMMON": "Comunes",
       "RARE": "Raros",
@@ -267,6 +303,7 @@
     "completed": "Completada"
   },
   "friends": {
+    "title": "Amigos",
     "tabs": {
       "friends": "Amigos ({{count}})",
       "incoming": "Recibidas ({{count}})",
@@ -302,6 +339,7 @@
     }
   },
   "rankings": {
+    "title": "Rankings",
     "views": {
       "monthly": "Este mes",
       "historical": "Histórico",
@@ -336,7 +374,8 @@
       "submitting": "Registrando...",
       "error": "Error al registrarse",
       "haveAccount": "¿Ya tienes cuenta?",
-      "login": "Inicia sesión"
+      "login": "Inicia sesión",
+      "title": "Crear cuenta"
     },
     "login": {
       "emailOrPhone": "Email o teléfono",
@@ -345,7 +384,8 @@
       "error": "Error al iniciar sesión",
       "noAccount": "¿No tienes cuenta?",
       "register": "Regístrate",
-      "forgot": "¿Olvidaste tu contraseña?"
+      "forgot": "¿Olvidaste tu contraseña?",
+      "title": "Iniciar sesión"
     },
     "ban": {
       "title": "Cuenta suspendida",
@@ -450,6 +490,7 @@
       "confirm": "Confirmar compra",
       "purchasing": "Comprando...",
       "error": "Error al comprar",
+      "genericError": "Error al comprar",
       "failed": "No se pudo comprar el espacio",
       "success": "¡Espacio privado comprado!"
     },

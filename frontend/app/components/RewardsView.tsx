@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./RewardsView.module.css";
 import { badgeIcon } from "../lib/badges";
+import { cosmeticName, cosmeticDesc } from "../lib/cosmeticText";
 import { API_URL } from "@/app/lib/api";
 
 type Progression = {
@@ -14,7 +15,7 @@ type Progression = {
   xpIntoLevel: number;
   xpForNext: number;
   currencyNamePlural: string;
-  equippedTitle: { id: number; name: string } | null;
+  equippedTitle: { id: number; key: string; name: string } | null;
   equippedBadge: {
     id: number;
     name: string;
@@ -107,7 +108,9 @@ export default function RewardsView() {
         <div className={styles.progTop}>
           <span className={styles.level}>
             {t("rewards.level", { level: prog.level })}
-            {prog.equippedTitle ? ` · ${prog.equippedTitle.name}` : ""}
+            {prog.equippedTitle
+              ? ` · ${cosmeticName(prog.equippedTitle.key, prog.equippedTitle.name, t)}`
+              : ""}
           </span>
           <span className={styles.bits}>
             {prog.bits} {prog.currencyNamePlural}
@@ -135,14 +138,14 @@ export default function RewardsView() {
                 className={`${styles.chip} ${c.equipped ? styles.chipActive : ""}`}
                 onClick={() => toggle(c)}
                 disabled={busy}
-                title={c.description ?? undefined}
+                title={cosmeticDesc(c.key, c.description, t) || undefined}
                 style={
                   c.data?.color
                     ? { color: c.data.color, borderColor: c.data.color }
                     : undefined
                 }
               >
-                {c.name}
+                {cosmeticName(c.key, c.name, t)}
               </button>
             ))}
           </div>
@@ -161,9 +164,9 @@ export default function RewardsView() {
                 className={`${styles.chip} ${c.equipped ? styles.chipActive : ""}`}
                 onClick={() => toggle(c)}
                 disabled={busy}
-                title={c.description ?? undefined}
+                title={cosmeticDesc(c.key, c.description, t) || undefined}
               >
-                {badgeIcon(c.data?.icon)} {c.name}
+                {badgeIcon(c.data?.icon)} {cosmeticName(c.key, c.name, t)}
               </button>
             ))}
           </div>
@@ -181,7 +184,7 @@ export default function RewardsView() {
                 className={`${styles.chip} ${c.equipped ? styles.chipActive : ""}`}
                 onClick={() => toggle(c)}
                 disabled={busy}
-                title={c.description ?? undefined}
+                title={cosmeticDesc(c.key, c.description, t) || undefined}
               >
                 {c.data?.image ? (
                   <img
@@ -197,7 +200,7 @@ export default function RewardsView() {
                     }
                   />
                 )}
-                {c.name}
+                {cosmeticName(c.key, c.name, t)}
               </button>
             ))}
           </div>
@@ -218,7 +221,7 @@ export default function RewardsView() {
                 className={`${styles.chip} ${c.equipped ? styles.chipActive : ""}`}
                 onClick={() => toggle(c)}
                 disabled={busy}
-                title={c.description ?? undefined}
+                title={cosmeticDesc(c.key, c.description, t) || undefined}
               >
                 <span
                   className={styles.bgSwatch}
@@ -228,7 +231,7 @@ export default function RewardsView() {
                       : undefined
                   }
                 />
-                {c.name}
+                {cosmeticName(c.key, c.name, t)}
               </button>
             ))}
           </div>

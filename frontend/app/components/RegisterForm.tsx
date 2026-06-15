@@ -8,6 +8,7 @@ import PhoneCountrySelect from "./PhoneCountrySelect";
 import Button from "./Button";
 import styles from "./AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 import { COUNTRIES } from "../lib/countries";
 import { countryName } from "@/app/lib/countryName";
 
@@ -54,7 +55,8 @@ export default function RegisterForm({
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? t("auth.register.error"));
+      if (!res.ok)
+        throw new Error(apiErrorText(data, t, t("auth.register.error")));
       login(data.token, data.nickname);
       router.push("/verify");
     } catch (err) {

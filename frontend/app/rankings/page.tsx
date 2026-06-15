@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import RankingsView from "../components/RankingsView";
 
 export default function RankingsPage() {
+  const { t } = useTranslation();
   return (
     <main
       style={{
@@ -26,13 +28,13 @@ export default function RankingsPage() {
             fontSize: "var(--text-lg)",
           }}
         >
-          Rankings
+          {t("rankings.title")}
         </h1>
         <a
           href="/"
           style={{ fontSize: "var(--text-sm)", color: "var(--color-brand)" }}
         >
-          ← Volver al lienzo
+          ← {t("profile.backToCanvas")}
         </a>
       </div>
       <RankingsView />

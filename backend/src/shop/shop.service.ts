@@ -287,14 +287,15 @@ export class ShopService {
 
   private getActiveSeason(
     date: Date = new Date(),
-  ): { themes: string[]; label: string } | null {
+  ): { themes: string[]; key: string; label: string } | null {
     const month = date.getUTCMonth() + 1;
     const themes = Object.keys(SEASON_WINDOWS).filter((k) =>
       SEASON_WINDOWS[k].months.includes(month),
     );
     if (themes.length === 0) return null;
     const labelKey = SEASON_LABEL_PRIORITY.find((k) => themes.includes(k));
-    return { themes, label: SEASON_WINDOWS[labelKey ?? themes[0]].label };
+    const key = labelKey ?? themes[0];
+    return { themes, key, label: SEASON_WINDOWS[key].label };
   }
 
   // Ofertas del día: selección determinista de unos pocos items rebajados (cambia a medianoche UTC)

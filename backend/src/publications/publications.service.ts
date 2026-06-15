@@ -36,15 +36,19 @@ export class PublicationsService {
     const area = width * height;
 
     if (width < MIN_SIDE || height < MIN_SIDE || area < MIN_AREA) {
-      throw new BadRequestException(
-        `El área debe tener al menos ${MIN_AREA} píxeles en total y mínimo ${MIN_SIDE} de cada lado`,
-      );
+      throw new BadRequestException({
+        message: `El área debe tener al menos ${MIN_AREA} píxeles en total y mínimo ${MIN_SIDE} de cada lado`,
+        code: 'PUB_AREA_TOO_SMALL',
+        params: { area: MIN_AREA, side: MIN_SIDE },
+      });
     }
 
     if (data.title && data.title.length > MAX_TITLE_LENGTH) {
-      throw new BadRequestException(
-        `El título no puede tener más de ${MAX_TITLE_LENGTH} caracteres`,
-      );
+      throw new BadRequestException({
+        message: `El título no puede tener más de ${MAX_TITLE_LENGTH} caracteres`,
+        code: 'PUB_TITLE_TOO_LONG',
+        params: { max: MAX_TITLE_LENGTH },
+      });
     }
 
     const pixels = await this.prisma.pixel.findMany({
@@ -52,22 +56,32 @@ export class PublicationsService {
     });
 
     if (pixels.length === 0) {
-      throw new BadRequestException('El área seleccionada está vacía');
+      throw new BadRequestException({
+        message: 'El área seleccionada está vacía',
+        code: 'PUB_AREA_EMPTY',
+      });
     }
 
     const userPixels = pixels.filter((p) => p.userId === userId);
 
     if (userPixels.length < MIN_USER_PIXELS) {
-      throw new BadRequestException(
-        `Debes haber pintado al menos ${MIN_USER_PIXELS} píxeles en esta área`,
-      );
+      throw new BadRequestException({
+        message: `Debes haber pintado al menos ${MIN_USER_PIXELS} píxeles en esta área`,
+        code: 'PUB_NOT_ENOUGH_PIXELS',
+        params: { min: MIN_USER_PIXELS },
+      });
     }
 
     const ownershipRatio = userPixels.length / pixels.length;
     if (ownershipRatio < MIN_OWNERSHIP_RATIO) {
-      throw new BadRequestException(
-        `Debes ser autor de al menos el ${MIN_OWNERSHIP_RATIO * 100}% de los píxeles pintados en el área. Actualmente: ${Math.round(ownershipRatio * 100)}%`,
-      );
+      throw new BadRequestException({
+        message: `Debes ser autor de al menos el ${MIN_OWNERSHIP_RATIO * 100}% de los píxeles pintados en el área. Actualmente: ${Math.round(ownershipRatio * 100)}%`,
+        code: 'PUB_OWNERSHIP_TOO_LOW',
+        params: {
+          required: MIN_OWNERSHIP_RATIO * 100,
+          current: Math.round(ownershipRatio * 100),
+        },
+      });
     }
 
     const pixelData: Record<string, string> = {};
@@ -95,7 +109,11 @@ export class PublicationsService {
 
   async listByUser(nickname: string) {
     const user = await this.prisma.user.findUnique({ where: { nickname } });
-    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (!user)
+      throw new NotFoundException({
+        message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
+      });
 
     const publications = await this.prisma.publication.findMany({
       where: { userId: user.id },
@@ -134,7 +152,11 @@ export class PublicationsService {
       },
     });
 
-    if (!publication) throw new NotFoundException('Publicación no encontrada');
+    if (!publication)
+      throw new NotFoundException({
+        message: 'Publicación no encontrada',
+        code: 'PUB_NOT_FOUND',
+      });
 
     const likes = publication.reactions.filter((r) => r.type === 'LIKE').length;
     const dislikes = publication.reactions.filter(
@@ -171,9 +193,16 @@ export class PublicationsService {
     const publication = await this.prisma.publication.findUnique({
       where: { id: publicationId },
     });
-    if (!publication) throw new NotFoundException('Publicación no encontrada');
+    if (!publication)
+      throw new NotFoundException({
+        message: 'Publicación no encontrada',
+        code: 'PUB_NOT_FOUND',
+      });
     if (publication.userId !== userId)
-      throw new ForbiddenException('No puedes eliminar esta publicación');
+      throw new ForbiddenException({
+        message: 'No puedes eliminar esta publicación',
+        code: 'PUB_DELETE_FORBIDDEN',
+      });
 
     await this.prisma.publication.delete({ where: { id: publicationId } });
     return { success: true };
@@ -183,7 +212,11 @@ export class PublicationsService {
     const publication = await this.prisma.publication.findUnique({
       where: { id: publicationId },
     });
-    if (!publication) throw new NotFoundException('Publicación no encontrada');
+    if (!publication)
+      throw new NotFoundException({
+        message: 'Publicación no encontrada',
+        code: 'PUB_NOT_FOUND',
+      });
 
     const existing = await this.prisma.publicationReaction.findUnique({
       where: { publicationId_userId: { publicationId, userId } },
@@ -220,15 +253,21 @@ export class PublicationsService {
   async addComment(publicationId: number, userId: number, content: string) {
     const trimmed = content.trim();
     if (trimmed.length === 0 || trimmed.length > MAX_COMMENT_LENGTH) {
-      throw new BadRequestException(
-        `El comentario debe tener entre 1 y ${MAX_COMMENT_LENGTH} caracteres`,
-      );
+      throw new BadRequestException({
+        message: `El comentario debe tener entre 1 y ${MAX_COMMENT_LENGTH} caracteres`,
+        code: 'COMMENT_LENGTH',
+        params: { max: MAX_COMMENT_LENGTH },
+      });
     }
 
     const publication = await this.prisma.publication.findUnique({
       where: { id: publicationId },
     });
-    if (!publication) throw new NotFoundException('Publicación no encontrada');
+    if (!publication)
+      throw new NotFoundException({
+        message: 'Publicación no encontrada',
+        code: 'PUB_NOT_FOUND',
+      });
 
     const comment = await this.prisma.publicationComment.create({
       data: { publicationId, userId, content: trimmed },
@@ -248,9 +287,16 @@ export class PublicationsService {
     const comment = await this.prisma.publicationComment.findUnique({
       where: { id: commentId },
     });
-    if (!comment) throw new NotFoundException('Comentario no encontrado');
+    if (!comment)
+      throw new NotFoundException({
+        message: 'Comentario no encontrado',
+        code: 'COMMENT_NOT_FOUND',
+      });
     if (comment.userId !== userId)
-      throw new ForbiddenException('No puedes eliminar este comentario');
+      throw new ForbiddenException({
+        message: 'No puedes eliminar este comentario',
+        code: 'COMMENT_DELETE_FORBIDDEN',
+      });
 
     await this.prisma.publicationComment.delete({ where: { id: commentId } });
     return { success: true };

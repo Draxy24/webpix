@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./FloatingToolbox.module.css";
 import { useTranslation } from "react-i18next";
+import { cosmeticName } from "../lib/cosmeticText";
 
 export type Tool = "brush" | "eraser" | "publish" | "private" | "report";
 export type EraseMode = "point" | "area";
@@ -97,7 +98,7 @@ export default function FloatingToolbox({
   reportEnabled?: boolean;
   privateMode?: PrivateMode;
   onPrivateModeChange?: (mode: PrivateMode) => void;
-  exoticColors?: { token: string; swatch: string; name: string }[];
+  exoticColors?: { key: string; token: string; swatch: string; name: string }[];
 }) {
   const { t } = useTranslation();
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
@@ -258,8 +259,8 @@ export default function FloatingToolbox({
                     className={`${styles.swatch} ${color === ec.token ? styles.swatchActive : ""}`}
                     style={{ background: ec.swatch }}
                     onClick={() => onColorChange(ec.token)}
-                    title={ec.name}
-                    aria-label={ec.name}
+                    title={cosmeticName(ec.key, ec.name, t)}
+                    aria-label={cosmeticName(ec.key, ec.name, t)}
                   />
                 ))}
               </div>
