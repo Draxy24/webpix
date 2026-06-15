@@ -1,4 +1,8 @@
 {
+  "notifications": {
+    "friendRequest": "{{nick}} hat dir eine Freundschaftsanfrage gesendet",
+    "friendAccepted": "{{nick}} hat deine Anfrage angenommen"
+  },
   "errors": {
     "USER_NOT_FOUND": "Benutzer nicht gefunden",
     "COLOR_NOT_OWNED": "Du besitzt diese exotische Farbe nicht",
@@ -741,6 +745,12 @@
       "badges": "Du hast noch keine Abzeichen.",
       "frames": "Du hast noch keine Rahmen.",
       "backgrounds": "Du hast noch keine Hintergründe."
+    },
+    "toast": {
+      "levelUp": "Level {{level}} erreicht!",
+      "achievement": "Erfolg freigeschaltet",
+      "weeklyTask": "Wochenaufgabe erledigt",
+      "bits": "+{{bits}} Bits"
     }
   },
   "rankings": {

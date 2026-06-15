@@ -7,6 +7,8 @@ import styles from "./ShopView.module.css";
 import { badgeIcon } from "../lib/badges";
 import { cosmeticName, cosmeticDesc } from "../lib/cosmeticText";
 import { API_URL } from "@/app/lib/api";
+import { useNotify } from "./NotificationProvider";
+import { eventToast } from "../lib/rewardToast";
 
 type ShopItem = {
   id: number;
@@ -88,6 +90,7 @@ const HOME_SAMPLE = 4;
 
 export default function ShopView() {
   const { t, i18n } = useTranslation();
+  const { reward } = useNotify();
   const { token } = useAuth();
   const [data, setData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -145,6 +148,9 @@ export default function ShopView() {
         setMessage(
           t("shop.msg.bought", { name: cosmeticName(item.key, item.name, t) }),
         );
+        if (Array.isArray(result.events)) {
+          for (const ev of result.events) eventToast(ev, t, reward);
+        }
         window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }
@@ -177,6 +183,9 @@ export default function ShopView() {
             name: t(`palettes.${p.key}.name`, { defaultValue: p.name }),
           }),
         );
+        if (Array.isArray(result.events)) {
+          for (const ev of result.events) eventToast(ev, t, reward);
+        }
         window.dispatchEvent(new Event("cosmetics-updated"));
         await load();
       }

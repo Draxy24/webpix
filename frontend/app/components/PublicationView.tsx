@@ -8,6 +8,7 @@ import styles from "./PublicationView.module.css";
 import { useEffect, useState, useCallback, type ElementType } from "react";
 import { useTranslation } from "react-i18next";
 import { API_URL } from "@/app/lib/api";
+import { useNotify } from "./NotificationProvider";
 
 interface Comment {
   id: number;
@@ -41,6 +42,7 @@ export default function PublicationView({
   onOpenProfile?: (nickname: string) => void;
 }) {
   const { t, i18n } = useTranslation();
+  const { confirm } = useNotify();
   const { token, nickname: myNickname } = useAuth();
   const inModal = !!onOpenProfile;
   const [pub, setPub] = useState<PublicationDetail | null>(null);
@@ -119,7 +121,13 @@ export default function PublicationView({
 
   const handleDeletePublication = async () => {
     if (!token || !pub) return;
-    if (!confirm(t("publication.confirmDelete"))) return;
+    if (
+      !(await confirm({
+        message: t("publication.confirmDelete"),
+        danger: true,
+      }))
+    )
+      return;
     const res = await fetch(`${API_URL}/publications/${pub.id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
@@ -141,7 +149,6 @@ export default function PublicationView({
   const isMine = myNickname === pub.author.nickname;
   const Wrapper: ElementType = inModal ? "div" : "main";
 
-  // ...existing code...
   return (
     <Wrapper className={styles.main}>
       {!inModal && (

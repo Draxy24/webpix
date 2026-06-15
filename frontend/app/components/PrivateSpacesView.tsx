@@ -7,6 +7,7 @@ import Button from "./Button";
 import styles from "./PrivateSpacesView.module.css";
 import { API_URL } from "@/app/lib/api";
 import { apiErrorText } from "@/app/lib/apiError";
+import { useNotify } from "./NotificationProvider";
 
 type Space = {
   id: number;
@@ -80,6 +81,7 @@ function SpaceCard({
   onChanged: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const { confirm } = useNotify();
   const [memberInput, setMemberInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -125,9 +127,11 @@ function SpaceCard({
   };
 
   const release = async () => {
-    if (!window.confirm(t("spaces.confirmRelease"))) {
-      return;
-    }
+    const ok = await confirm({
+      message: t("spaces.confirmRelease"),
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(true);
     setError("");
     try {

@@ -38,14 +38,27 @@ import {
 import ReportModal from "./components/ReportModal";
 import { useTranslation } from "react-i18next";
 import CommunityView from "./components/CommunityView";
+import {
+  eventToast,
+  handleSocketNotification,
+  type SocketNotification,
+} from "./lib/rewardToast";
 
 export default function Home() {
   const { t } = useTranslation();
-  const { success, error } = useNotify();
+  const { success, error, reward, info } = useNotify();
   const tRef = useRef(t);
   useEffect(() => {
     tRef.current = t;
   }, [t]);
+  const rewardRef = useRef(reward);
+  useEffect(() => {
+    rewardRef.current = reward;
+  }, [reward]);
+  const infoRef = useRef(info);
+  useEffect(() => {
+    infoRef.current = info;
+  }, [info]);
   const { token, nickname, logout } = useAuth();
   const { openProfile } = useProfileModal();
   const { openShop } = useShopModal();
@@ -412,6 +425,11 @@ export default function Home() {
               setClicksLeft(data.state.pixelsLeft);
               if (data.state.cooldownSeconds > 0)
                 setCooldown(data.state.cooldownSeconds);
+            }
+          }
+          if (Array.isArray(data.events)) {
+            for (const ev of data.events) {
+              eventToast(ev, tRef.current, rewardRef.current);
             }
           }
         })
@@ -805,7 +823,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const socket = io(API_URL + "");
+    const socket = io(API_URL, { auth: token ? { token } : undefined });
     socket.on(
       "pixel",
       (data: {
@@ -833,10 +851,13 @@ export default function Home() {
         return next;
       });
     });
+    socket.on("notification", (payload: SocketNotification) => {
+      handleSocketNotification(payload, tRef.current, infoRef.current);
+    });
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     pixelOwnersRef.current = pixelOwners;
@@ -1093,6 +1114,9 @@ export default function Home() {
       setPublishTitle("");
       if (soundEnabledRef.current) playPublish();
       success(t("canvas.publish.success"));
+      if (Array.isArray(data.events)) {
+        for (const ev of data.events) eventToast(ev, t, reward);
+      }
     } catch (err) {
       setPublishError(
         err instanceof Error ? err.message : t("canvas.publish.error"),

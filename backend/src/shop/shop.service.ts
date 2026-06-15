@@ -106,7 +106,7 @@ export class ShopService {
       throw new BadRequestException('No se pudo completar la compra');
     }
 
-    await this.achievements.checkCollection(userId);
+    const events = await this.achievements.checkCollection(userId);
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     return {
@@ -114,6 +114,7 @@ export class ShopService {
       cosmeticKey: cosmetic.key,
       spent: price,
       bits: user?.bits ?? 0,
+      events,
     };
   }
 
@@ -219,10 +220,15 @@ export class ShopService {
       skipDuplicates: true,
     });
 
-    await this.achievements.checkCollection(userId);
+    const events = await this.achievements.checkCollection(userId);
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    return { success: true, granted: toGrant.length, bits: user?.bits ?? 0 };
+    return {
+      success: true,
+      granted: toGrant.length,
+      bits: user?.bits ?? 0,
+      events,
+    };
   }
 
   listBitPackages() {

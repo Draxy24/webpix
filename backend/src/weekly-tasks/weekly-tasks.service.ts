@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RewardsService } from '../rewards/rewards.service';
 import { AchievementMetric } from '@prisma/client';
 import { STARTER_WEEKLY_TASKS, currentWeekKey } from './weekly-tasks.config';
+import { RewardEvent } from '../achievements/reward-event';
 
 @Injectable()
 export class WeeklyTasksService {
@@ -12,13 +13,19 @@ export class WeeklyTasksService {
   ) {}
 
   // Suma progreso semanal para las tareas de esta métrica y otorga si se completan
-  async track(userId: number, metric: AchievementMetric, increment = 1) {
-    if (increment === 0) return;
+  async track(
+    userId: number,
+    metric: AchievementMetric,
+    increment = 1,
+  ): Promise<RewardEvent[]> {
+    if (increment === 0) return [];
     const weekKey = currentWeekKey();
 
     const tasks = await this.prisma.weeklyTask.findMany({
       where: { metric, active: true },
     });
+
+    const completed: RewardEvent[] = [];
 
     for (const t of tasks) {
       const row = await this.prisma.userWeeklyTask.upsert({
@@ -40,9 +47,17 @@ export class WeeklyTasksService {
           if (t.rewardXp > 0) await this.rewards.addXp(userId, t.rewardXp);
           if (t.rewardCosmeticKey)
             await this.rewards.grantCosmetic(userId, t.rewardCosmeticKey);
+          completed.push({
+            type: 'WEEKLY_TASK',
+            key: t.key,
+            name: t.name,
+            rewardBits: t.rewardBits,
+          });
         }
       }
     }
+
+    return completed;
   }
 
   async listForUser(userId: number) {

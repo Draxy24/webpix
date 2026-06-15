@@ -4,9 +4,13 @@ import { RewardsService } from '../rewards/rewards.service';
 import { Achievement, AchievementMetric, Prisma } from '@prisma/client';
 import { STARTER_ACHIEVEMENTS } from './achievements.config';
 import { WeeklyTasksService } from '../weekly-tasks/weekly-tasks.service';
-import { xpPerPixelForLevel } from '../rewards/rewards.config';
+import {
+  xpPerPixelForLevel,
+  PROGRESSION_CONFIG,
+} from '../rewards/rewards.config';
 import { COLOR_PALETTES } from '../shop/shop.config';
 import { currentPeriod } from '../rankings/period';
+import { RewardEvent } from './reward-event';
 
 type CounterField = 'pixelsPlaced' | 'publicationsCreated' | 'likesReceived';
 type CounterMetric =
@@ -29,8 +33,11 @@ export class AchievementsService {
   };
 
   // Otorga los logros recién completados y sus recompensas (idempotente)
-  private async awardCompleted(userId: number, candidates: Achievement[]) {
-    const completed: { key: string; name: string }[] = [];
+  private async awardCompleted(
+    userId: number,
+    candidates: Achievement[],
+  ): Promise<RewardEvent[]> {
+    const events: RewardEvent[] = [];
     for (const a of candidates) {
       try {
         await this.prisma.userAchievement.create({
@@ -43,13 +50,22 @@ export class AchievementsService {
       if (a.rewardXp > 0) await this.rewards.addXp(userId, a.rewardXp);
       if (a.rewardCosmeticKey)
         await this.rewards.grantCosmetic(userId, a.rewardCosmeticKey);
-      completed.push({ key: a.key, name: a.name });
+      events.push({
+        type: 'ACHIEVEMENT',
+        key: a.key,
+        name: a.name,
+        rewardBits: a.rewardBits,
+      });
     }
-    return completed;
+    return events;
   }
 
   // Sube un contador de por vida y revisa logros de esa métrica
-  async track(userId: number, metric: AchievementMetric, increment = 1) {
+  async track(
+    userId: number,
+    metric: AchievementMetric,
+    increment = 1,
+  ): Promise<RewardEvent[]> {
     if (increment === 0) return [];
     const field = this.metricField[metric as CounterMetric];
     if (!field) return [];
@@ -59,6 +75,9 @@ export class AchievementsService {
       data: { [field]: { increment } } as Prisma.UserUpdateInput,
     });
     const value = user[field] as number;
+    const startLevel = user.level;
+
+    const events: RewardEvent[] = [];
 
     // XP por pixel pintado en el lienzo público (escala con el nivel)
     if (metric === 'PIXELS_PLACED') {
@@ -76,10 +95,22 @@ export class AchievementsService {
         unlocks: { none: { userId } },
       },
     });
-    const completed = await this.awardCompleted(userId, candidates);
-    await this.weeklyTasks.track(userId, metric, increment);
-    await this.checkLevel(userId);
-    return completed;
+    events.push(...(await this.awardCompleted(userId, candidates)));
+    events.push(...(await this.weeklyTasks.track(userId, metric, increment)));
+    events.push(...(await this.checkLevel(userId)));
+
+    // Level-up neto: cuántos niveles subió en toda la operación
+    const after = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (after && after.level > startLevel) {
+      events.push({
+        type: 'LEVEL_UP',
+        level: after.level,
+        rewardBits:
+          (after.level - startLevel) * PROGRESSION_CONFIG.LEVEL_UP_BITS,
+      });
+    }
+
+    return events;
   }
 
   // Marcador mensual del ranking: acumula actividad del periodo actual
@@ -101,7 +132,7 @@ export class AchievementsService {
   }
 
   // Para likes: recuenta el total actual de likes del autor y revisa logros
-  async recountLikes(ownerId: number) {
+  async recountLikes(ownerId: number): Promise<RewardEvent[]> {
     const count = await this.prisma.publicationReaction.count({
       where: { type: 'LIKE', publication: { userId: ownerId } },
     });
@@ -121,12 +152,12 @@ export class AchievementsService {
   }
 
   // Suma 1 al progreso semanal de likes del autor (al recibir un like nuevo)
-  async trackWeeklyLike(ownerId: number) {
-    await this.weeklyTasks.track(ownerId, 'LIKES_RECEIVED', 1);
+  async trackWeeklyLike(ownerId: number): Promise<RewardEvent[]> {
+    return this.weeklyTasks.track(ownerId, 'LIKES_RECEIVED', 1);
   }
 
   // Revisa los logros de nivel contra el nivel actual del usuario
-  async checkLevel(userId: number) {
+  async checkLevel(userId: number): Promise<RewardEvent[]> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return [];
     const candidates = await this.prisma.achievement.findMany({
@@ -141,7 +172,7 @@ export class AchievementsService {
   }
 
   // Revisa los logros de colección contra cuántos cosméticos posee el usuario
-  async checkCosmeticsOwned(userId: number) {
+  async checkCosmeticsOwned(userId: number): Promise<RewardEvent[]> {
     const count = await this.prisma.userCosmetic.count({ where: { userId } });
     const candidates = await this.prisma.achievement.findMany({
       where: {
@@ -159,7 +190,7 @@ export class AchievementsService {
     userId: number,
     metric: AchievementMetric,
     value: number,
-  ) {
+  ): Promise<RewardEvent[]> {
     const candidates = await this.prisma.achievement.findMany({
       where: {
         metric,
@@ -184,8 +215,9 @@ export class AchievementsService {
   }
 
   // Revisa todos los logros de colección (cantidad, rareza y paletas) tras una compra
-  async checkCollection(userId: number) {
-    await this.checkCosmeticsOwned(userId);
+  async checkCollection(userId: number): Promise<RewardEvent[]> {
+    const events: RewardEvent[] = [];
+    events.push(...(await this.checkCosmeticsOwned(userId)));
 
     const legendary = await this.prisma.userCosmetic.count({
       where: { userId, cosmetic: { rarity: 'LEGENDARY' } },
@@ -195,15 +227,20 @@ export class AchievementsService {
     });
     const palettes = await this.palettesCompleted(userId);
 
-    await this.awardByMetric(userId, 'LEGENDARY_OWNED', legendary);
-    await this.awardByMetric(userId, 'MYTHIC_OWNED', mythic);
-    await this.awardByMetric(userId, 'PALETTE_COMPLETED', palettes);
+    events.push(
+      ...(await this.awardByMetric(userId, 'LEGENDARY_OWNED', legendary)),
+    );
+    events.push(...(await this.awardByMetric(userId, 'MYTHIC_OWNED', mythic)));
+    events.push(
+      ...(await this.awardByMetric(userId, 'PALETTE_COMPLETED', palettes)),
+    );
 
-    await this.checkLevel(userId);
+    events.push(...(await this.checkLevel(userId)));
+    return events;
   }
 
   // Revisa los logros de amigos contra el número de amistades aceptadas
-  async checkFriends(userId: number) {
+  async checkFriends(userId: number): Promise<RewardEvent[]> {
     const count = await this.prisma.friendship.count({
       where: {
         status: 'ACCEPTED',

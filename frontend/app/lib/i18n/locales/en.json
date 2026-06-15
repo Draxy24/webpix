@@ -1,4 +1,8 @@
 {
+  "notifications": {
+    "friendRequest": "{{nick}} sent you a friend request",
+    "friendAccepted": "{{nick}} accepted your request"
+  },
   "errors": {
     "USER_NOT_FOUND": "User not found",
     "COLOR_NOT_OWNED": "You don't own this exotic color",
@@ -714,6 +718,12 @@
       "badges": "You don't have any badges yet.",
       "frames": "You don't have any frames yet.",
       "backgrounds": "You don't have any backgrounds yet."
+    },
+    "toast": {
+      "levelUp": "You reached level {{level}}!",
+      "achievement": "Achievement unlocked",
+      "weeklyTask": "Weekly task complete",
+      "bits": "+{{bits}} Bits"
     }
   },
   "rankings": {

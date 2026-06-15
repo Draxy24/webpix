@@ -4,6 +4,7 @@ import { PixelGateway } from './pixel.gateway';
 import { PrivateSpacesService } from '../private-spaces/private-spaces.service';
 import { SubscriptionTier } from '@prisma/client';
 import { AchievementsService } from '../achievements/achievements.service';
+import { RewardEvent } from '../achievements/reward-event';
 
 const TIER_LIMITS: Record<
   SubscriptionTier,
@@ -22,6 +23,7 @@ type PaintResult =
         pixelsLeft: number | null;
         cooldownSeconds: number;
       };
+      events: RewardEvent[];
     }
   | {
       success: false;
@@ -148,6 +150,7 @@ export class PixelService {
               : Math.max(limit.pixels - user.pixelsUsed, 0),
           cooldownSeconds,
         },
+        events: [],
       };
     }
 
@@ -210,7 +213,7 @@ export class PixelService {
       });
     }
 
-    await this.achievements.track(userId, 'PIXELS_PLACED');
+    const events = await this.achievements.track(userId, 'PIXELS_PLACED');
     await this.achievements.recordMonthly(userId, 'pixels');
 
     const updated = await this.prisma.user.findUnique({
@@ -244,6 +247,7 @@ export class PixelService {
             : Math.max(limit.pixels - updated!.pixelsUsed, 0),
         cooldownSeconds,
       },
+      events,
     };
   }
 
@@ -325,6 +329,7 @@ export class PixelService {
         pixelsLeft: 30 - state.pixelsUsed,
         cooldownSeconds: 0,
       },
+      events: [],
     };
   }
 

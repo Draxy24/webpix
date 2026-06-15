@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { PixelGateway } from '../pixel/pixel.gateway';
 
 @Injectable()
 export class FriendshipsService {
   constructor(
     private prisma: PrismaService,
     private achievements: AchievementsService,
+    private gateway: PixelGateway,
   ) {}
 
   async sendRequest(senderId: number, receiverNickname: string) {
@@ -21,6 +23,12 @@ export class FriendshipsService {
     if (!receiver) throw new NotFoundException('Usuario no encontrado');
     if (receiver.id === senderId)
       throw new BadRequestException('No puedes enviarte solicitud a ti mismo');
+
+    const me = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      select: { nickname: true },
+    });
+    const myNick = me?.nickname ?? '';
 
     const existing = await this.prisma.friendship.findFirst({
       where: {
@@ -42,22 +50,31 @@ export class FriendshipsService {
           );
         }
         // El otro ya nos envió solicitud → aceptamos automáticamente
-        // El otro ya nos envió solicitud → aceptamos automáticamente
         const accepted = await this.prisma.friendship.update({
           where: { id: existing.id },
           data: { status: 'ACCEPTED' },
         });
         await this.achievements.checkFriends(accepted.senderId);
         await this.achievements.checkFriends(accepted.receiverId);
+        // El solicitante original (el otro) se entera de que ya son amigos
+        this.gateway.emitToUser(existing.senderId, {
+          kind: 'FRIEND_ACCEPTED',
+          nickname: myNick,
+        });
         return accepted;
       }
       // Si estaba DECLINED, permitimos reintentar borrando la anterior
       await this.prisma.friendship.delete({ where: { id: existing.id } });
     }
 
-    return this.prisma.friendship.create({
+    const created = await this.prisma.friendship.create({
       data: { senderId, receiverId: receiver.id },
     });
+    this.gateway.emitToUser(receiver.id, {
+      kind: 'FRIEND_REQUEST',
+      fromNickname: myNick,
+    });
+    return created;
   }
 
   async accept(friendshipId: number, userId: number) {
@@ -76,6 +93,16 @@ export class FriendshipsService {
     });
     await this.achievements.checkFriends(accepted.senderId);
     await this.achievements.checkFriends(accepted.receiverId);
+
+    const me = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { nickname: true },
+    });
+    // El solicitante original se entera de que aceptaste
+    this.gateway.emitToUser(accepted.senderId, {
+      kind: 'FRIEND_ACCEPTED',
+      nickname: me?.nickname ?? '',
+    });
     return accepted;
   }
 

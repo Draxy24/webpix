@@ -101,10 +101,13 @@ export class PublicationsService {
       },
     });
 
-    await this.achievements.track(userId, 'PUBLICATIONS_CREATED');
+    const events = await this.achievements.track(
+      userId,
+      'PUBLICATIONS_CREATED',
+    );
     await this.achievements.recordMonthly(userId, 'creations');
 
-    return publication;
+    return { ...publication, events };
   }
 
   async listByUser(nickname: string) {

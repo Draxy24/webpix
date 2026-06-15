@@ -1,4 +1,8 @@
 {
+  "notifications": {
+    "friendRequest": "{{nick}} t'a envoyé une demande d'ami",
+    "friendAccepted": "{{nick}} a accepté ta demande"
+  },
   "errors": {
     "USER_NOT_FOUND": "Utilisateur introuvable",
     "COLOR_NOT_OWNED": "Tu ne possèdes pas cette couleur exotique",
@@ -750,6 +754,12 @@
       "badges": "Vous n'avez pas encore de badges.",
       "frames": "Vous n'avez pas encore de cadres.",
       "backgrounds": "Vous n'avez pas encore d'arrière-plans."
+    },
+    "toast": {
+      "levelUp": "Niveau {{level}} atteint !",
+      "achievement": "Succès débloqué",
+      "weeklyTask": "Tâche hebdomadaire terminée",
+      "bits": "+{{bits}} Bits"
     }
   },
   "rankings": {

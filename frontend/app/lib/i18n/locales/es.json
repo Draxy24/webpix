@@ -1,4 +1,8 @@
 {
+  "notifications": {
+    "friendRequest": "{{nick}} te envió una solicitud de amistad",
+    "friendAccepted": "{{nick}} aceptó tu solicitud"
+  },
   "resetPassword": {
     "title": "Restablecer contraseña",
     "successTitle": "¡Contraseña actualizada!",
@@ -336,6 +340,12 @@
       "badges": "Aún no tienes insignias.",
       "frames": "Aún no tienes marcos.",
       "backgrounds": "Aún no tienes fondos."
+    },
+    "toast": {
+      "levelUp": "¡Subiste a nivel {{level}}!",
+      "achievement": "Logro desbloqueado",
+      "weeklyTask": "Tarea semanal completada",
+      "bits": "+{{bits}} Bits"
     }
   },
   "rankings": {

@@ -1,4 +1,8 @@
 {
+  "notifications": {
+    "friendRequest": "{{nick}} 向你发送了好友请求",
+    "friendAccepted": "{{nick}} 接受了你的好友请求"
+  },
   "errors": {
     "USER_NOT_FOUND": "未找到用户",
     "COLOR_NOT_OWNED": "你尚未拥有这种特殊颜色",
@@ -582,6 +586,12 @@
       "badges": "你还没有徽章。",
       "frames": "你还没有头像框。",
       "backgrounds": "你还没有背景。"
+    },
+    "toast": {
+      "levelUp": "升到 {{level}} 级！",
+      "achievement": "成就解锁",
+      "weeklyTask": "每周任务完成",
+      "bits": "+{{bits}} Bits"
     }
   },
   "rankings": {

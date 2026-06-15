@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import styles from "./CommunityView.module.css";
 import { API_URL } from "@/app/lib/api";
+import { useNotify } from "./NotificationProvider";
 
 type Announcement = {
   id: number;
@@ -23,6 +24,7 @@ type Snapshot = {
 
 export default function CommunityView({ isAdmin }: { isAdmin: boolean }) {
   const { t, i18n } = useTranslation();
+  const { confirm } = useNotify();
   const { token } = useAuth();
 
   const [tab, setTab] = useState<"announcements" | "snapshots">(
@@ -86,7 +88,10 @@ export default function CommunityView({ isAdmin }: { isAdmin: boolean }) {
 
   const remove = async (id: number) => {
     if (!token) return;
-    if (!window.confirm(t("community.confirmDelete"))) return;
+    if (
+      !(await confirm({ message: t("community.confirmDelete"), danger: true }))
+    )
+      return;
     const res = await fetch(`${API_URL}/community/announcements/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },

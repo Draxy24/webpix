@@ -7,6 +7,7 @@ import { useAuth } from "../context/auth";
 import Button from "../components/Button";
 import styles from "./admin.module.css";
 import { API_URL } from "@/app/lib/api";
+import { useNotify } from "../components/NotificationProvider";
 
 type Report = {
   id: number;
@@ -165,6 +166,7 @@ function BanModal({
 
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
+  const { confirm } = useNotify();
   const { token, loading } = useAuth();
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
@@ -408,11 +410,14 @@ export default function AdminPage() {
                             {t("admin.reports.viewPublication")}
                           </a>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (
-                                confirm(
-                                  t("admin.reports.confirmDeletePublication"),
-                                )
+                                await confirm({
+                                  message: t(
+                                    "admin.reports.confirmDeletePublication",
+                                  ),
+                                  danger: true,
+                                })
                               )
                                 action(
                                   `/moderation/publication/${r.publicationId}`,
@@ -427,9 +432,14 @@ export default function AdminPage() {
                       )}
                       {r.type === "COMMENT" && r.commentId && (
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (
-                              confirm(t("admin.reports.confirmDeleteComment"))
+                              await confirm({
+                                message: t(
+                                  "admin.reports.confirmDeleteComment",
+                                ),
+                                danger: true,
+                              })
                             )
                               action(
                                 `/moderation/comment/${r.commentId}`,
