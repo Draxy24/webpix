@@ -728,6 +728,10 @@
   },
   "rankings": {
     "title": "Rankings",
+    "toast": {
+      "title": "{{month}} ranking results!",
+      "sub": "Best place: #{{pos}} · +{{bits}} Bits"
+    },
     "views": {
       "monthly": "This month",
       "historical": "All-time",
@@ -889,7 +893,25 @@
       "connError": "Connection error while erasing the area"
     }
   },
-  "settings": { "language": "Language" },
+  "settings": {
+    "language": "Language",
+    "menuColor": {
+      "title": "Menu color",
+      "hint": "Customize your menu and button colors.",
+      "custom": "Custom color"
+    },
+    "canvas": {
+      "title": "Canvas",
+      "gridFrom": "Show grid from",
+      "gridNever": "Never",
+      "showCoords": "Show coordinates"
+    },
+    "appearance": {
+      "title": "Appearance and sound",
+      "lightMode": "Light mode",
+      "sound": "Sound effects"
+    }
+  },
   "toolbox": {
     "tools": {
       "brush": "Paint",

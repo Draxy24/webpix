@@ -36,18 +36,26 @@ export function eventToast(
 
 export type SocketNotification =
   | { kind: "FRIEND_REQUEST"; fromNickname: string }
-  | { kind: "FRIEND_ACCEPTED"; nickname: string };
+  | { kind: "FRIEND_ACCEPTED"; nickname: string }
+  | { kind: "REWARD"; event: RewardEvent };
 
 export function handleSocketNotification(
   payload: SocketNotification,
   t: TFunction,
-  info: (title: string, message?: string) => void,
+  helpers: {
+    info: (title: string, message?: string) => void;
+    reward: (title: string, message?: string) => void;
+  },
 ) {
   if (payload.kind === "FRIEND_REQUEST") {
-    info(
+    helpers.info(
       String(t("notifications.friendRequest", { nick: payload.fromNickname })),
     );
   } else if (payload.kind === "FRIEND_ACCEPTED") {
-    info(String(t("notifications.friendAccepted", { nick: payload.nickname })));
+    helpers.info(
+      String(t("notifications.friendAccepted", { nick: payload.nickname })),
+    );
+  } else if (payload.kind === "REWARD") {
+    eventToast(payload.event, t, helpers.reward);
   }
 }

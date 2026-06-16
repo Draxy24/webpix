@@ -350,6 +350,10 @@
   },
   "rankings": {
     "title": "Rankings",
+    "toast": {
+      "title": "¡Ranking de {{month}}!",
+      "sub": "Mejor puesto: #{{pos}} · +{{bits}} Bits"
+    },
     "views": {
       "monthly": "Este mes",
       "historical": "Histórico",
@@ -511,7 +515,25 @@
       "connError": "Error de conexión al borrar el área"
     }
   },
-  "settings": { "language": "Idioma" },
+  "settings": {
+    "language": "Idioma",
+    "menuColor": {
+      "title": "Color del menú",
+      "hint": "Personaliza el color de tu menú y botones.",
+      "custom": "Color personalizado"
+    },
+    "canvas": {
+      "title": "Lienzo",
+      "gridFrom": "Mostrar rejilla desde",
+      "gridNever": "Nunca",
+      "showCoords": "Mostrar coordenadas"
+    },
+    "appearance": {
+      "title": "Apariencia y sonido",
+      "lightMode": "Modo claro",
+      "sound": "Efectos de sonido"
+    }
+  },
   "toolbox": {
     "tools": {
       "brush": "Pintar",

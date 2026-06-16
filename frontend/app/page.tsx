@@ -44,8 +44,17 @@ import {
   type SocketNotification,
 } from "./lib/rewardToast";
 
+function formatPeriod(period: string, lang: string) {
+  const [y, m] = period.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(lang, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { success, error, reward, info } = useNotify();
   const tRef = useRef(t);
   useEffect(() => {
@@ -852,7 +861,10 @@ export default function Home() {
       });
     });
     socket.on("notification", (payload: SocketNotification) => {
-      handleSocketNotification(payload, tRef.current, infoRef.current);
+      handleSocketNotification(payload, tRef.current, {
+        info: infoRef.current,
+        reward: rewardRef.current,
+      });
     });
     return () => {
       socket.disconnect();
@@ -1086,6 +1098,56 @@ export default function Home() {
     const t = setTimeout(() => setHighlightZone(null), 4000);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(API_URL + "/rankings/pending", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const pending: {
+          period: string;
+          bestPosition: number;
+          totalBits: number;
+        }[] = await res.json();
+        if (cancelled || !Array.isArray(pending) || pending.length === 0)
+          return;
+        const periods: string[] = [];
+        for (const p of pending) {
+          periods.push(p.period);
+          rewardRef.current(
+            String(
+              tRef.current("rankings.toast.title", {
+                month: formatPeriod(p.period, i18n.language),
+              }),
+            ),
+            String(
+              tRef.current("rankings.toast.sub", {
+                pos: p.bestPosition,
+                bits: p.totalBits,
+              }),
+            ),
+          );
+        }
+        await fetch(API_URL + "/rankings/pending/seen", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ periods }),
+        });
+      } catch {
+        /* sin conexión: se reintenta en la próxima carga */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const handlePublish = async () => {
     if (!selection || !token) return;

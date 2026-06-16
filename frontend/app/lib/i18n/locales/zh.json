@@ -596,6 +596,10 @@
   },
   "rankings": {
     "title": "排行榜",
+    "toast": {
+      "title": "{{month}} 排行榜结果！",
+      "sub": "最佳名次：#{{pos}} · +{{bits}} Bits"
+    },
     "views": { "monthly": "本月", "historical": "历史", "winners": "获胜者" },
     "countdown": {
       "label": "结束于",
@@ -746,7 +750,25 @@
       "connError": "擦除区域时连接错误"
     }
   },
-  "settings": { "language": "语言" },
+  "settings": {
+    "language": "语言",
+    "menuColor": {
+      "title": "菜单颜色",
+      "hint": "自定义菜单和按钮的颜色。",
+      "custom": "自定义颜色"
+    },
+    "canvas": {
+      "title": "画布",
+      "gridFrom": "显示网格起始倍数",
+      "gridNever": "从不",
+      "showCoords": "显示坐标"
+    },
+    "appearance": {
+      "title": "外观与声音",
+      "lightMode": "浅色模式",
+      "sound": "音效"
+    }
+  },
   "toolbox": {
     "tools": {
       "brush": "绘制",

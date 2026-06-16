@@ -397,4 +397,42 @@ export class RankingsService {
       userCountry: r.user.country,
     }));
   }
+
+  async pendingForUser(userId: number) {
+    const rows = await this.prisma.rankingWinner.findMany({
+      where: { userId, seen: false },
+      orderBy: [{ period: 'desc' }, { position: 'asc' }],
+    });
+    const byPeriod = new Map<string, typeof rows>();
+    for (const r of rows) {
+      const arr = byPeriod.get(r.period) ?? [];
+      arr.push(r);
+      byPeriod.set(r.period, arr);
+    }
+    return [...byPeriod.entries()].map(([period, list]) => {
+      const best = list.reduce((a, b) => {
+        if (b.position !== a.position) return b.position < a.position ? b : a;
+        if (a.scope === 'global' && b.scope !== 'global') return a;
+        if (b.scope === 'global' && a.scope !== 'global') return b;
+        return b.bitsAwarded > a.bitsAwarded ? b : a;
+      });
+      const totalBits = list.reduce((s, r) => s + r.bitsAwarded, 0);
+      return {
+        period,
+        bestPosition: best.position,
+        bestScope: best.scope,
+        bestMetric: best.metric,
+        totalBits,
+      };
+    });
+  }
+
+  async markPendingSeen(userId: number, periods: string[]) {
+    if (!periods.length) return { updated: 0 };
+    const res = await this.prisma.rankingWinner.updateMany({
+      where: { userId, period: { in: periods }, seen: false },
+      data: { seen: true },
+    });
+    return { updated: res.count };
+  }
 }

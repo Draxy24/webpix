@@ -1141,6 +1141,53 @@ export const SHOP_COSMETICS: ShopCosmetic[] = [
     data: { image: '/cosmetics/frames/Viento.png' },
     theme: 'elemento',
   },
+  // --- Marcos EPIC: slimes (compra normal con Bits) ---
+  {
+    key: 'frame_slime_azul',
+    type: 'FRAME',
+    name: 'Slime Azul',
+    description: 'Marco gelatinoso de slime azul.',
+    rarity: 'EPIC',
+    priceBits: 1500,
+    data: { image: '/cosmetics/frames/Slime1.png' },
+  },
+  {
+    key: 'frame_slime_verde',
+    type: 'FRAME',
+    name: 'Slime Verde',
+    description: 'Marco gelatinoso de slime verde.',
+    rarity: 'EPIC',
+    priceBits: 1500,
+    data: { image: '/cosmetics/frames/Slime2.png' },
+  },
+  {
+    key: 'frame_slime_naranja',
+    type: 'FRAME',
+    name: 'Slime Naranja',
+    description: 'Marco gelatinoso de slime naranja.',
+    rarity: 'EPIC',
+    priceBits: 1500,
+    data: { image: '/cosmetics/frames/Slime3.png' },
+  },
+  {
+    key: 'frame_slime_purpura',
+    type: 'FRAME',
+    name: 'Slime Púrpura',
+    description: 'Marco gelatinoso de slime púrpura.',
+    rarity: 'EPIC',
+    priceBits: 1500,
+    data: { image: '/cosmetics/frames/Slime4.png' },
+  },
+  // --- Marco MÍTICO: Fuego Azul (animado) ---
+  {
+    key: 'frame_fuego_azul',
+    type: 'FRAME',
+    name: 'Fuego Azul',
+    description: 'Marco mítico de llamas azules animadas.',
+    rarity: 'MYTHIC',
+    priceBits: 8000,
+    data: { image: '/cosmetics/frames/fuego_azul.webp' },
+  },
 ];
 
 export const COLOR_PALETTES = [

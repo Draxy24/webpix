@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Param,
+  Body,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -65,6 +66,24 @@ export class RankingsController {
     @Param('period') period: string,
   ) {
     return this.rankingsService.adminClose(req.user.id, period);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('pending')
+  pending(@Request() req: { user: { id: number } }) {
+    return this.rankingsService.pendingForUser(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('pending/seen')
+  pendingSeen(
+    @Request() req: { user: { id: number } },
+    @Body() body: { periods: string[] },
+  ) {
+    return this.rankingsService.markPendingSeen(
+      req.user.id,
+      body.periods ?? [],
+    );
   }
 
   @Get('winners/periods')

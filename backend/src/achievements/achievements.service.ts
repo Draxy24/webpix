@@ -209,9 +209,10 @@ export class AchievementsService {
       select: { cosmetic: { select: { key: true } } },
     });
     const ownedKeys = new Set(owned.map((o) => o.cosmetic.key));
-    return COLOR_PALETTES.filter((p) =>
-      p.colorKeys.every((k) => ownedKeys.has(k)),
-    ).length;
+    return COLOR_PALETTES.filter((p) => {
+      const keys = p.colorKeys ?? [];
+      return keys.length > 0 && keys.every((k) => ownedKeys.has(k));
+    }).length;
   }
 
   // Revisa todos los logros de colección (cantidad, rareza y paletas) tras una compra

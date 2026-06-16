@@ -375,6 +375,7 @@ model RankingWinner {
   userId      Int
   score       Int      // conteo al cierre
   bitsAwarded Int
+  seen        Boolean  @default(false)
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

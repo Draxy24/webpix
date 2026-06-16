@@ -764,6 +764,10 @@
   },
   "rankings": {
     "title": "Classements",
+    "toast": {
+      "title": "Résultats du classement de {{month}} !",
+      "sub": "Meilleure place : #{{pos}} · +{{bits}} Bits"
+    },
     "views": {
       "monthly": "Ce mois-ci",
       "historical": "Historique",
@@ -925,7 +929,25 @@
       "connError": "Erreur de connexion lors de l'effacement de la zone"
     }
   },
-  "settings": { "language": "Langue" },
+  "settings": {
+    "language": "Langue",
+    "menuColor": {
+      "title": "Couleur du menu",
+      "hint": "Personnalise la couleur de ton menu et de tes boutons.",
+      "custom": "Couleur personnalisée"
+    },
+    "canvas": {
+      "title": "Toile",
+      "gridFrom": "Afficher la grille à partir de",
+      "gridNever": "Jamais",
+      "showCoords": "Afficher les coordonnées"
+    },
+    "appearance": {
+      "title": "Apparence et son",
+      "lightMode": "Mode clair",
+      "sound": "Effets sonores"
+    }
+  },
   "toolbox": {
     "tools": {
       "brush": "Peindre",

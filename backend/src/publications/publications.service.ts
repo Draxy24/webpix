@@ -7,6 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { AchievementsService } from '../achievements/achievements.service';
+import { RewardEvent } from '../achievements/reward-event';
+import { PixelGateway } from '../pixel/pixel.gateway';
 
 const MIN_AREA = 64; // equivalente a 8x8 en superficie total
 const MIN_SIDE = 4; // evita líneas absurdamente delgadas (ej. 64x1)
@@ -20,6 +22,7 @@ export class PublicationsService {
   constructor(
     private prisma: PrismaService,
     private achievements: AchievementsService,
+    private gateway: PixelGateway,
   ) {}
 
   async create(
@@ -246,9 +249,18 @@ export class PublicationsService {
       result = { reaction: type };
     }
 
-    await this.achievements.recountLikes(publication.userId);
+    const events: RewardEvent[] = [];
+    events.push(...(await this.achievements.recountLikes(publication.userId)));
     if (result.reaction === 'LIKE') {
-      await this.achievements.trackWeeklyLike(publication.userId);
+      events.push(
+        ...(await this.achievements.trackWeeklyLike(publication.userId)),
+      );
+    }
+    for (const ev of events) {
+      this.gateway.emitToUser(publication.userId, {
+        kind: 'REWARD',
+        event: ev,
+      });
     }
     return result;
   }

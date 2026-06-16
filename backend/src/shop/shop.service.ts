@@ -160,9 +160,12 @@ export class ShopService {
 
     return Promise.all(
       COLOR_PALETTES.map(async (palette) => {
-        const colors = await this.prisma.cosmetic.findMany({
-          where: { key: { in: palette.colorKeys } },
-        });
+        const keys = palette.colorKeys ?? [];
+        const colors = keys.length
+          ? await this.prisma.cosmetic.findMany({
+              where: { key: { in: keys } },
+            })
+          : [];
         const mapped = colors.map((c) => ({
           id: c.id,
           key: c.key,
@@ -181,7 +184,7 @@ export class ShopService {
           colors: mapped,
           ownedCount,
           total: mapped.length,
-          fullyOwned: ownedCount === mapped.length,
+          fullyOwned: mapped.length > 0 && ownedCount === mapped.length,
         };
       }),
     );

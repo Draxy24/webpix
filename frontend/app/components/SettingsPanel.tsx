@@ -18,10 +18,8 @@ export default function SettingsPanel({
   return (
     <div className={styles.container}>
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Color del menú</h3>
-        <p className={styles.hint}>
-          Personaliza el color de tu menú y botones.
-        </p>
+        <h3 className={styles.sectionTitle}>{t("settings.menuColor.title")}</h3>
+        <p className={styles.hint}>{t("settings.menuColor.hint")}</p>
         <div className={styles.swatchGrid}>
           {palette.map((c) => (
             <button
@@ -44,15 +42,17 @@ export default function SettingsPanel({
               value={settings.menuColor}
               onChange={(e) => updateSetting("menuColor", e.target.value)}
             />
-            <span className={styles.hint}>Color personalizado</span>
+            <span className={styles.hint}>
+              {t("settings.menuColor.custom")}
+            </span>
           </div>
         )}
       </section>
 
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Lienzo</h3>
+        <h3 className={styles.sectionTitle}>{t("settings.canvas.title")}</h3>
         <label className={styles.row}>
-          <span>Mostrar rejilla desde</span>
+          <span>{t("settings.canvas.gridFrom")}</span>
           <select
             value={settings.gridThreshold}
             onChange={(e) =>
@@ -64,11 +64,11 @@ export default function SettingsPanel({
             <option value={3}>3×</option>
             <option value={5}>5×</option>
             <option value={8}>8×</option>
-            <option value={999}>Nunca</option>
+            <option value={999}>{t("settings.canvas.gridNever")}</option>
           </select>
         </label>
         <label className={styles.rowToggle}>
-          <span>Mostrar coordenadas</span>
+          <span>{t("settings.canvas.showCoords")}</span>
           <input
             type="checkbox"
             checked={settings.showCoords}
@@ -78,9 +78,11 @@ export default function SettingsPanel({
       </section>
 
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Apariencia y sonido</h3>
+        <h3 className={styles.sectionTitle}>
+          {t("settings.appearance.title")}
+        </h3>
         <label className={styles.rowToggle}>
-          <span>Modo claro</span>
+          <span>{t("settings.appearance.lightMode")}</span>
           <input
             type="checkbox"
             checked={settings.theme === "light"}
@@ -90,7 +92,7 @@ export default function SettingsPanel({
           />
         </label>
         <label className={styles.rowToggle}>
-          <span>Efectos de sonido</span>
+          <span>{t("settings.appearance.sound")}</span>
           <input
             type="checkbox"
             checked={settings.soundEnabled}
