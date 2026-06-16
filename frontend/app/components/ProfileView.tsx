@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ElementType } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth";
 import PublicationCanvas from "./PublicationCanvas";

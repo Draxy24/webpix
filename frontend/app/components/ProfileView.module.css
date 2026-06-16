@@ -200,6 +200,7 @@
 }
 
 .headerCosmetic {
+  position: relative; /* ← única línea nueva; lo demás queda igual */
   padding: var(--space-6) var(--space-4);
   border-radius: var(--radius-lg);
   /* Los fondos cosméticos están pensados para texto claro:
@@ -210,4 +211,35 @@
   --color-elevated: #1f1f26;
   --color-border: #2a2a33;
   --color-border-strong: #3a3a45;
+}
+
+/* Velo de legibilidad: el texto claro se lee sobre cualquier fondo, claro u oscuro */
+.headerCosmetic::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 14, 18, 0.4),
+    rgba(14, 14, 18, 0.72)
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* El contenido (avatar, nombre, pills, stats, acciones) va por encima del velo */
+.headerCosmetic > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Refuerzo de legibilidad del texto sobre la imagen */
+.headerCosmetic .nickname,
+.headerCosmetic .stats,
+.headerCosmetic .cosmeticPill,
+.headerCosmetic .requestSent,
+.headerCosmetic .friendsBadge,
+.headerCosmetic .reportButton {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
 }
