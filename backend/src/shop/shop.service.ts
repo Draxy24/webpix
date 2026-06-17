@@ -12,12 +12,14 @@ import { Cosmetic } from '@prisma/client';
 import { SEASON_WINDOWS, SEASON_LABEL_PRIORITY } from './shop.config';
 import { AchievementsService } from '../achievements/achievements.service';
 import { OFFER_COUNT, OFFER_DISCOUNTS } from './shop.config';
+import { StripeService } from '../stripe/stripe.service';
 
 @Injectable()
 export class ShopService {
   constructor(
     private prisma: PrismaService,
     private achievements: AchievementsService,
+    private stripe: StripeService,
   ) {}
 
   async listForUser(userId: number) {
@@ -274,22 +276,39 @@ export class ShopService {
     }));
   }
 
-  // STUB: otorga los Bits sin cobro real. Reemplazar por checkout + webhook de Stripe antes del lanzamiento.
   async buyBits(userId: number, packageKey: string) {
     const pkg = BIT_PACKAGES.find((p) => p.key === packageKey);
-    if (!pkg)
+    if (!pkg) {
       throw new NotFoundException({
         code: 'PACKAGE_NOT_FOUND',
         message: 'Paquete no encontrado',
       });
+    }
 
+    const frontend = process.env.FRONTEND_URL ?? 'http://localhost:3000';
     const total = pkg.bits + pkg.bonus;
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: { bits: { increment: total } },
+
+    const session = await this.stripe.client.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'usd',
+            unit_amount: pkg.priceCents,
+            product_data: {
+              name: `${pkg.name} — ${total.toLocaleString('en-US')} Bits`,
+            },
+          },
+        },
+      ],
+      metadata: { userId: String(userId), packageKey: pkg.key },
+      client_reference_id: String(userId),
+      success_url: `${frontend}/?bits=ok`,
+      cancel_url: `${frontend}/?bits=cancel`,
     });
 
-    return { success: true, granted: total, bits: user.bits };
+    return { url: session.url };
   }
   private dailySeed(date: Date): number {
     const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;

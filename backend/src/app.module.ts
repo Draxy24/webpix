@@ -15,6 +15,7 @@ import { WeeklyTasksModule } from './weekly-tasks/weekly-tasks.module';
 import { ShopModule } from './shop/shop.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CommunityModule } from './community/community.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CommunityModule } from './community/community.module';
     ShopModule,
     ScheduleModule.forRoot(),
     CommunityModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [],

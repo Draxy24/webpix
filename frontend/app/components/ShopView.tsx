@@ -224,13 +224,16 @@ export default function ShopView() {
             defaultValue: result.message || t("shop.msg.buyFail"),
           }),
         );
-      } else {
-        setMessage(t("shop.msg.gotBits", { count: result.granted }));
-        await load();
+        setBusyPackage(null);
+        return;
       }
+      if (result.url) {
+        window.location.href = result.url; // a Stripe Checkout
+        return; // nos vamos de la página; no reseteamos busy
+      }
+      setBusyPackage(null);
     } catch {
       setMessage(t("shop.msg.connError"));
-    } finally {
       setBusyPackage(null);
     }
   };

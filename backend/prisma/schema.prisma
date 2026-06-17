@@ -401,3 +401,9 @@ model CanvasSnapshot {
   imageUrl  String
   createdAt DateTime @default(now())
 }
+
+model ProcessedStripeEvent {
+  id        String   @id
+  type      String
+  createdAt DateTime @default(now())
+}
