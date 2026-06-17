@@ -377,7 +377,203 @@
     "color_otono": { "name": "Automne", "desc": "De l'ambre au cramoisi." },
     "color_lava": { "name": "Lave", "desc": "Roche en fusion." },
     "color_romance": { "desc": "Du rouge au rose." },
-    "color_tropical": { "desc": "Du soleil à la mer." }
+    "color_tropical": { "desc": "Du soleil à la mer." },
+    "frame_slime_azul": {
+      "name": "Slime Bleu",
+      "desc": "Cadre gélatineux de slime bleu."
+    },
+    "frame_slime_verde": {
+      "name": "Slime Vert",
+      "desc": "Cadre gélatineux de slime vert."
+    },
+    "frame_slime_naranja": {
+      "name": "Slime Orange",
+      "desc": "Cadre gélatineux de slime orange."
+    },
+    "frame_slime_purpura": {
+      "name": "Slime Violet",
+      "desc": "Cadre gélatineux de slime violet."
+    },
+    "frame_fuego_azul": {
+      "name": "Feu Bleu",
+      "desc": "Cadre mythique aux flammes bleues animées."
+    },
+    "frame_corona_san_valentin": {
+      "name": "Couronne d'Amour",
+      "desc": "Roses et cœurs en fleur."
+    },
+    "frame_corona_ano_nuevo": {
+      "name": "Couronne du Nouvel An",
+      "desc": "Un toast à minuit."
+    },
+    "frame_corona_ano_lunar": {
+      "name": "Couronne du Zodiaque",
+      "desc": "Les douze animaux de la fortune."
+    },
+    "frame_corona_primavera": {
+      "name": "Couronne Printanière",
+      "desc": "Des fleurs qui renaissent."
+    },
+    "frame_corona_verano": {
+      "name": "Couronne d'Été",
+      "desc": "Soleil, mer et sable."
+    },
+    "frame_corona_otono": {
+      "name": "Couronne d'Automne",
+      "desc": "Feuilles et récolte d'automne."
+    },
+    "frame_corona_halloween": {
+      "name": "Couronne Hantée",
+      "desc": "Citrouilles dans la pénombre."
+    },
+    "frame_corona_dia_muertos": {
+      "name": "Couronne des Morts",
+      "desc": "Œillets d'Inde et bougies."
+    },
+    "frame_corona_invierno": {
+      "name": "Couronne Gelée",
+      "desc": "Glace et neige éternelles."
+    },
+    "frame_corona_navidad": {
+      "name": "Couronne de Noël",
+      "desc": "Sapin, lumières et neige."
+    },
+    "bg_escena_fuego": {
+      "name": "Royaume du Feu",
+      "desc": "Un monde de braises et de lave."
+    },
+    "bg_escena_agua": {
+      "name": "Royaume de l'Eau",
+      "desc": "Profondeurs de cristal."
+    },
+    "bg_escena_tierra": {
+      "name": "Royaume de la Terre",
+      "desc": "Montagnes et racines ancestrales."
+    },
+    "bg_escena_viento": {
+      "name": "Royaume du Vent",
+      "desc": "Des cieux en mouvement."
+    },
+    "bg_escena_slime1": {
+      "name": "Monde Slime Bleu",
+      "desc": "Une forêt gélatineuse bleue."
+    },
+    "bg_escena_slime2": {
+      "name": "Monde Slime Vert",
+      "desc": "Une caverne visqueuse verte."
+    },
+    "bg_escena_slime3": {
+      "name": "Monde Slime Orange",
+      "desc": "Une grotte de slime ambrée."
+    },
+    "bg_escena_slime4": {
+      "name": "Monde Slime Violet",
+      "desc": "Une grotte de slime violette."
+    },
+    "bg_escena_san_valentin": {
+      "name": "Crépuscule Amoureux",
+      "desc": "Un ciel romantique."
+    },
+    "bg_escena_verano": {
+      "name": "Côte d'Été",
+      "desc": "Soleil, palmiers et mer."
+    },
+    "bg_escena_primavera": {
+      "name": "Vallée Printanière",
+      "desc": "Tout est en fleur."
+    },
+    "bg_escena_otono": {
+      "name": "Forêt d'Automne",
+      "desc": "Des feuilles qui tombent."
+    },
+    "bg_escena_invierno": {
+      "name": "Paysage Hivernal",
+      "desc": "Neige et silence."
+    },
+    "bg_escena_halloween": {
+      "name": "Nuit Hantée",
+      "desc": "Ombres et citrouilles."
+    },
+    "bg_escena_dia_muertos": {
+      "name": "Autel des Morts",
+      "desc": "Œillets d'Inde et bougies."
+    },
+    "bg_escena_navidad": {
+      "name": "Nuit de Noël",
+      "desc": "Lumières et neige de décembre."
+    },
+    "bg_escena_ano_lunar": {
+      "name": "Festival du Zodiaque",
+      "desc": "Une nuit de lanternes rouges."
+    },
+    "bg_escena_ano_nuevo": {
+      "name": "Ciel du Nouvel An",
+      "desc": "Feux d'artifice de minuit."
+    },
+    "bg_escena_fuego_azul": {
+      "name": "Sanctuaire du Feu Bleu",
+      "desc": "Flammes bleues animées."
+    },
+    "title_otono": {
+      "name": "Esprit de l'Automne",
+      "desc": "Les feuilles tombent sur ton passage."
+    },
+    "title_dia_muertos": {
+      "name": "Catrín",
+      "desc": "Élégant jusque dans l'au-delà."
+    },
+    "title_carnaval": {
+      "name": "Roi du Carnaval",
+      "desc": "Que la fête commence."
+    },
+    "title_san_patricio": {
+      "name": "Chanceux",
+      "desc": "La chance te suit."
+    },
+    "title_synthwave": {
+      "name": "Retrowave",
+      "desc": "Couchers de soleil néon."
+    },
+    "title_galaxia": {
+      "name": "Voyageur Stellaire",
+      "desc": "Le cosmos est ta demeure."
+    },
+    "title_aurora": {
+      "name": "Boréal",
+      "desc": "Des lumières qui dansent dans le ciel."
+    },
+    "title_lava": {
+      "name": "Cœur Ardent",
+      "desc": "Brûle de l'intérieur."
+    },
+    "title_cottagecore": {
+      "name": "Âme Champêtre",
+      "desc": "Le calme parmi les fleurs."
+    },
+    "title_elementalista": {
+      "name": "Élémentaliste",
+      "desc": "Maître des quatre éléments."
+    },
+    "title_gran_maestro": {
+      "name": "Grand Maître",
+      "desc": "Peu vont aussi loin."
+    },
+    "title_curador": {
+      "name": "Curateur",
+      "desc": "Tu as l'œil."
+    },
+    "title_mecenas": {
+      "name": "Mécène",
+      "desc": "Ton soutien fait vivre l'art."
+    },
+    "title_goated": {
+      "name": "GOATED",
+      "desc": "Le meilleur de tous les temps."
+    },
+    "title_lore": {
+      "name": "Trop de Lore",
+      "desc": "Ton histoire pourrait remplir une saga."
+    }
   },
   "spaces": {
     "loading": "Chargement de tes espaces...",
@@ -498,6 +694,17 @@
     "backToCanvas": "Retour au canevas"
   },
   "shop": {
+    "errors": {
+      "NOT_FOR_SALE": "Cet objet n'est pas en vente.",
+      "NOT_AVAILABLE_TODAY": "Cet objet n'est pas disponible aujourd'hui.",
+      "ALREADY_OWNED": "Tu possèdes déjà cet objet.",
+      "INSUFFICIENT_BITS": "Tu n'as pas assez de Bits.",
+      "PURCHASE_FAILED": "L'achat n'a pas pu être finalisé.",
+      "PALETTE_NOT_FOUND": "Palette introuvable.",
+      "PALETTE_EMPTY": "Cette palette n'a aucune couleur.",
+      "PALETTE_ALREADY_OWNED": "Tu possèdes déjà toute cette palette.",
+      "PACKAGE_NOT_FOUND": "Forfait introuvable."
+    },
     "modalTitle": "Boutique",
     "rarity": {
       "COMMON": "Communs",

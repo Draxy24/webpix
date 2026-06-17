@@ -347,7 +347,203 @@
     "color_otono": { "name": "Autumn", "desc": "From amber to crimson." },
     "color_lava": { "desc": "Molten rock." },
     "color_romance": { "desc": "From red to pink." },
-    "color_tropical": { "desc": "From sun to sea." }
+    "color_tropical": { "desc": "From sun to sea." },
+    "frame_slime_azul": {
+      "name": "Blue Slime",
+      "desc": "Gooey blue slime frame."
+    },
+    "frame_slime_verde": {
+      "name": "Green Slime",
+      "desc": "Gooey green slime frame."
+    },
+    "frame_slime_naranja": {
+      "name": "Orange Slime",
+      "desc": "Gooey orange slime frame."
+    },
+    "frame_slime_purpura": {
+      "name": "Purple Slime",
+      "desc": "Gooey purple slime frame."
+    },
+    "frame_fuego_azul": {
+      "name": "Blue Fire",
+      "desc": "Mythic frame of animated blue flames."
+    },
+    "frame_corona_san_valentin": {
+      "name": "Wreath of Love",
+      "desc": "Roses and hearts in bloom."
+    },
+    "frame_corona_ano_nuevo": {
+      "name": "New Year's Wreath",
+      "desc": "A midnight toast."
+    },
+    "frame_corona_ano_lunar": {
+      "name": "Zodiac Wreath",
+      "desc": "The twelve animals of fortune."
+    },
+    "frame_corona_primavera": {
+      "name": "Spring Wreath",
+      "desc": "Flowers reborn."
+    },
+    "frame_corona_verano": {
+      "name": "Summer Wreath",
+      "desc": "Sun, sea and sand."
+    },
+    "frame_corona_otono": {
+      "name": "Autumn Wreath",
+      "desc": "Fallen leaves and harvest."
+    },
+    "frame_corona_halloween": {
+      "name": "Haunted Wreath",
+      "desc": "Pumpkins in the gloom."
+    },
+    "frame_corona_dia_muertos": {
+      "name": "Day of the Dead Wreath",
+      "desc": "Marigolds and candles."
+    },
+    "frame_corona_invierno": {
+      "name": "Frozen Wreath",
+      "desc": "Eternal ice and snow."
+    },
+    "frame_corona_navidad": {
+      "name": "Christmas Wreath",
+      "desc": "Pine, lights and snow."
+    },
+    "bg_escena_fuego": {
+      "name": "Realm of Fire",
+      "desc": "A world of embers and lava."
+    },
+    "bg_escena_agua": {
+      "name": "Realm of Water",
+      "desc": "Crystal depths."
+    },
+    "bg_escena_tierra": {
+      "name": "Realm of Earth",
+      "desc": "Mountains and ancient roots."
+    },
+    "bg_escena_viento": {
+      "name": "Realm of Wind",
+      "desc": "Skies in motion."
+    },
+    "bg_escena_slime1": {
+      "name": "Blue Slime World",
+      "desc": "A gooey blue forest."
+    },
+    "bg_escena_slime2": {
+      "name": "Green Slime World",
+      "desc": "A slimy green cavern."
+    },
+    "bg_escena_slime3": {
+      "name": "Orange Slime World",
+      "desc": "An amber slime grotto."
+    },
+    "bg_escena_slime4": {
+      "name": "Purple Slime World",
+      "desc": "A purple slime cave."
+    },
+    "bg_escena_san_valentin": {
+      "name": "Lovers' Dusk",
+      "desc": "A romantic sky."
+    },
+    "bg_escena_verano": {
+      "name": "Summer Coast",
+      "desc": "Sun, palms and sea."
+    },
+    "bg_escena_primavera": {
+      "name": "Spring Valley",
+      "desc": "Everything in bloom."
+    },
+    "bg_escena_otono": {
+      "name": "Autumn Forest",
+      "desc": "Falling leaves."
+    },
+    "bg_escena_invierno": {
+      "name": "Winter Landscape",
+      "desc": "Snow and silence."
+    },
+    "bg_escena_halloween": {
+      "name": "Haunted Night",
+      "desc": "Shadows and pumpkins."
+    },
+    "bg_escena_dia_muertos": {
+      "name": "Day of the Dead Altar",
+      "desc": "Marigolds and candles."
+    },
+    "bg_escena_navidad": {
+      "name": "Christmas Night",
+      "desc": "December lights and snow."
+    },
+    "bg_escena_ano_lunar": {
+      "name": "Zodiac Festival",
+      "desc": "A night of red lanterns."
+    },
+    "bg_escena_ano_nuevo": {
+      "name": "New Year's Sky",
+      "desc": "Midnight fireworks."
+    },
+    "bg_escena_fuego_azul": {
+      "name": "Blue Fire Sanctuary",
+      "desc": "Animated blue flames."
+    },
+    "title_otono": {
+      "name": "Spirit of Autumn",
+      "desc": "Leaves fall in your wake."
+    },
+    "title_dia_muertos": {
+      "name": "Catrín",
+      "desc": "Dapper beyond the grave."
+    },
+    "title_carnaval": {
+      "name": "King of Carnival",
+      "desc": "Let the party roll."
+    },
+    "title_san_patricio": {
+      "name": "Lucky One",
+      "desc": "Fortune follows you."
+    },
+    "title_synthwave": {
+      "name": "Retrowave",
+      "desc": "Neon sunsets."
+    },
+    "title_galaxia": {
+      "name": "Star Traveler",
+      "desc": "The cosmos is your home."
+    },
+    "title_aurora": {
+      "name": "Boreal",
+      "desc": "Lights dancing across the sky."
+    },
+    "title_lava": {
+      "name": "Burning Core",
+      "desc": "Burning from within."
+    },
+    "title_cottagecore": {
+      "name": "Country Soul",
+      "desc": "Calm among the flowers."
+    },
+    "title_elementalista": {
+      "name": "Elementalist",
+      "desc": "Master of the four elements."
+    },
+    "title_gran_maestro": {
+      "name": "Grandmaster",
+      "desc": "Few make it this far."
+    },
+    "title_curador": {
+      "name": "Curator",
+      "desc": "You have a good eye."
+    },
+    "title_mecenas": {
+      "name": "Patron",
+      "desc": "Your support brings art to life."
+    },
+    "title_goated": {
+      "name": "GOATED",
+      "desc": "The greatest of all time."
+    },
+    "title_lore": {
+      "name": "Too Much Lore",
+      "desc": "Your story could fill a saga."
+    }
   },
   "spaces": {
     "loading": "Loading your spaces...",
@@ -468,6 +664,17 @@
     "backToCanvas": "Back to the canvas"
   },
   "shop": {
+    "errors": {
+      "NOT_FOR_SALE": "This item isn't for sale.",
+      "NOT_AVAILABLE_TODAY": "This item isn't available today.",
+      "ALREADY_OWNED": "You already own this item.",
+      "INSUFFICIENT_BITS": "You don't have enough Bits.",
+      "PURCHASE_FAILED": "The purchase couldn't be completed.",
+      "PALETTE_NOT_FOUND": "Palette not found.",
+      "PALETTE_EMPTY": "This palette has no colors.",
+      "PALETTE_ALREADY_OWNED": "You already own this whole palette.",
+      "PACKAGE_NOT_FOUND": "Package not found."
+    },
     "modalTitle": "Shop",
     "rarity": {
       "COMMON": "Common",

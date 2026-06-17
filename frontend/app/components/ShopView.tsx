@@ -143,7 +143,11 @@ export default function ShopView() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.message || t("shop.msg.buyFail"));
+        setMessage(
+          t(`shop.errors.${result.code}`, {
+            defaultValue: result.message || t("shop.msg.buyFail"),
+          }),
+        );
       } else {
         setMessage(
           t("shop.msg.bought", { name: cosmeticName(item.key, item.name, t) }),
@@ -176,7 +180,11 @@ export default function ShopView() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.message || t("shop.msg.paletteFail"));
+        setMessage(
+          t(`shop.errors.${result.code}`, {
+            defaultValue: result.message || t("shop.msg.paletteFail"),
+          }),
+        );
       } else {
         setMessage(
           t("shop.msg.boughtPalette", {
@@ -211,7 +219,11 @@ export default function ShopView() {
       });
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.message || t("shop.msg.buyFail"));
+        setMessage(
+          t(`shop.errors.${result.code}`, {
+            defaultValue: result.message || t("shop.msg.buyFail"),
+          }),
+        );
       } else {
         setMessage(t("shop.msg.gotBits", { count: result.granted }));
         await load();

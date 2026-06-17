@@ -272,7 +272,203 @@
     "color_otono": { "name": "秋天", "desc": "从琥珀到深红。" },
     "color_lava": { "name": "熔岩", "desc": "熔融的岩石。" },
     "color_romance": { "name": "浪漫", "desc": "从红到粉。" },
-    "color_tropical": { "name": "热带", "desc": "从阳光到大海。" }
+    "color_tropical": { "name": "热带", "desc": "从阳光到大海。" },
+    "frame_slime_azul": {
+      "name": "蓝色史莱姆",
+      "desc": "黏糊糊的蓝色史莱姆边框。"
+    },
+    "frame_slime_verde": {
+      "name": "绿色史莱姆",
+      "desc": "黏糊糊的绿色史莱姆边框。"
+    },
+    "frame_slime_naranja": {
+      "name": "橙色史莱姆",
+      "desc": "黏糊糊的橙色史莱姆边框。"
+    },
+    "frame_slime_purpura": {
+      "name": "紫色史莱姆",
+      "desc": "黏糊糊的紫色史莱姆边框。"
+    },
+    "frame_fuego_azul": {
+      "name": "蓝焰",
+      "desc": "神话级蓝色火焰动态边框。"
+    },
+    "frame_corona_san_valentin": {
+      "name": "爱之花环",
+      "desc": "盛放的玫瑰与心。"
+    },
+    "frame_corona_ano_nuevo": {
+      "name": "新年花环",
+      "desc": "午夜的祝酒。"
+    },
+    "frame_corona_ano_lunar": {
+      "name": "生肖花环",
+      "desc": "十二生肖，福运临门。"
+    },
+    "frame_corona_primavera": {
+      "name": "春日花环",
+      "desc": "繁花再绽。"
+    },
+    "frame_corona_verano": {
+      "name": "夏日花环",
+      "desc": "阳光、海洋与沙滩。"
+    },
+    "frame_corona_otono": {
+      "name": "秋日花环",
+      "desc": "落叶与丰收。"
+    },
+    "frame_corona_halloween": {
+      "name": "鬼魅花环",
+      "desc": "暮色中的南瓜。"
+    },
+    "frame_corona_dia_muertos": {
+      "name": "亡灵节花环",
+      "desc": "万寿菊与烛光。"
+    },
+    "frame_corona_invierno": {
+      "name": "冰霜花环",
+      "desc": "永恒的冰与雪。"
+    },
+    "frame_corona_navidad": {
+      "name": "圣诞花环",
+      "desc": "松枝、灯火与白雪。"
+    },
+    "bg_escena_fuego": {
+      "name": "火之国度",
+      "desc": "余烬与熔岩的世界。"
+    },
+    "bg_escena_agua": {
+      "name": "水之国度",
+      "desc": "水晶般的深渊。"
+    },
+    "bg_escena_tierra": {
+      "name": "土之国度",
+      "desc": "群山与远古之根。"
+    },
+    "bg_escena_viento": {
+      "name": "风之国度",
+      "desc": "流动的天空。"
+    },
+    "bg_escena_slime1": {
+      "name": "蓝色史莱姆世界",
+      "desc": "黏糊糊的蓝色森林。"
+    },
+    "bg_escena_slime2": {
+      "name": "绿色史莱姆世界",
+      "desc": "黏滑的绿色洞窟。"
+    },
+    "bg_escena_slime3": {
+      "name": "橙色史莱姆世界",
+      "desc": "琥珀色的史莱姆洞穴。"
+    },
+    "bg_escena_slime4": {
+      "name": "紫色史莱姆世界",
+      "desc": "紫色的史莱姆洞穴。"
+    },
+    "bg_escena_san_valentin": {
+      "name": "恋人黄昏",
+      "desc": "浪漫的天空。"
+    },
+    "bg_escena_verano": {
+      "name": "夏日海岸",
+      "desc": "阳光、棕榈与大海。"
+    },
+    "bg_escena_primavera": {
+      "name": "春之谷",
+      "desc": "万物绽放。"
+    },
+    "bg_escena_otono": {
+      "name": "秋之森林",
+      "desc": "飘落的树叶。"
+    },
+    "bg_escena_invierno": {
+      "name": "冬日景致",
+      "desc": "白雪与静谧。"
+    },
+    "bg_escena_halloween": {
+      "name": "鬼魅之夜",
+      "desc": "阴影与南瓜。"
+    },
+    "bg_escena_dia_muertos": {
+      "name": "亡灵祭坛",
+      "desc": "万寿菊与烛光。"
+    },
+    "bg_escena_navidad": {
+      "name": "圣诞之夜",
+      "desc": "十二月的灯火与白雪。"
+    },
+    "bg_escena_ano_lunar": {
+      "name": "生肖节庆",
+      "desc": "红灯笼之夜。"
+    },
+    "bg_escena_ano_nuevo": {
+      "name": "新年天空",
+      "desc": "午夜的烟火。"
+    },
+    "bg_escena_fuego_azul": {
+      "name": "蓝焰圣殿",
+      "desc": "跃动的蓝色火焰。"
+    },
+    "title_otono": {
+      "name": "秋之魂",
+      "desc": "落叶随你而下。"
+    },
+    "title_dia_muertos": {
+      "name": "卡特林",
+      "desc": "优雅至九泉之下。"
+    },
+    "title_carnaval": {
+      "name": "狂欢之王",
+      "desc": "让派对继续。"
+    },
+    "title_san_patricio": {
+      "name": "幸运儿",
+      "desc": "好运伴你左右。"
+    },
+    "title_synthwave": {
+      "name": "复古浪潮",
+      "desc": "霓虹的落日。"
+    },
+    "title_galaxia": {
+      "name": "星际旅人",
+      "desc": "宇宙即是你的家。"
+    },
+    "title_aurora": {
+      "name": "极光",
+      "desc": "在天际起舞的光。"
+    },
+    "title_lava": {
+      "name": "炽热核心",
+      "desc": "由内而燃。"
+    },
+    "title_cottagecore": {
+      "name": "田园之心",
+      "desc": "花间的宁静。"
+    },
+    "title_elementalista": {
+      "name": "元素使",
+      "desc": "掌控四大元素。"
+    },
+    "title_gran_maestro": {
+      "name": "大师",
+      "desc": "鲜有人能至此境。"
+    },
+    "title_curador": {
+      "name": "策展人",
+      "desc": "你独具慧眼。"
+    },
+    "title_mecenas": {
+      "name": "赞助人",
+      "desc": "你的支持让艺术鲜活。"
+    },
+    "title_goated": {
+      "name": "GOATED",
+      "desc": "史上最强。"
+    },
+    "title_lore": {
+      "name": "故事太多",
+      "desc": "你的经历足以写成传奇。"
+    }
   },
   "spaces": {
     "loading": "正在加载你的空间...",
@@ -393,6 +589,17 @@
     "backToCanvas": "返回画布"
   },
   "shop": {
+    "errors": {
+      "NOT_FOR_SALE": "该物品未出售。",
+      "NOT_AVAILABLE_TODAY": "该物品今日不可购买。",
+      "ALREADY_OWNED": "你已拥有该物品。",
+      "INSUFFICIENT_BITS": "你的 Bits 不足。",
+      "PURCHASE_FAILED": "购买未能完成。",
+      "PALETTE_NOT_FOUND": "未找到调色板。",
+      "PALETTE_EMPTY": "该调色板没有颜色。",
+      "PALETTE_ALREADY_OWNED": "你已拥有整个调色板。",
+      "PACKAGE_NOT_FOUND": "未找到礼包。"
+    },
     "modalTitle": "商店",
     "rarity": {
       "COMMON": "普通",

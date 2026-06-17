@@ -365,7 +365,203 @@
     "color_otono": { "name": "Herbst", "desc": "Von Bernstein zu Karmesin." },
     "color_lava": { "desc": "Geschmolzenes Gestein." },
     "color_romance": { "name": "Romanze", "desc": "Von Rot zu Rosa." },
-    "color_tropical": { "name": "Tropisch", "desc": "Von der Sonne zum Meer." }
+    "color_tropical": { "name": "Tropisch", "desc": "Von der Sonne zum Meer." },
+    "frame_slime_azul": {
+      "name": "Blauer Slime",
+      "desc": "Glibberiger blauer Slime-Rahmen."
+    },
+    "frame_slime_verde": {
+      "name": "Grüner Slime",
+      "desc": "Glibberiger grüner Slime-Rahmen."
+    },
+    "frame_slime_naranja": {
+      "name": "Oranger Slime",
+      "desc": "Glibberiger oranger Slime-Rahmen."
+    },
+    "frame_slime_purpura": {
+      "name": "Violetter Slime",
+      "desc": "Glibberiger violetter Slime-Rahmen."
+    },
+    "frame_fuego_azul": {
+      "name": "Blaues Feuer",
+      "desc": "Mythischer Rahmen mit animierten blauen Flammen."
+    },
+    "frame_corona_san_valentin": {
+      "name": "Kranz der Liebe",
+      "desc": "Rosen und Herzen in voller Blüte."
+    },
+    "frame_corona_ano_nuevo": {
+      "name": "Neujahrskranz",
+      "desc": "Ein Mitternachtstoast."
+    },
+    "frame_corona_ano_lunar": {
+      "name": "Tierkreis-Kranz",
+      "desc": "Die zwölf Tiere des Glücks."
+    },
+    "frame_corona_primavera": {
+      "name": "Frühlingskranz",
+      "desc": "Blüten erwachen neu."
+    },
+    "frame_corona_verano": {
+      "name": "Sommerkranz",
+      "desc": "Sonne, Meer und Sand."
+    },
+    "frame_corona_otono": {
+      "name": "Herbstkranz",
+      "desc": "Laub und Ernte des Herbstes."
+    },
+    "frame_corona_halloween": {
+      "name": "Spuk-Kranz",
+      "desc": "Kürbisse im Zwielicht."
+    },
+    "frame_corona_dia_muertos": {
+      "name": "Kranz der Toten",
+      "desc": "Ringelblumen und Kerzen."
+    },
+    "frame_corona_invierno": {
+      "name": "Eiskranz",
+      "desc": "Ewiges Eis und Schnee."
+    },
+    "frame_corona_navidad": {
+      "name": "Weihnachtskranz",
+      "desc": "Tanne, Lichter und Schnee."
+    },
+    "bg_escena_fuego": {
+      "name": "Reich des Feuers",
+      "desc": "Eine Welt aus Glut und Lava."
+    },
+    "bg_escena_agua": {
+      "name": "Reich des Wassers",
+      "desc": "Kristallklare Tiefen."
+    },
+    "bg_escena_tierra": {
+      "name": "Reich der Erde",
+      "desc": "Berge und uralte Wurzeln."
+    },
+    "bg_escena_viento": {
+      "name": "Reich des Windes",
+      "desc": "Himmel in Bewegung."
+    },
+    "bg_escena_slime1": {
+      "name": "Blaue Slime-Welt",
+      "desc": "Ein glibberiger blauer Wald."
+    },
+    "bg_escena_slime2": {
+      "name": "Grüne Slime-Welt",
+      "desc": "Eine schleimige grüne Höhle."
+    },
+    "bg_escena_slime3": {
+      "name": "Orange Slime-Welt",
+      "desc": "Eine bernsteinfarbene Slime-Grotte."
+    },
+    "bg_escena_slime4": {
+      "name": "Violette Slime-Welt",
+      "desc": "Eine violette Slime-Höhle."
+    },
+    "bg_escena_san_valentin": {
+      "name": "Dämmerung der Liebe",
+      "desc": "Ein romantischer Himmel."
+    },
+    "bg_escena_verano": {
+      "name": "Sommerküste",
+      "desc": "Sonne, Palmen und Meer."
+    },
+    "bg_escena_primavera": {
+      "name": "Frühlingstal",
+      "desc": "Alles in voller Blüte."
+    },
+    "bg_escena_otono": {
+      "name": "Herbstwald",
+      "desc": "Fallende Blätter."
+    },
+    "bg_escena_invierno": {
+      "name": "Winterlandschaft",
+      "desc": "Schnee und Stille."
+    },
+    "bg_escena_halloween": {
+      "name": "Gespensternacht",
+      "desc": "Schatten und Kürbisse."
+    },
+    "bg_escena_dia_muertos": {
+      "name": "Altar der Toten",
+      "desc": "Ringelblumen und Kerzen."
+    },
+    "bg_escena_navidad": {
+      "name": "Weihnachtsnacht",
+      "desc": "Lichter und Schnee im Dezember."
+    },
+    "bg_escena_ano_lunar": {
+      "name": "Tierkreis-Fest",
+      "desc": "Eine Nacht der roten Laternen."
+    },
+    "bg_escena_ano_nuevo": {
+      "name": "Neujahrshimmel",
+      "desc": "Feuerwerk um Mitternacht."
+    },
+    "bg_escena_fuego_azul": {
+      "name": "Heiligtum des Blauen Feuers",
+      "desc": "Animierte blaue Flammen."
+    },
+    "title_otono": {
+      "name": "Geist des Herbstes",
+      "desc": "Blätter fallen, wo du gehst."
+    },
+    "title_dia_muertos": {
+      "name": "Catrín",
+      "desc": "Elegant bis ins Jenseits."
+    },
+    "title_carnaval": {
+      "name": "König des Karnevals",
+      "desc": "Lass die Party laufen."
+    },
+    "title_san_patricio": {
+      "name": "Glückspilz",
+      "desc": "Das Glück folgt dir."
+    },
+    "title_synthwave": {
+      "name": "Retrowave",
+      "desc": "Neon-Sonnenuntergänge."
+    },
+    "title_galaxia": {
+      "name": "Sternenreisender",
+      "desc": "Der Kosmos ist dein Zuhause."
+    },
+    "title_aurora": {
+      "name": "Boreal",
+      "desc": "Lichter, die am Himmel tanzen."
+    },
+    "title_lava": {
+      "name": "Brennender Kern",
+      "desc": "Brennt von innen."
+    },
+    "title_cottagecore": {
+      "name": "Landseele",
+      "desc": "Ruhe zwischen Blumen."
+    },
+    "title_elementalista": {
+      "name": "Elementarist",
+      "desc": "Meister der vier Elemente."
+    },
+    "title_gran_maestro": {
+      "name": "Großmeister",
+      "desc": "Nur wenige kommen so weit."
+    },
+    "title_curador": {
+      "name": "Kurator",
+      "desc": "Du hast ein gutes Auge."
+    },
+    "title_mecenas": {
+      "name": "Mäzen",
+      "desc": "Deine Unterstützung erweckt Kunst zum Leben."
+    },
+    "title_goated": {
+      "name": "GOATED",
+      "desc": "Der Größte aller Zeiten."
+    },
+    "title_lore": {
+      "name": "Zu viel Lore",
+      "desc": "Deine Geschichte füllt eine Saga."
+    }
   },
   "spaces": {
     "loading": "Deine Bereiche werden geladen...",
@@ -486,6 +682,17 @@
     "backToCanvas": "Zurück zur Leinwand"
   },
   "shop": {
+    "errors": {
+      "NOT_FOR_SALE": "Dieser Artikel steht nicht zum Verkauf.",
+      "NOT_AVAILABLE_TODAY": "Dieser Artikel ist heute nicht verfügbar.",
+      "ALREADY_OWNED": "Du besitzt diesen Artikel bereits.",
+      "INSUFFICIENT_BITS": "Du hast nicht genug Bits.",
+      "PURCHASE_FAILED": "Der Kauf konnte nicht abgeschlossen werden.",
+      "PALETTE_NOT_FOUND": "Palette nicht gefunden.",
+      "PALETTE_EMPTY": "Diese Palette hat keine Farben.",
+      "PALETTE_ALREADY_OWNED": "Du besitzt diese Palette bereits vollständig.",
+      "PACKAGE_NOT_FOUND": "Paket nicht gefunden."
+    },
     "modalTitle": "Shop",
     "rarity": {
       "COMMON": "Gewöhnlich",

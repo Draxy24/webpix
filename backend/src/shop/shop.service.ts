@@ -66,13 +66,19 @@ export class ShopService {
       where: { id: cosmeticId },
     });
     if (!cosmetic || !cosmetic.active || cosmetic.priceBits == null) {
-      throw new BadRequestException('Este objeto no está a la venta');
+      throw new BadRequestException({
+        code: 'NOT_FOR_SALE',
+        message: 'Este objeto no está a la venta',
+      });
     }
 
     // FOMO: solo se puede comprar lo que está en la rotación de hoy
     const todays = await this.getTodaysCosmetics();
     if (!todays.some((c) => c.id === cosmeticId)) {
-      throw new BadRequestException('Este objeto no está disponible hoy');
+      throw new BadRequestException({
+        code: 'NOT_AVAILABLE_TODAY',
+        message: 'Este objeto no está disponible hoy',
+      });
     }
 
     // Precio efectivo: aplica la oferta del día si este objeto está rebajado
@@ -82,7 +88,11 @@ export class ShopService {
     const already = await this.prisma.userCosmetic.findUnique({
       where: { userId_cosmeticId: { userId, cosmeticId } },
     });
-    if (already) throw new BadRequestException('Ya tienes este objeto');
+    if (already)
+      throw new BadRequestException({
+        code: 'ALREADY_OWNED',
+        message: 'Ya tienes este objeto',
+      });
 
     // Descuento condicional: solo paga si el saldo alcanza (evita saldos negativos)
     // Descuento condicional: solo paga si el saldo alcanza (evita saldos negativos)
@@ -92,7 +102,10 @@ export class ShopService {
     });
 
     if (paid.count === 0) {
-      throw new BadRequestException('No tienes suficientes Bits');
+      throw new BadRequestException({
+        code: 'INSUFFICIENT_BITS',
+        message: 'No tienes suficientes Bits',
+      });
     }
 
     try {
@@ -103,7 +116,10 @@ export class ShopService {
         where: { id: userId },
         data: { bits: { increment: price } },
       });
-      throw new BadRequestException('No se pudo completar la compra');
+      throw new BadRequestException({
+        code: 'PURCHASE_FAILED',
+        message: 'No se pudo completar la compra',
+      });
     }
 
     const events = await this.achievements.checkCollection(userId);
@@ -192,13 +208,20 @@ export class ShopService {
 
   async buyPalette(userId: number, paletteKey: string) {
     const palette = COLOR_PALETTES.find((p) => p.key === paletteKey);
-    if (!palette) throw new NotFoundException('Paleta no encontrada');
+    if (!palette)
+      throw new NotFoundException({
+        code: 'PALETTE_NOT_FOUND',
+        message: 'Paleta no encontrada',
+      });
 
     const colors = await this.prisma.cosmetic.findMany({
       where: { key: { in: palette.colorKeys } },
     });
     if (colors.length === 0)
-      throw new BadRequestException('Paleta sin colores');
+      throw new BadRequestException({
+        code: 'PALETTE_EMPTY',
+        message: 'Paleta sin colores',
+      });
 
     const owned = await this.prisma.userCosmetic.findMany({
       where: { userId, cosmeticId: { in: colors.map((c) => c.id) } },
@@ -208,7 +231,10 @@ export class ShopService {
     const toGrant = colors.filter((c) => !ownedIds.has(c.id));
 
     if (toGrant.length === 0)
-      throw new BadRequestException('Ya tienes toda esta paleta');
+      throw new BadRequestException({
+        code: 'PALETTE_ALREADY_OWNED',
+        message: 'Ya tienes toda esta paleta',
+      });
 
     // Cobro atómico (evita saldo negativo)
     const charged = await this.prisma.user.updateMany({
@@ -216,7 +242,10 @@ export class ShopService {
       data: { bits: { decrement: palette.bundlePriceBits } },
     });
     if (charged.count === 0)
-      throw new BadRequestException('No tienes suficientes Bits');
+      throw new BadRequestException({
+        code: 'INSUFFICIENT_BITS',
+        message: 'No tienes suficientes Bits',
+      });
 
     await this.prisma.userCosmetic.createMany({
       data: toGrant.map((c) => ({ userId, cosmeticId: c.id })),
@@ -248,7 +277,11 @@ export class ShopService {
   // STUB: otorga los Bits sin cobro real. Reemplazar por checkout + webhook de Stripe antes del lanzamiento.
   async buyBits(userId: number, packageKey: string) {
     const pkg = BIT_PACKAGES.find((p) => p.key === packageKey);
-    if (!pkg) throw new NotFoundException('Paquete no encontrado');
+    if (!pkg)
+      throw new NotFoundException({
+        code: 'PACKAGE_NOT_FOUND',
+        message: 'Paquete no encontrado',
+      });
 
     const total = pkg.bits + pkg.bonus;
     const user = await this.prisma.user.update({
