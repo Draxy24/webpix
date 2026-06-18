@@ -1,4 +1,26 @@
 {
+  "subs": {
+    "title": "Abonnements",
+    "perMonth": "/Monat",
+    "current": "Dein aktuelles Abo",
+    "subscribe": "Abonnieren",
+    "manage": "Abo verwalten",
+    "FREE": {
+      "bits": "Keine monatlichen Bits",
+      "palette": "16-Farben-Palette, zum Malen und fürs Menü",
+      "limits": "30 Pixel · 3 h Cooldown"
+    },
+    "PLUS": {
+      "bits": "+200 Bits/Monat",
+      "palette": "32-Farben-Palette, zum Malen und fürs Menü",
+      "limits": "60 Pixel · 1 h Cooldown"
+    },
+    "PREMIUM": {
+      "bits": "+500 Bits/Monat",
+      "palette": "32-Farben-Palette + freie Farbwahl, zum Malen und fürs Menü",
+      "limits": "Kein Pixel-Limit, kein Cooldown"
+    }
+  },
   "notifications": {
     "friendRequest": "{{nick}} hat dir eine Freundschaftsanfrage gesendet",
     "friendAccepted": "{{nick}} hat deine Anfrage angenommen"
@@ -712,7 +734,7 @@
     "loading": "Shop wird geladen...",
     "empty": "Der Shop ist derzeit leer.",
     "balance": "Dein Guthaben",
-    "tabs": { "shop": "Shop", "bits": "Bits" },
+    "tabs": { "shop": "Shop", "bits": "Bits", "subs": "Abos" },
     "getBits": "Bits holen",
     "bonus": "+{{amount}} Bonus",
     "featured": "Empfohlen",
@@ -732,7 +754,10 @@
       "connError": "Verbindungsfehler",
       "bought": "Du hast \"{{name}}\" gekauft!",
       "boughtPalette": "Du hast die {{name}} gekauft!",
-      "gotBits": "Du hast {{count}} Bits erhalten!"
+      "gotBits": "Du hast {{count}} Bits erhalten!",
+      "bitsOk": "Bits hinzugefügt!",
+      "subOk": "Abo aktiviert!",
+      "subCancel": "Abo gekündigt."
     }
   },
   "bug": {

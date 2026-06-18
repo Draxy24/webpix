@@ -4,11 +4,16 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private prisma: PrismaService) {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('Falta JWT_SECRET en el entorno');
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET ?? 'secret_temporal',
+      secretOrKey: jwtSecret,
     });
   }
 

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
@@ -19,6 +21,10 @@ import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
+    // Backstop global: 120 req/min por IP. Es deliberadamente generoso; ajústalo a tu
+    // tráfico real. El pintado de píxeles va por el gateway WebSocket, así que NO se ve
+    // afectado por este guard HTTP (el lienzo sigue fluido).
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
     PrismaModule,
     UsersModule,
     AuthModule,
@@ -37,6 +43,6 @@ import { StripeModule } from './stripe/stripe.module';
     StripeModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

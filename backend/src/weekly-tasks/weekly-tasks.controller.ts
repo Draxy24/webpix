@@ -1,6 +1,8 @@
 import { Controller, Get, Post, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WeeklyTasksService } from './weekly-tasks.service';
+import { AdminGuard } from '../auth/admin.guard';
+import { SeedEnabledGuard } from '../auth/seed-enabled.guard';
 
 @Controller('weekly-tasks')
 export class WeeklyTasksController {
@@ -12,8 +14,7 @@ export class WeeklyTasksController {
     return this.weeklyTasks.listForUser(req.user.id);
   }
 
-  // Temporal (dev): siembra el catálogo de tareas. Quitar/restringir antes del lanzamiento.
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), AdminGuard, SeedEnabledGuard)
   @Post('admin/seed')
   seed(@Request() req: { user: { id: number } }) {
     return this.weeklyTasks.seedCatalog(req.user.id);

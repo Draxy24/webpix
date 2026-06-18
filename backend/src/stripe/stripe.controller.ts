@@ -8,7 +8,9 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { StripeService } from './stripe.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('stripe')
 export class StripeController {
   constructor(private stripe: StripeService) {}

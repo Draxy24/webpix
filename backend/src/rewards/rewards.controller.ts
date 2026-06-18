@@ -8,6 +8,8 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RewardsService } from './rewards.service';
+import { AdminGuard } from '../auth/admin.guard';
+import { SeedEnabledGuard } from '../auth/seed-enabled.guard';
 
 @Controller('rewards')
 export class RewardsController {
@@ -44,7 +46,7 @@ export class RewardsController {
   }
 
   // Temporal (dev): siembra catálogo + datos de prueba. Quitar/restringir antes del lanzamiento.
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), AdminGuard, SeedEnabledGuard)
   @Post('admin/seed')
   seed(@Request() req: { user: { id: number } }) {
     return this.rewardsService.seedAndGrant(req.user.id);

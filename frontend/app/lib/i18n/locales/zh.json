@@ -1,4 +1,26 @@
 {
+  "subs": {
+    "title": "订阅",
+    "perMonth": "/月",
+    "current": "你的当前方案",
+    "subscribe": "订阅",
+    "manage": "管理订阅",
+    "FREE": {
+      "bits": "无每月 Bits",
+      "palette": "16 色调色板，用于绘画和菜单",
+      "limits": "30 像素 · 冷却 3 小时"
+    },
+    "PLUS": {
+      "bits": "每月 +200 Bits",
+      "palette": "32 色调色板，用于绘画和菜单",
+      "limits": "60 像素 · 冷却 1 小时"
+    },
+    "PREMIUM": {
+      "bits": "每月 +500 Bits",
+      "palette": "32 色调色板 + 自由选色，用于绘画和菜单",
+      "limits": "无像素限制，无冷却"
+    }
+  },
   "notifications": {
     "friendRequest": "{{nick}} 向你发送了好友请求",
     "friendAccepted": "{{nick}} 接受了你的好友请求"
@@ -619,7 +641,7 @@
     "loading": "正在加载商店...",
     "empty": "商店目前为空。",
     "balance": "你的余额",
-    "tabs": { "shop": "商店", "bits": "Bits" },
+    "tabs": { "shop": "商店", "bits": "Bits", "subs": "订阅" },
     "getBits": "获取 Bits",
     "bonus": "+{{amount}} 奖励",
     "featured": "精选",
@@ -639,7 +661,10 @@
       "connError": "连接错误",
       "bought": "你购买了“{{name}}”！",
       "boughtPalette": "你购买了{{name}}！",
-      "gotBits": "你获得了 {{count}} Bits！"
+      "gotBits": "你获得了 {{count}} Bits！",
+      "bitsOk": "Bits 已添加！",
+      "subOk": "订阅已激活！",
+      "subCancel": "订阅已取消。"
     }
   },
   "bug": {

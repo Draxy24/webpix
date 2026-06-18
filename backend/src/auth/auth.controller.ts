@@ -9,6 +9,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { Throttle } from '@nestjs/throttler';
 
 const TIER_LIMITS = {
   FREE: { pixels: 30, cooldownHours: 3 },
@@ -23,6 +24,7 @@ export class AuthController {
     private prisma: PrismaService,
   ) {}
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   register(
     @Body()
@@ -37,16 +39,19 @@ export class AuthController {
     return this.authService.register(body);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
   login(@Body() body: { emailOrPhone: string; password: string }) {
     return this.authService.login(body);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('verify-email')
   verifyEmail(@Body() body: { code: string }) {
     return this.authService.verifyEmail(body.code);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt'))
   @Post('verify-phone')
   verifyPhone(
@@ -56,17 +61,20 @@ export class AuthController {
     return this.authService.verifyPhone(req.user.id, body.code);
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt'))
   @Post('resend-verification')
   resendVerification(@Request() req: { user: { id: number } }) {
     return this.authService.resendVerification(req.user.id);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('forgot-password')
   forgotPassword(@Body() body: { emailOrPhone: string }) {
     return this.authService.forgotPassword(body.emailOrPhone);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('reset-password')
   resetPassword(
     @Body() body: { emailOrPhone: string; code: string; newPassword: string },

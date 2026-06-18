@@ -1,6 +1,8 @@
 import { Controller, Get, Post, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AchievementsService } from './achievements.service';
+import { AdminGuard } from '../auth/admin.guard';
+import { SeedEnabledGuard } from '../auth/seed-enabled.guard';
 
 @Controller('achievements')
 export class AchievementsController {
@@ -13,7 +15,7 @@ export class AchievementsController {
   }
 
   // Temporal (dev): siembra el catálogo de logros. Quitar/restringir antes del lanzamiento.
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), AdminGuard, SeedEnabledGuard)
   @Post('admin/seed')
   seed(@Request() req: { user: { id: number } }) {
     return this.achievements.seedCatalog(req.user.id);

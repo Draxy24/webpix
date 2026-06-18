@@ -1,4 +1,26 @@
 {
+  "subs": {
+    "title": "Abonnements",
+    "perMonth": "/mois",
+    "current": "Ton abonnement actuel",
+    "subscribe": "S'abonner",
+    "manage": "Gérer l'abonnement",
+    "FREE": {
+      "bits": "Pas de Bits mensuels",
+      "palette": "Palette de 16 couleurs, pour peindre et le menu",
+      "limits": "30 pixels · cooldown de 3 h"
+    },
+    "PLUS": {
+      "bits": "+200 Bits/mois",
+      "palette": "Palette de 32 couleurs, pour peindre et le menu",
+      "limits": "60 pixels · cooldown de 1 h"
+    },
+    "PREMIUM": {
+      "bits": "+500 Bits/mois",
+      "palette": "Palette de 32 couleurs + sélecteur libre, pour peindre et le menu",
+      "limits": "Sans limite de pixels ni cooldown"
+    }
+  },
   "notifications": {
     "friendRequest": "{{nick}} t'a envoyé une demande d'ami",
     "friendAccepted": "{{nick}} a accepté ta demande"
@@ -724,7 +746,7 @@
     "loading": "Chargement de la boutique...",
     "empty": "La boutique est vide pour le moment.",
     "balance": "Ton solde",
-    "tabs": { "shop": "Boutique", "bits": "Bits" },
+    "tabs": { "shop": "Boutique", "bits": "Bits", "subs": "Abos" },
     "getBits": "Obtenir des Bits",
     "bonus": "+{{amount}} de bonus",
     "featured": "À la une",
@@ -744,7 +766,10 @@
       "connError": "Erreur de connexion",
       "bought": "Tu as acheté « {{name}} » !",
       "boughtPalette": "Tu as acheté la {{name}} !",
-      "gotBits": "Tu as reçu {{count}} Bits !"
+      "gotBits": "Tu as reçu {{count}} Bits !",
+      "bitsOk": "Bits ajoutés !",
+      "subOk": "Abonnement activé !",
+      "subCancel": "Abonnement annulé."
     }
   },
   "bug": {
