@@ -31,6 +31,7 @@ model User {
   pixelsPlaced        Int @default(0)
   publicationsCreated Int @default(0)
   likesReceived       Int @default(0)
+  stripeCustomerId String? @unique
 
   pixels          Pixel[]
   friendsSent     Friendship[]     @relation("FriendsSent")

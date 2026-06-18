@@ -64,4 +64,19 @@ export class ShopController {
   ) {
     return this.shop.buyBits(req.user.id, body.packageKey);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('subscribe')
+  subscribe(
+    @Request() req: { user: { id: number } },
+    @Body() body: { tier: string },
+  ) {
+    return this.shop.subscribe(req.user.id, body.tier);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('billing-portal')
+  billingPortal(@Request() req: { user: { id: number } }) {
+    return this.shop.billingPortal(req.user.id);
+  }
 }

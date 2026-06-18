@@ -13,6 +13,7 @@ import { SEASON_WINDOWS, SEASON_LABEL_PRIORITY } from './shop.config';
 import { AchievementsService } from '../achievements/achievements.service';
 import { OFFER_COUNT, OFFER_DISCOUNTS } from './shop.config';
 import { StripeService } from '../stripe/stripe.service';
+import { SUBSCRIPTION_PLANS } from './shop.config';
 
 @Injectable()
 export class ShopService {
@@ -41,6 +42,7 @@ export class ShopService {
 
     return {
       bits: user?.bits ?? 0,
+      tier: user?.subscriptionTier ?? 'FREE',
       season,
       items: cosmetics.map((c) => {
         const offer = offers.get(c.id);
@@ -273,6 +275,7 @@ export class ShopService {
       bonus: p.bonus,
       total: p.bits + p.bonus,
       priceCents: p.priceCents,
+      icon: p.icon,
     }));
   }
 
@@ -428,5 +431,66 @@ export class ShopService {
     });
 
     return result;
+  }
+
+  async subscribe(userId: number, tier: string) {
+    const plan = SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS];
+    const priceId = plan ? process.env[plan.priceEnv] : undefined;
+    if (!priceId) {
+      throw new BadRequestException({
+        code: 'PLAN_NOT_FOUND',
+        message: 'Plan no disponible',
+      });
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message: 'Usuario no encontrado',
+      });
+    }
+
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await this.stripe.client.customers.create({
+        email: user.email ?? undefined,
+        metadata: { userId: String(userId) },
+      });
+      customerId = customer.id;
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { stripeCustomerId: customerId },
+      });
+    }
+
+    const frontend = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const session = await this.stripe.client.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata: { userId: String(userId), tier },
+      subscription_data: { metadata: { userId: String(userId), tier } },
+      success_url: `${frontend}/?sub=ok`,
+      cancel_url: `${frontend}/?sub=cancel`,
+    });
+
+    return { url: session.url };
+  }
+
+  async billingPortal(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.stripeCustomerId) {
+      throw new BadRequestException({
+        code: 'NO_SUBSCRIPTION',
+        message: 'No tienes una suscripción que gestionar',
+      });
+    }
+    const frontend = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const session = await this.stripe.client.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: `${frontend}/`,
+    });
+    return { url: session.url };
   }
 }

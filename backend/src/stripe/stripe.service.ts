@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
-import { BIT_PACKAGES } from '../shop/shop.config';
+import { BIT_PACKAGES, SUBSCRIPTION_PLANS } from '../shop/shop.config';
 
 @Injectable()
 export class StripeService {
@@ -9,8 +9,7 @@ export class StripeService {
 
   constructor(private prisma: PrismaService) {}
 
-  // Acredita los Bits tras un Checkout completado.
-  // Idempotente por event.id: si el evento ya se procesó, no hace nada.
+  // Bits (compra única). Idempotente por event.id.
   async grantBitsForCheckout(
     eventId: string,
     userId: number,
@@ -19,9 +18,7 @@ export class StripeService {
     if (!Number.isFinite(userId)) return;
     const pkg = BIT_PACKAGES.find((p) => p.key === packageKey);
     if (!pkg) return;
-
     const total = pkg.bits + pkg.bonus;
-
     try {
       await this.prisma.$transaction(async (tx) => {
         await tx.processedStripeEvent.create({
@@ -34,7 +31,49 @@ export class StripeService {
       });
     } catch (err) {
       const code = (err as { code?: string } | null)?.code;
-      if (code === 'P2002') return; // ya procesado → idempotencia
+      if (code === 'P2002') return;
+      throw err;
+    }
+  }
+
+  // Tier de suscripción (asignación de estado: idempotente por naturaleza).
+  async setSubscriptionTier(userId: number, tier: 'FREE' | 'PLUS' | 'PREMIUM') {
+    if (!Number.isFinite(userId)) return;
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { subscriptionTier: tier },
+    });
+  }
+
+  // Estipendio mensual (primer pago y cada renovación). Idempotente por event.id.
+  async grantStipendForCustomer(eventId: string, customerId: string) {
+    const subs = await this.client.subscriptions.list({
+      customer: customerId,
+      limit: 1,
+    });
+    const sub = subs.data[0];
+    if (!sub) return;
+
+    const userId = Number(sub.metadata?.userId);
+    const tier = sub.metadata?.tier;
+    if (!Number.isFinite(userId)) return;
+    const plan = SUBSCRIPTION_PLANS[tier as keyof typeof SUBSCRIPTION_PLANS];
+    if (!plan) return;
+    const bits = plan.bitsPerMonth;
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.processedStripeEvent.create({
+          data: { id: eventId, type: 'invoice.paid' },
+        });
+        await tx.user.update({
+          where: { id: userId },
+          data: { bits: { increment: bits } },
+        });
+      });
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code;
+      if (code === 'P2002') return;
       throw err;
     }
   }

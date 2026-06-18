@@ -11,6 +11,11 @@ type ShopCosmetic = {
   theme?: string;
 };
 
+export const SUBSCRIPTION_PLANS = {
+  PLUS: { bitsPerMonth: 200, priceEnv: 'STRIPE_PRICE_PLUS' },
+  PREMIUM: { bitsPerMonth: 500, priceEnv: 'STRIPE_PRICE_PREMIUM' },
+} as const;
+
 export const SHOP_COSMETICS: ShopCosmetic[] = [
   // Comunes
   {
@@ -1721,6 +1726,7 @@ export const BIT_PACKAGES = [
     bits: 100,
     bonus: 0,
     priceCents: 99,
+    icon: '/bits/bits_punado.webp',
   },
   {
     key: 'bits_bolsa',
@@ -1728,6 +1734,7 @@ export const BIT_PACKAGES = [
     bits: 550,
     bonus: 50,
     priceCents: 499,
+    icon: '/bits/bits_bolsa.webp',
   },
   {
     key: 'bits_cofre',
@@ -1735,6 +1742,7 @@ export const BIT_PACKAGES = [
     bits: 1200,
     bonus: 200,
     priceCents: 999,
+    icon: '/bits/bits_cofre.webp',
   },
   {
     key: 'bits_baul',
@@ -1742,6 +1750,7 @@ export const BIT_PACKAGES = [
     bits: 2600,
     bonus: 600,
     priceCents: 1999,
+    icon: '/bits/bits_baul.webp',
   },
   {
     key: 'bits_tesoro',
@@ -1749,6 +1758,7 @@ export const BIT_PACKAGES = [
     bits: 7000,
     bonus: 2000,
     priceCents: 4999,
+    icon: '/bits/bits_tesoro.webp',
   },
 ];
 

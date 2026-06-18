@@ -24,6 +24,7 @@ export class StripeController {
     const secret = process.env.STRIPE_WEBHOOK_SECRET ?? '';
     const event = this.verify(req.rawBody, signature, secret);
 
+    // Compra única de Bits
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as {
         metadata?: { userId?: string; packageKey?: string } | null;
@@ -32,6 +33,36 @@ export class StripeController {
       const packageKey = session.metadata?.packageKey;
       if (packageKey) {
         await this.stripe.grantBitsForCheckout(event.id, userId, packageKey);
+      }
+    }
+
+    // Tier de suscripción
+    if (
+      event.type === 'customer.subscription.created' ||
+      event.type === 'customer.subscription.updated' ||
+      event.type === 'customer.subscription.deleted'
+    ) {
+      const sub = event.data.object as {
+        status?: string;
+        metadata?: { userId?: string; tier?: string } | null;
+      };
+      const userId = Number(sub.metadata?.userId);
+      const metaTier = sub.metadata?.tier;
+      const keep =
+        event.type !== 'customer.subscription.deleted' &&
+        ['active', 'trialing', 'past_due'].includes(sub.status ?? '');
+      const tier =
+        keep && (metaTier === 'PLUS' || metaTier === 'PREMIUM')
+          ? metaTier
+          : 'FREE';
+      await this.stripe.setSubscriptionTier(userId, tier);
+    }
+
+    // Estipendio mensual
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object as { customer?: string };
+      if (invoice.customer) {
+        await this.stripe.grantStipendForCustomer(event.id, invoice.customer);
       }
     }
 

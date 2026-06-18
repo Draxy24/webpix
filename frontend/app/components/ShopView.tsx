@@ -35,6 +35,7 @@ type ShopItem = {
 
 type ShopData = {
   bits: number;
+  tier: "FREE" | "PLUS" | "PREMIUM";
   season: { key: string; label: string; themes: string[] } | null;
   items: ShopItem[];
 };
@@ -63,6 +64,7 @@ type BitPackage = {
   bonus: number;
   total: number;
   priceCents: number;
+  icon: string;
 };
 
 const RARITY_ORDER: ("COMMON" | "RARE" | "EPIC" | "LEGENDARY" | "MYTHIC")[] = [
@@ -100,7 +102,7 @@ export default function ShopView() {
   const [busyPalette, setBusyPalette] = useState<string | null>(null);
   const [packages, setPackages] = useState<BitPackage[]>([]);
   const [busyPackage, setBusyPackage] = useState<string | null>(null);
-  const [tab, setTab] = useState<"shop" | "bits">("shop");
+  const [tab, setTab] = useState<"shop" | "bits" | "subscriptions">("shop");
   const [categoryView, setCategoryView] = useState<ShopItem["type"] | null>(
     null,
   );
@@ -127,6 +129,24 @@ export default function ShopView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bits = params.get("bits");
+    const sub = params.get("sub");
+    if (bits === "ok")
+      setMessage(t("shop.msg.bitsOk", { defaultValue: "¡Bits añadidos!" }));
+    else if (sub === "ok")
+      setMessage(
+        t("shop.msg.subOk", { defaultValue: "¡Suscripción activada!" }),
+      );
+    else if (sub === "cancel")
+      setMessage(
+        t("shop.msg.subCancel", { defaultValue: "Suscripción cancelada." }),
+      );
+    if (bits || sub)
+      window.history.replaceState({}, "", window.location.pathname);
+  }, [t]);
 
   const buy = async (item: ShopItem) => {
     if (!token || busyId) return;
@@ -235,6 +255,57 @@ export default function ShopView() {
     } catch {
       setMessage(t("shop.msg.connError"));
       setBusyPackage(null);
+    }
+  };
+
+  const subscribe = async (tier: "PLUS" | "PREMIUM") => {
+    if (!token || busyPackage) return;
+    setBusyPackage(tier);
+    try {
+      const res = await fetch(API_URL + "/shop/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tier }),
+      });
+      const result = await res.json();
+      if (res.ok && result.url) {
+        window.location.href = result.url;
+        return;
+      }
+      setMessage(
+        t(`shop.errors.${result.code}`, {
+          defaultValue: result.message || t("shop.msg.buyFail"),
+        }),
+      );
+      setBusyPackage(null);
+    } catch {
+      setMessage(t("shop.msg.connError"));
+      setBusyPackage(null);
+    }
+  };
+
+  const openBillingPortal = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(API_URL + "/shop/billing-portal", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      if (res.ok && result.url) {
+        window.location.href = result.url;
+        return;
+      }
+      setMessage(
+        t(`shop.errors.${result.code}`, {
+          defaultValue: result.message || t("shop.msg.buyFail"),
+        }),
+      );
+    } catch {
+      setMessage(t("shop.msg.connError"));
     }
   };
 
@@ -372,6 +443,15 @@ export default function ShopView() {
         >
           {t("shop.tabs.bits")}
         </button>
+        <button
+          className={`${styles.tab} ${tab === "subscriptions" ? styles.tabActive : ""}`}
+          onClick={() => {
+            setTab("subscriptions");
+            setCategoryView(null);
+          }}
+        >
+          {t("shop.tabs.subs", { defaultValue: "Suscripciones" })}
+        </button>
       </div>
 
       {message && <div className={styles.message}>{message}</div>}
@@ -382,9 +462,9 @@ export default function ShopView() {
           <div className={styles.grid}>
             {packages.map((pkg) => (
               <div key={pkg.key} className={styles.card}>
+                <img src={pkg.icon} alt="" className={styles.bitsIconBig} />
                 <div className={styles.bitsAmount}>
-                  <span className={styles.coin}>B</span>
-                  {pkg.total.toLocaleString(i18n.language)}
+                  {pkg.total.toLocaleString(i18n.language)} Bits
                 </div>
                 <div className={styles.cardName}>
                   {t(`bitPackages.${pkg.key}`, { defaultValue: pkg.name })}
@@ -411,6 +491,105 @@ export default function ShopView() {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {tab === "subscriptions" && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>
+            {t("subs.title", { defaultValue: "Suscripciones" })}
+          </h3>
+          <div className={styles.subGrid}>
+            {(["FREE", "PLUS", "PREMIUM"] as const).map((tier) => {
+              const isCurrent = data.tier === tier;
+              const price =
+                tier === "PLUS"
+                  ? "$2 USD"
+                  : tier === "PREMIUM"
+                    ? "$5 USD"
+                    : null;
+              return (
+                <div
+                  key={tier}
+                  className={`${styles.subCard} ${isCurrent ? styles.subCardCurrent : ""}`}
+                >
+                  <div className={styles.subSign}>
+                    {tier === "FREE"
+                      ? "Free"
+                      : tier === "PLUS"
+                        ? "Plus"
+                        : "Premium"}
+                  </div>
+                  {price && (
+                    <div className={styles.subPrice}>
+                      {price}
+                      <span className={styles.subPer}>
+                        {t("subs.perMonth", { defaultValue: "/mes" })}
+                      </span>
+                    </div>
+                  )}
+                  <ul className={styles.subPerks}>
+                    <li className={styles.subBits}>
+                      {t(`subs.${tier}.bits`, {
+                        defaultValue:
+                          tier === "FREE"
+                            ? "Sin retorno de Bits"
+                            : tier === "PLUS"
+                              ? "+200 Bits al mes"
+                              : "+500 Bits al mes",
+                      })}
+                    </li>
+                    <li>
+                      {t(`subs.${tier}.palette`, {
+                        defaultValue:
+                          tier === "PREMIUM"
+                            ? "Paleta de 32 colores + selector libre, para pintar y el menú"
+                            : tier === "PLUS"
+                              ? "Paleta de 32 colores, para pintar y el menú"
+                              : "Paleta de 16 colores, para pintar y el menú",
+                      })}
+                    </li>
+                    <li>
+                      {t(`subs.${tier}.limits`, {
+                        defaultValue:
+                          tier === "PREMIUM"
+                            ? "Sin límite de píxeles ni cooldown"
+                            : tier === "PLUS"
+                              ? "60 píxeles · cooldown de 1 h"
+                              : "30 píxeles · cooldown de 3 h",
+                      })}
+                    </li>
+                  </ul>
+                  <div className={styles.subFooter}>
+                    {isCurrent ? (
+                      <span className={styles.subCurrent}>
+                        {t("subs.current", { defaultValue: "Tu plan actual" })}
+                      </span>
+                    ) : tier === "FREE" ? (
+                      <span className={styles.subFreeNote}>—</span>
+                    ) : (
+                      <button
+                        className={styles.buyBtn}
+                        onClick={() => subscribe(tier)}
+                        disabled={busyPackage === tier}
+                      >
+                        {busyPackage === tier
+                          ? "..."
+                          : t("subs.subscribe", {
+                              defaultValue: "Suscribirse",
+                            })}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {data.tier !== "FREE" && (
+            <button className={styles.manageBtn} onClick={openBillingPortal}>
+              {t("subs.manage", { defaultValue: "Gestionar suscripción" })}
+            </button>
+          )}
         </section>
       )}
 

@@ -195,31 +195,25 @@
   text-align: center;
 }
 
+.bitsIconBig {
+  display: block;
+  width: 95px;
+  height: 95px;
+  object-fit: contain;
+  margin: var(--space-2) auto var(--space-1);
+}
+
 .bitsAmount {
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
   color: var(--color-brand);
   text-align: center;
 }
+
 .bitsBonus {
   font-size: var(--text-xs);
   color: var(--color-success);
   text-align: center;
-}
-
-.coin {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ffd700, #b8860b);
-  color: #5a4500;
-  font-size: 11px;
-  font-weight: var(--weight-bold);
-  margin-right: 6px;
-  vertical-align: middle;
 }
 
 .rarity_EPIC {
@@ -324,4 +318,84 @@
 }
 .offerTitle {
   color: var(--color-danger);
+}
+
+.subGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+.subCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-4);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.subCardCurrent {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
+}
+.subSign {
+  font-family: var(--font-display), monospace;
+  font-size: var(--text-lg);
+  color: var(--color-brand);
+  text-align: center;
+}
+.subPrice {
+  text-align: center;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+.subPer {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: normal;
+  margin-left: 2px;
+}
+.subPerks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+.subBits {
+  color: var(--color-brand);
+  font-weight: var(--weight-bold);
+}
+.subFooter {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-2);
+}
+.subCurrent {
+  color: var(--color-success);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+.subFreeNote {
+  color: var(--color-text-muted);
+}
+.manageBtn {
+  display: block;
+  margin: var(--space-4) auto 0;
+  background: none;
+  border: var(--border-thin) solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.manageBtn:hover {
+  border-color: var(--color-brand);
+  color: var(--color-text);
 }
