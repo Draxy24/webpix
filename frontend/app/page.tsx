@@ -171,6 +171,15 @@ export default function Home() {
   const [publishTitle, setPublishTitle] = useState("");
   const [publishError, setPublishError] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const [capReached, setCapReached] = useState(false);
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false);
+  const [waitlist, setWaitlist] = useState<{
+    inQueue: boolean;
+    position?: number;
+    claimActive?: boolean;
+    claimExpiresAt?: string | null;
+    desiredPixels?: number;
+  } | null>(null);
   const [exoticColors, setExoticColors] = useState<
     { key: string; token: string; swatch: string; name: string }[]
   >([]);
@@ -947,41 +956,22 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Cotización en vivo mientras el modal de compra está abierto
   useEffect(() => {
-    if (!showPurchaseModal || !selection || !token) return;
+    if (!showPurchaseModal || !token) return;
+    setCapReached(false);
     let cancelled = false;
-    fetch(API_URL + "/private-spaces/quote", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        x1: selection.x1,
-        y1: selection.y1,
-        x2: selection.x2,
-        y2: selection.y2,
-      }),
+    fetch(API_URL + "/private-spaces/waitlist/me", {
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => {
-        if (cancelled) return;
-        if (data.monthlyBits != null) {
-          setQuote({ pixels: data.pixels, monthlyBits: data.monthlyBits });
-          setQuoteError("");
-        } else {
-          setQuote(null);
-          setQuoteError(
-            apiErrorText(data, t, t("canvas.purchase.invalidArea")),
-          );
-        }
+        if (!cancelled) setWaitlist(data);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [showPurchaseModal, selection, token]);
+  }, [showPurchaseModal, token]);
 
   useEffect(() => {
     if (!token) {
@@ -1225,6 +1215,7 @@ export default function Home() {
     if (!selection || !token) return;
     setPurchasing(true);
     setPurchaseError("");
+    setCapReached(false);
     try {
       const memberNicknames =
         accessMode === "SPECIFIC"
@@ -1250,6 +1241,11 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
+        const code = data?.code ?? data?.message?.code;
+        if (code === "SPACE_CAP_REACHED") {
+          setCapReached(true); // muestra el flujo de lista de espera
+          return;
+        }
         throw new Error(apiErrorText(data, t, t("canvas.purchase.failed")));
       }
       const r = await fetch(API_URL + "/private-spaces/canvas");
@@ -1258,6 +1254,7 @@ export default function Home() {
       setSelection(null);
       setMemberInput("");
       setAccessMode("OWNER_ONLY");
+      setWaitlist({ inQueue: false });
       if (soundEnabledRef.current) playPurchase();
       success(t("canvas.purchase.success"));
     } catch (err) {
@@ -1267,6 +1264,56 @@ export default function Home() {
     } finally {
       setPurchasing(false);
     }
+  };
+
+  const handleJoinWaitlist = async () => {
+    if (!selection || !token) return;
+    setJoiningWaitlist(true);
+    setPurchaseError("");
+    try {
+      const res = await fetch(API_URL + "/private-spaces/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          x1: selection.x1,
+          y1: selection.y1,
+          x2: selection.x2,
+          y2: selection.y2,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          apiErrorText(
+            data,
+            t,
+            t("canvas.waitlist.failed", { defaultValue: "No se pudo anotar." }),
+          ),
+        );
+      }
+      setWaitlist(data);
+      setCapReached(false);
+    } catch (err) {
+      setPurchaseError(
+        err instanceof Error ? err.message : t("canvas.purchase.genericError"),
+      );
+    } finally {
+      setJoiningWaitlist(false);
+    }
+  };
+
+  const handleLeaveWaitlist = async () => {
+    if (!token) return;
+    try {
+      await fetch(API_URL + "/private-spaces/waitlist", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWaitlist({ inQueue: false });
+    } catch {}
   };
 
   useLayoutEffect(() => {
@@ -1753,143 +1800,306 @@ export default function Home() {
       )}
 
       {/* Modal de compra de espacio privado */}
-      {showPurchaseModal && selection && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "var(--color-overlay)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 2000,
-          }}
-        >
-          <div
-            style={{
-              background: "var(--color-surface)",
-              padding: "var(--space-6)",
-              borderRadius: "var(--radius-lg)",
-              border: "var(--border-normal) solid var(--color-border-strong)",
-              maxWidth: "420px",
-              width: "90%",
-            }}
-          >
-            <h2 style={{ marginTop: 0 }}>{t("canvas.purchase.title")}</h2>
-            <p
-              style={{
-                fontSize: "var(--text-sm)",
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              {t("canvas.purchase.area", {
-                w: selection.x2 - selection.x1 + 1,
-                h: selection.y2 - selection.y1 + 1,
-                px:
-                  (selection.x2 - selection.x1 + 1) *
-                  (selection.y2 - selection.y1 + 1),
-              })}
-            </p>
-
-            <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
-              {t("canvas.purchase.whoCanPaint")}
-            </p>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
-              <button
-                onClick={() => setAccessMode("OWNER_ONLY")}
-                style={toggleButton(accessMode === "OWNER_ONLY")}
-              >
-                {t("canvas.purchase.ownerOnly")}
-              </button>
-              <button
-                onClick={() => setAccessMode("FRIENDS")}
-                style={toggleButton(accessMode === "FRIENDS")}
-              >
-                {t("canvas.purchase.friends")}
-              </button>
-              <button
-                onClick={() => setAccessMode("SPECIFIC")}
-                style={toggleButton(accessMode === "SPECIFIC")}
-              >
-                {t("canvas.purchase.specific")}
-              </button>
-            </div>
-
-            {accessMode === "SPECIFIC" && (
-              <input
-                type="text"
-                placeholder={t("canvas.purchase.membersPlaceholder")}
-                value={memberInput}
-                onChange={(e) => setMemberInput(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  marginBottom: "12px",
-                  boxSizing: "border-box",
-                }}
-              />
-            )}
-
-            <div style={{ fontSize: "var(--text-base)", marginBottom: "12px" }}>
-              {quote ? (
-                <span>
-                  {t("canvas.purchase.price")}{" "}
-                  <strong style={{ color: "var(--color-brand)" }}>
-                    {quote.monthlyBits} Bits
-                  </strong>
-                  {t("canvas.purchase.perMonth")}
-                </span>
-              ) : (
-                <span style={{ color: "var(--color-danger)" }}>
-                  {quoteError || t("canvas.purchase.calculating")}
-                </span>
-              )}
-            </div>
-
-            {purchaseError && (
-              <p
-                style={{
-                  color: "var(--color-danger)",
-                  fontSize: "var(--text-sm)",
-                  marginTop: 0,
-                }}
-              >
-                {purchaseError}
-              </p>
-            )}
-
+      {showPurchaseModal &&
+        selection &&
+        (() => {
+          const claimActive = waitlist?.claimActive === true;
+          const inQueueWaiting = waitlist?.inQueue === true && !claimActive;
+          const selPixels =
+            (selection.x2 - selection.x1 + 1) *
+            (selection.y2 - selection.y1 + 1);
+          const close = () => {
+            setShowPurchaseModal(false);
+            setPurchaseError("");
+            setCapReached(false);
+          };
+          return (
             <div
               style={{
+                position: "fixed",
+                inset: 0,
+                background: "var(--color-overlay)",
                 display: "flex",
-                gap: "8px",
-                justifyContent: "flex-end",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 2000,
               }}
             >
-              <button
-                onClick={() => {
-                  setShowPurchaseModal(false);
-                  setPurchaseError("");
-                }}
-                style={{ padding: "8px 16px", cursor: "pointer" }}
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                onClick={handlePurchase}
-                disabled={purchasing || !quote}
+              <div
                 style={{
-                  padding: "8px 16px",
-                  cursor: purchasing || !quote ? "not-allowed" : "pointer",
+                  background: "var(--color-surface)",
+                  padding: "var(--space-6)",
+                  borderRadius: "var(--radius-lg)",
+                  border:
+                    "var(--border-normal) solid var(--color-border-strong)",
+                  maxWidth: "420px",
+                  width: "90%",
                 }}
               >
-                {purchasing
-                  ? t("canvas.purchase.purchasing")
-                  : t("canvas.purchase.confirm")}
-              </button>
+                <h2 style={{ marginTop: 0 }}>{t("canvas.purchase.title")}</h2>
+                <p
+                  style={{
+                    fontSize: "var(--text-sm)",
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  {t("canvas.purchase.area", {
+                    w: selection.x2 - selection.x1 + 1,
+                    h: selection.y2 - selection.y1 + 1,
+                    px: selPixels,
+                  })}
+                </p>
+
+                {inQueueWaiting ? (
+                  <>
+                    <p style={{ fontSize: "var(--text-sm)" }}>
+                      {t("canvas.waitlist.inQueue", {
+                        defaultValue: "Estás en la lista de espera.",
+                      })}
+                      {typeof waitlist?.position === "number" &&
+                      waitlist.position > 0
+                        ? " " +
+                          t("canvas.waitlist.position", {
+                            defaultValue: "Posición: {{n}}",
+                            n: waitlist.position,
+                          })
+                        : ""}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "var(--text-xs)",
+                        color: "var(--color-text-muted)",
+                      }}
+                    >
+                      {t("canvas.waitlist.waitInfo", {
+                        defaultValue:
+                          "Te avisaremos por correo cuando sea tu turno.",
+                      })}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        justifyContent: "flex-end",
+                        marginTop: "12px",
+                      }}
+                    >
+                      <button
+                        onClick={close}
+                        style={{ padding: "8px 16px", cursor: "pointer" }}
+                      >
+                        {t("common.close")}
+                      </button>
+                      <button
+                        onClick={handleLeaveWaitlist}
+                        style={{ padding: "8px 16px", cursor: "pointer" }}
+                      >
+                        {t("canvas.waitlist.leave", {
+                          defaultValue: "Salir de la lista",
+                        })}
+                      </button>
+                    </div>
+                  </>
+                ) : capReached ? (
+                  <>
+                    <p style={{ fontSize: "var(--text-sm)" }}>
+                      {t("canvas.waitlist.full", {
+                        defaultValue: "El espacio privado está al tope.",
+                      })}{" "}
+                      {t("canvas.waitlist.joinPrompt", {
+                        defaultValue:
+                          "Anótate en la lista de espera con esta área ({{px}} px).",
+                        px: selPixels,
+                      })}
+                    </p>
+                    {purchaseError && (
+                      <p
+                        style={{
+                          color: "var(--color-danger)",
+                          fontSize: "var(--text-sm)",
+                        }}
+                      >
+                        {purchaseError}
+                      </p>
+                    )}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        justifyContent: "flex-end",
+                        marginTop: "12px",
+                      }}
+                    >
+                      <button
+                        onClick={close}
+                        style={{ padding: "8px 16px", cursor: "pointer" }}
+                      >
+                        {t("common.cancel")}
+                      </button>
+                      <button
+                        onClick={handleJoinWaitlist}
+                        disabled={joiningWaitlist}
+                        style={{
+                          padding: "8px 16px",
+                          cursor: joiningWaitlist ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {joiningWaitlist
+                          ? t("canvas.waitlist.joining", {
+                              defaultValue: "Anotando...",
+                            })
+                          : t("canvas.waitlist.join", {
+                              defaultValue: "Anotarme",
+                            })}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {claimActive && (
+                      <div
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--color-success) 14%, transparent)",
+                          border:
+                            "var(--border-thin) solid var(--color-success)",
+                          borderRadius: "var(--radius-md)",
+                          padding: "10px 12px",
+                          marginBottom: "12px",
+                          fontSize: "var(--text-sm)",
+                        }}
+                      >
+                        <strong>
+                          {t("canvas.waitlist.yourTurn", {
+                            defaultValue: "¡Es tu turno!",
+                          })}
+                        </strong>{" "}
+                        {waitlist?.claimExpiresAt &&
+                          t("canvas.waitlist.claimUntil", {
+                            defaultValue: "Compra antes del {{time}}.",
+                            time: new Date(
+                              waitlist.claimExpiresAt,
+                            ).toLocaleString("es-MX"),
+                          })}
+                      </div>
+                    )}
+
+                    <p
+                      style={{
+                        fontSize: "var(--text-sm)",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {t("canvas.purchase.whoCanPaint")}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <button
+                        onClick={() => setAccessMode("OWNER_ONLY")}
+                        style={toggleButton(accessMode === "OWNER_ONLY")}
+                      >
+                        {t("canvas.purchase.ownerOnly")}
+                      </button>
+                      <button
+                        onClick={() => setAccessMode("FRIENDS")}
+                        style={toggleButton(accessMode === "FRIENDS")}
+                      >
+                        {t("canvas.purchase.friends")}
+                      </button>
+                      <button
+                        onClick={() => setAccessMode("SPECIFIC")}
+                        style={toggleButton(accessMode === "SPECIFIC")}
+                      >
+                        {t("canvas.purchase.specific")}
+                      </button>
+                    </div>
+
+                    {accessMode === "SPECIFIC" && (
+                      <input
+                        type="text"
+                        placeholder={t("canvas.purchase.membersPlaceholder")}
+                        value={memberInput}
+                        onChange={(e) => setMemberInput(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px",
+                          marginBottom: "12px",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    )}
+
+                    <div
+                      style={{
+                        fontSize: "var(--text-base)",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      {quote ? (
+                        <span>
+                          {t("canvas.purchase.price")}{" "}
+                          <strong style={{ color: "var(--color-brand)" }}>
+                            {quote.monthlyBits} Bits
+                          </strong>
+                          {t("canvas.purchase.perMonth")}
+                        </span>
+                      ) : (
+                        <span style={{ color: "var(--color-danger)" }}>
+                          {quoteError || t("canvas.purchase.calculating")}
+                        </span>
+                      )}
+                    </div>
+
+                    {purchaseError && (
+                      <p
+                        style={{
+                          color: "var(--color-danger)",
+                          fontSize: "var(--text-sm)",
+                          marginTop: 0,
+                        }}
+                      >
+                        {purchaseError}
+                      </p>
+                    )}
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <button
+                        onClick={close}
+                        style={{ padding: "8px 16px", cursor: "pointer" }}
+                      >
+                        {t("common.cancel")}
+                      </button>
+                      <button
+                        onClick={handlePurchase}
+                        disabled={purchasing || !quote}
+                        style={{
+                          padding: "8px 16px",
+                          cursor:
+                            purchasing || !quote ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {purchasing
+                          ? t("canvas.purchase.purchasing")
+                          : t("canvas.purchase.confirm")}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })()}
 
       {/* Aviso transitorio */}
       {notice && (

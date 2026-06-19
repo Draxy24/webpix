@@ -11,7 +11,8 @@ export const PRIVATE_SPACE_CONFIG = {
 
   // Tope global de área privada (20% del lienzo de 1000×1000)
   GLOBAL_PIXEL_CAP: 200000,
-
+  GRACE_HOURS: 24,
+  CLAIM_HOURS: 24,
   CANVAS_SIZE: 1000,
 };
 

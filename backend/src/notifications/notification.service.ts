@@ -88,6 +88,45 @@ export class NotificationService {
     }
   }
 
+  async sendSpaceGraceNotice(
+    email: string,
+    spaceName: string | null,
+    graceEndsAt: Date,
+  ) {
+    const name = spaceName || 'tu espacio privado';
+    await this.sendEmail({
+      to: email,
+      subject: 'Tu espacio privado en WebPix está por liberarse',
+      heading: 'No pudimos cobrar la renta',
+      body: `No tienes Bits suficientes para renovar "${name}". Tienes hasta el ${graceEndsAt.toLocaleString('es-MX')} para conseguir Bits; si no, el espacio se liberará y sus píxeles volverán a ser públicos.`,
+      buttonText: 'Ir a WebPix',
+      link: this.frontendUrl,
+    });
+  }
+
+  async sendSpaceReleasedNotice(email: string, spaceName: string | null) {
+    const name = spaceName || 'tu espacio privado';
+    await this.sendEmail({
+      to: email,
+      subject: 'Tu espacio privado en WebPix se liberó',
+      heading: 'Espacio liberado',
+      body: `"${name}" se liberó por falta de Bits para la renta. Sus píxeles ahora son públicos. Puedes comprar un espacio nuevo cuando quieras.`,
+      buttonText: 'Ir a WebPix',
+      link: this.frontendUrl,
+    });
+  }
+
+  async sendWaitlistTurnNotice(email: string) {
+    await this.sendEmail({
+      to: email,
+      subject: 'Tu turno para un espacio privado en WebPix',
+      heading: '¡Es tu turno!',
+      body: 'Se liberó espacio en el lienzo. Tienes 24 horas para elegir tu zona y completar la compra antes de que el turno pase al siguiente.',
+      buttonText: 'Elegir mi espacio',
+      link: this.frontendUrl,
+    });
+  }
+
   // ===== Helpers =====
 
   private async sendEmail(opts: {

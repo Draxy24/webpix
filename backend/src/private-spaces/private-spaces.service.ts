@@ -4,16 +4,25 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, PrivateSpaceAccess } from '@prisma/client';
 import {
   PRIVATE_SPACE_CONFIG,
   computeMonthlyBits,
 } from './private-spaces.config';
+import { NotificationService } from '../notifications/notification.service'; // ajusta la ruta si tu carpeta es 'notification'
+
+const GRACE_MS = PRIVATE_SPACE_CONFIG.GRACE_HOURS * 60 * 60 * 1000;
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+const CLAIM_MS = PRIVATE_SPACE_CONFIG.CLAIM_HOURS * 60 * 60 * 1000;
 
 @Injectable()
 export class PrivateSpacesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   private normalize(x1: number, y1: number, x2: number, y2: number) {
     return {
@@ -53,8 +62,9 @@ export class PrivateSpacesService {
     return pixels;
   }
 
+  // Un espacio sigue "vivo" hasta GRACE_HOURS después de vencer.
   private activeWhere(now: Date): Prisma.PrivateSpaceWhereInput {
-    return { expiresAt: { gt: now } };
+    return { expiresAt: { gt: new Date(now.getTime() - GRACE_MS) } };
   }
 
   quote(x1: number, y1: number, x2: number, y2: number) {
@@ -84,7 +94,6 @@ export class PrivateSpacesService {
     const pixels = this.validateSize(minX, maxX, minY, maxY);
     const monthlyBits = computeMonthlyBits(minX, maxX, minY, maxY);
 
-    // Resolver miembros (solo modo específico) — lectura previa, fuera de la sección crítica
     let memberIds: number[] = [];
     if (data.accessMode === 'SPECIFIC' && data.memberNicknames?.length) {
       const unique = [...new Set(data.memberNicknames)].filter((n) => n);
@@ -104,15 +113,14 @@ export class PrivateSpacesService {
       memberIds = users.map((u) => u.id).filter((id) => id !== userId);
     }
 
-    const space = await this.prisma.$transaction(
+    const result = await this.prisma.$transaction(
       async (tx) => {
-        // Serializa TODAS las compras contra el presupuesto global (lock por transacción)
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(740012)`;
         const now = new Date();
+        const liveThreshold = new Date(now.getTime() - GRACE_MS);
 
-        // Límites por usuario
         const myActive = await tx.privateSpace.findMany({
-          where: { ownerId: userId, expiresAt: { gt: now } },
+          where: { ownerId: userId, expiresAt: { gt: liveThreshold } },
           select: { x1: true, y1: true, x2: true, y2: true },
         });
         if (myActive.length >= PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER) {
@@ -137,29 +145,52 @@ export class PrivateSpacesService {
           });
         }
 
-        // Tope global (20% del lienzo)
-        const active = await tx.privateSpace.findMany({
-          where: { expiresAt: { gt: now } },
-          select: { x1: true, y1: true, x2: true, y2: true },
+        const myClaim = await tx.privateSpaceWaitlist.findFirst({
+          where: { userId, claimExpiresAt: { gt: now } },
         });
-        const usedPixels = active.reduce(
-          (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
-          0,
-        );
-        if (usedPixels + pixels > PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP) {
-          throw new BadRequestException({
-            message:
-              'El espacio privado está al tope por ahora. Vuelve a intentarlo más tarde.',
-            code: 'SPACE_CAP_REACHED',
-            params: {
-              cap: PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP,
-              used: usedPixels,
-              requested: pixels,
-            },
+
+        if (myClaim) {
+          if (pixels > myClaim.desiredPixels) {
+            throw new BadRequestException({
+              message: 'El área supera lo que apartaste en la lista de espera.',
+              code: 'CLAIM_TOO_BIG',
+              params: { reserved: myClaim.desiredPixels },
+            });
+          }
+          // Su reserva ya está apartada; no pasa por el chequeo del tope general.
+        } else {
+          // Anti-sniping: si hay alguien en la cola, no se permiten compras directas.
+          const queueCount = await tx.privateSpaceWaitlist.count();
+          if (queueCount > 0) {
+            throw new BadRequestException({
+              message:
+                'El espacio privado está al tope. Puedes anotarte en la lista de espera.',
+              code: 'SPACE_CAP_REACHED',
+              params: { cap: PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP },
+            });
+          }
+          const active = await tx.privateSpace.findMany({
+            where: { expiresAt: { gt: liveThreshold } },
+            select: { x1: true, y1: true, x2: true, y2: true },
           });
+          const usedPixels = active.reduce(
+            (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
+            0,
+          );
+          if (usedPixels + pixels > PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP) {
+            throw new BadRequestException({
+              message:
+                'El espacio privado está al tope. Puedes anotarte en la lista de espera.',
+              code: 'SPACE_CAP_REACHED',
+              params: {
+                cap: PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP,
+                used: usedPixels,
+                requested: pixels,
+              },
+            });
+          }
         }
 
-        // Sin traslape con otro espacio activo
         const overlap = await tx.privateSpace.findFirst({
           where: {
             AND: [
@@ -169,7 +200,7 @@ export class PrivateSpacesService {
                 y1: { lte: maxY },
                 y2: { gte: minY },
               },
-              { expiresAt: { gt: now } },
+              { expiresAt: { gt: liveThreshold } },
             ],
           },
         });
@@ -180,7 +211,6 @@ export class PrivateSpacesService {
           });
         }
 
-        // Sin píxeles de otro usuario (vacío o tuyo está bien)
         const foreign = await tx.pixel.findFirst({
           where: {
             x: { gte: minX, lte: maxX },
@@ -196,7 +226,6 @@ export class PrivateSpacesService {
           });
         }
 
-        // Débito atómico de Bits (decremento condicional: sin condición de carrera)
         const debit = await tx.user.updateMany({
           where: { id: userId, bits: { gte: monthlyBits } },
           data: { bits: { decrement: monthlyBits } },
@@ -209,8 +238,7 @@ export class PrivateSpacesService {
           });
         }
 
-        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-        return tx.privateSpace.create({
+        const space = await tx.privateSpace.create({
           data: {
             ownerId: userId,
             name: data.name || null,
@@ -220,17 +248,25 @@ export class PrivateSpacesService {
             y2: maxY,
             accessMode: data.accessMode as PrivateSpaceAccess,
             monthlyBits,
-            expiresAt,
+            expiresAt: new Date(Date.now() + MONTH_MS),
             members: memberIds.length
               ? { create: memberIds.map((uid) => ({ userId: uid })) }
               : undefined,
           },
         });
+
+        if (myClaim) {
+          await tx.privateSpaceWaitlist.delete({ where: { id: myClaim.id } }); // sale de la cola
+        }
+
+        const promoted = await this.promoteWithinTx(tx, now);
+        return { space, promoted };
       },
       { maxWait: 10000, timeout: 20000 },
     );
 
-    return { success: true, space };
+    await this.notifyPromoted(result.promoted);
+    return { success: true, space: result.space };
   }
 
   async checkPaintAccess(
@@ -260,7 +296,6 @@ export class PrivateSpacesService {
         allowed: space.members.some((m) => m.userId === userId),
       };
     }
-    // FRIENDS
     const friendship = await this.prisma.friendship.findFirst({
       where: {
         status: 'ACCEPTED',
@@ -323,20 +358,27 @@ export class PrivateSpacesService {
         members: { include: { user: { select: { nickname: true } } } },
       },
     });
-    return spaces.map((s) => ({
-      id: s.id,
-      name: s.name,
-      x1: s.x1,
-      y1: s.y1,
-      x2: s.x2,
-      y2: s.y2,
-      accessMode: s.accessMode,
-      monthlyBits: s.monthlyBits,
-      expiresAt: s.expiresAt,
-      active: s.expiresAt > now,
-      pixels: (s.x2 - s.x1 + 1) * (s.y2 - s.y1 + 1),
-      members: s.members.map((m) => m.user.nickname),
-    }));
+    return spaces.map((s) => {
+      const graceEndsAt = new Date(s.expiresAt.getTime() + GRACE_MS);
+      const status =
+        s.expiresAt > now ? 'active' : now < graceEndsAt ? 'grace' : 'expired';
+      return {
+        id: s.id,
+        name: s.name,
+        x1: s.x1,
+        y1: s.y1,
+        x2: s.x2,
+        y2: s.y2,
+        accessMode: s.accessMode,
+        monthlyBits: s.monthlyBits,
+        expiresAt: s.expiresAt,
+        status,
+        active: status !== 'expired',
+        graceEndsAt: status === 'grace' ? graceEndsAt : null,
+        pixels: (s.x2 - s.x1 + 1) * (s.y2 - s.y1 + 1),
+        members: s.members.map((m) => m.user.nickname),
+      };
+    });
   }
 
   async updateAccess(
@@ -408,7 +450,201 @@ export class PrivateSpacesService {
         message: 'No es tu espacio',
         code: 'SPACE_NOT_YOURS',
       });
-    await this.prisma.privateSpace.delete({ where: { id: spaceId } });
+
+    const promoted = await this.prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(740012)`;
+        await tx.privateSpace.delete({ where: { id: spaceId } });
+        return this.promoteWithinTx(tx, new Date());
+      },
+      { maxWait: 10000, timeout: 20000 },
+    );
+    await this.notifyPromoted(promoted);
     return { success: true };
+  }
+
+  // Corre DENTRO de una transacción (con el advisory lock ya tomado): limpia turnos
+  // vencidos, promueve en FIFO a los que quepan y devuelve a quién avisar.
+  private async promoteWithinTx(
+    tx: Prisma.TransactionClient,
+    now: Date,
+  ): Promise<{ email: string | null }[]> {
+    // Turnos vencidos sin reclamar: salen de la cola
+    await tx.privateSpaceWaitlist.deleteMany({
+      where: { claimExpiresAt: { lt: now } },
+    });
+
+    // Presupuesto comprometido = espacios vivos (incl. gracia) + turnos activos
+    const liveThreshold = new Date(now.getTime() - GRACE_MS);
+    const liveSpaces = await tx.privateSpace.findMany({
+      where: { expiresAt: { gt: liveThreshold } },
+      select: { x1: true, y1: true, x2: true, y2: true },
+    });
+    let committed = liveSpaces.reduce(
+      (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
+      0,
+    );
+    const activeClaims = await tx.privateSpaceWaitlist.findMany({
+      where: { claimExpiresAt: { gt: now } },
+      select: { desiredPixels: true },
+    });
+    committed += activeClaims.reduce((s, c) => s + c.desiredPixels, 0);
+
+    let headroom = PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP - committed;
+    if (headroom <= 0) return [];
+
+    // FIFO: promueve a los que quepan; los que no caben conservan su lugar
+    const waiting = await tx.privateSpaceWaitlist.findMany({
+      where: { claimExpiresAt: null },
+      orderBy: { createdAt: 'asc' },
+      include: { user: { select: { email: true } } },
+    });
+    const promoted: { email: string | null }[] = [];
+    for (const w of waiting) {
+      if (w.desiredPixels <= headroom) {
+        await tx.privateSpaceWaitlist.update({
+          where: { id: w.id },
+          data: {
+            notifiedAt: now,
+            claimExpiresAt: new Date(now.getTime() + CLAIM_MS),
+          },
+        });
+        promoted.push({ email: w.user.email });
+        headroom -= w.desiredPixels;
+      }
+    }
+    return promoted;
+  }
+
+  private async notifyPromoted(promoted: { email: string | null }[]) {
+    for (const p of promoted) {
+      if (p.email)
+        await this.notificationService.sendWaitlistTurnNotice(p.email);
+    }
+  }
+
+  async joinWaitlist(
+    userId: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ) {
+    const { minX, maxX, minY, maxY } = this.normalize(x1, y1, x2, y2);
+    const desiredPixels = this.validateSize(minX, maxX, minY, maxY);
+
+    const promoted = await this.prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(740012)`;
+        const now = new Date();
+        const existing = await tx.privateSpaceWaitlist.findUnique({
+          where: { userId },
+        });
+        if (existing?.claimExpiresAt && existing.claimExpiresAt > now)
+          return []; // ya tiene turno
+        await tx.privateSpaceWaitlist.upsert({
+          where: { userId },
+          update: { desiredPixels, notifiedAt: null, claimExpiresAt: null },
+          create: { userId, desiredPixels },
+        });
+        return this.promoteWithinTx(tx, now);
+      },
+      { maxWait: 10000, timeout: 20000 },
+    );
+    await this.notifyPromoted(promoted);
+    return this.getMyWaitlist(userId);
+  }
+
+  async getMyWaitlist(userId: number) {
+    const now = new Date();
+    const mine = await this.prisma.privateSpaceWaitlist.findUnique({
+      where: { userId },
+    });
+    if (!mine) return { inQueue: false };
+    const claimActive =
+      mine.claimExpiresAt != null && mine.claimExpiresAt > now;
+    const ahead = await this.prisma.privateSpaceWaitlist.count({
+      where: { claimExpiresAt: null, createdAt: { lt: mine.createdAt } },
+    });
+    return {
+      inQueue: true,
+      desiredPixels: mine.desiredPixels,
+      claimActive,
+      claimExpiresAt: claimActive ? mine.claimExpiresAt : null,
+      position: claimActive ? 0 : ahead + 1,
+    };
+  }
+
+  async leaveWaitlist(userId: number) {
+    const promoted = await this.prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(740012)`;
+        const existing = await tx.privateSpaceWaitlist.findUnique({
+          where: { userId },
+        });
+        if (!existing) return [];
+        await tx.privateSpaceWaitlist.delete({ where: { userId } });
+        return this.promoteWithinTx(tx, new Date()); // libera su reserva si tenía turno
+      },
+      { maxWait: 10000, timeout: 20000 },
+    );
+    await this.notifyPromoted(promoted);
+    return { success: true };
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async processRenewals() {
+    const now = new Date();
+    const due = await this.prisma.privateSpace.findMany({
+      where: { expiresAt: { lte: now } },
+      include: { owner: { select: { email: true } } },
+    });
+
+    for (const space of due) {
+      const debit = await this.prisma.user.updateMany({
+        where: { id: space.ownerId, bits: { gte: space.monthlyBits } },
+        data: { bits: { decrement: space.monthlyBits } },
+      });
+      if (debit.count > 0) {
+        await this.prisma.privateSpace.update({
+          where: { id: space.id },
+          data: {
+            expiresAt: new Date(space.expiresAt.getTime() + MONTH_MS),
+            graceNotifiedAt: null,
+          },
+        });
+        continue;
+      }
+      const graceEndsAt = new Date(space.expiresAt.getTime() + GRACE_MS);
+      if (now >= graceEndsAt) {
+        await this.prisma.privateSpace.delete({ where: { id: space.id } });
+        if (space.owner.email)
+          await this.notificationService.sendSpaceReleasedNotice(
+            space.owner.email,
+            space.name,
+          );
+      } else if (!space.graceNotifiedAt) {
+        await this.prisma.privateSpace.update({
+          where: { id: space.id },
+          data: { graceNotifiedAt: now },
+        });
+        if (space.owner.email)
+          await this.notificationService.sendSpaceGraceNotice(
+            space.owner.email,
+            space.name,
+            graceEndsAt,
+          );
+      }
+    }
+
+    // Asigna el headroom liberado a la lista de espera
+    const promoted = await this.prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(740012)`;
+        return this.promoteWithinTx(tx, new Date());
+      },
+      { maxWait: 10000, timeout: 20000 },
+    );
+    await this.notifyPromoted(promoted);
   }
 }

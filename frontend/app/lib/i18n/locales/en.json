@@ -69,7 +69,8 @@
     "ALREADY_VERIFIED": "The account is already verified",
     "INVALID_RESET_DATA": "Invalid data",
     "PASSWORD_TOO_SHORT": "The password must be at least {{min}} characters",
-    "SPACE_CAP_REACHED": "Private space is at capacity right now. Please try again later."
+    "SPACE_CAP_REACHED": "Private space is at capacity right now. Please try again later.",
+    "CLAIM_TOO_BIG": "The area exceeds what you reserved on the waitlist."
   },
   "resetPassword": {
     "title": "Reset password",
@@ -1125,6 +1126,19 @@
     "eraseArea": {
       "failed": "Could not erase the area",
       "connError": "Connection error while erasing the area"
+    },
+    "waitlist": {
+      "yourTurn": "It's your turn!",
+      "claimUntil": "Buy before {{time}}.",
+      "full": "Private space is at capacity.",
+      "joinPrompt": "Join the waitlist with this area ({{px}} px).",
+      "join": "Join waitlist",
+      "joining": "Joining...",
+      "inQueue": "You're on the waitlist.",
+      "position": "Position: {{n}}",
+      "waitInfo": "We'll email you when it's your turn.",
+      "leave": "Leave waitlist",
+      "failed": "Couldn't join."
     }
   },
   "settings": {

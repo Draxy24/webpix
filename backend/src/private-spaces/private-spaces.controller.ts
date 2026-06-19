@@ -65,6 +65,33 @@ export class PrivateSpacesController {
   }
 
   @UseGuards(AuthGuard('jwt'), NotBannedGuard)
+  @Post('waitlist')
+  joinWaitlist(
+    @Request() req: { user: { id: number } },
+    @Body() body: WaitlistJoinDto,
+  ) {
+    return this.service.joinWaitlist(
+      req.user.id,
+      body.x1,
+      body.y1,
+      body.x2,
+      body.y2,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('waitlist/me')
+  myWaitlist(@Request() req: { user: { id: number } }) {
+    return this.service.getMyWaitlist(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
+  @Delete('waitlist')
+  leaveWaitlist(@Request() req: { user: { id: number } }) {
+    return this.service.leaveWaitlist(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Delete(':id')
   release(
     @Request() req: { user: { id: number } },

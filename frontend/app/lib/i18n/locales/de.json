@@ -69,7 +69,8 @@
     "ALREADY_VERIFIED": "Das Konto ist bereits verifiziert",
     "INVALID_RESET_DATA": "Ungültige Daten",
     "PASSWORD_TOO_SHORT": "Das Passwort muss mindestens {{min}} Zeichen lang sein",
-    "SPACE_CAP_REACHED": "Privater Bereich ist gerade voll. Bitte versuche es später erneut."
+    "SPACE_CAP_REACHED": "Privater Bereich ist gerade voll. Bitte versuche es später erneut.",
+    "CLAIM_TOO_BIG": "Der Bereich überschreitet deine Reservierung auf der Warteliste."
   },
   "resetPassword": {
     "title": "Passwort zurücksetzen",
@@ -1149,6 +1150,19 @@
     "eraseArea": {
       "failed": "Bereich konnte nicht gelöscht werden",
       "connError": "Verbindungsfehler beim Löschen des Bereichs"
+    },
+    "waitlist": {
+      "yourTurn": "Du bist dran!",
+      "claimUntil": "Kaufe vor {{time}}.",
+      "full": "Privater Bereich ist voll.",
+      "joinPrompt": "Trag dich mit dieser Fläche ein ({{px}} px).",
+      "join": "Eintragen",
+      "joining": "Wird eingetragen...",
+      "inQueue": "Du bist auf der Warteliste.",
+      "position": "Position: {{n}}",
+      "waitInfo": "Wir benachrichtigen dich per E-Mail, wenn du dran bist.",
+      "leave": "Warteliste verlassen",
+      "failed": "Eintragen fehlgeschlagen."
     }
   },
   "settings": {

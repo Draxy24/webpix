@@ -69,7 +69,8 @@
     "ALREADY_VERIFIED": "该账户已验证",
     "INVALID_RESET_DATA": "数据无效",
     "PASSWORD_TOO_SHORT": "密码至少需 {{min}} 个字符",
-    "SPACE_CAP_REACHED": "私人空间暂时已满，请稍后再试。"
+    "SPACE_CAP_REACHED": "私人空间暂时已满，请稍后再试。",
+    "CLAIM_TOO_BIG": "该区域超过了你在等候名单中预留的大小。"
   },
   "resetPassword": {
     "title": "重置密码",
@@ -982,6 +983,19 @@
     "eraseArea": {
       "failed": "无法擦除该区域",
       "connError": "擦除区域时连接错误"
+    },
+    "waitlist": {
+      "yourTurn": "轮到你了！",
+      "claimUntil": "请在 {{time}} 前购买。",
+      "full": "私人空间已满。",
+      "joinPrompt": "用此区域加入等候名单（{{px}} 像素）。",
+      "join": "加入名单",
+      "joining": "加入中…",
+      "inQueue": "你已在等候名单中。",
+      "position": "位置：{{n}}",
+      "waitInfo": "轮到你时我们会发邮件通知你。",
+      "leave": "退出名单",
+      "failed": "加入失败。"
     }
   },
   "settings": {

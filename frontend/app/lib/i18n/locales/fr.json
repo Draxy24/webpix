@@ -69,7 +69,8 @@
     "ALREADY_VERIFIED": "Le compte est déjà vérifié",
     "INVALID_RESET_DATA": "Données invalides",
     "PASSWORD_TOO_SHORT": "Le mot de passe doit faire au moins {{min}} caractères",
-    "SPACE_CAP_REACHED": "L'espace privé est plein pour le moment. Réessaie plus tard."
+    "SPACE_CAP_REACHED": "L'espace privé est plein pour le moment. Réessaie plus tard.",
+    "CLAIM_TOO_BIG": "La zone dépasse ce que tu as réservé sur la liste d'attente."
   },
   "resetPassword": {
     "title": "Réinitialiser le mot de passe",
@@ -1161,6 +1162,19 @@
     "eraseArea": {
       "failed": "Impossible d'effacer la zone",
       "connError": "Erreur de connexion lors de l'effacement de la zone"
+    },
+    "waitlist": {
+      "yourTurn": "C'est ton tour !",
+      "claimUntil": "Achète avant {{time}}.",
+      "full": "L'espace privé est plein.",
+      "joinPrompt": "Inscris-toi sur la liste d'attente avec cette zone ({{px}} px).",
+      "join": "M'inscrire",
+      "joining": "Inscription...",
+      "inQueue": "Tu es sur la liste d'attente.",
+      "position": "Position: {{n}}",
+      "waitInfo": "On t'enverra un email quand ce sera ton tour.",
+      "leave": "Quitter la liste",
+      "failed": "Échec de l'inscription."
     }
   },
   "settings": {
