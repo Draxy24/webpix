@@ -60,7 +60,6 @@ export class UpdateAccessDto {
   @MaxLength(64, { each: true })
   removeNicknames?: string[];
 }
-
 export class WaitlistJoinDto {
   @IsInt() @Min(0) @Max(COORD_MAX) x1!: number;
   @IsInt() @Min(0) @Max(COORD_MAX) y1!: number;

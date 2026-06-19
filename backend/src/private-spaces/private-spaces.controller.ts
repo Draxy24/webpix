@@ -17,6 +17,7 @@ import {
   QuoteSpaceDto,
   PurchaseSpaceDto,
   UpdateAccessDto,
+  WaitlistJoinDto,
 } from './dto/private-spaces.dto';
 
 @Controller('private-spaces')
