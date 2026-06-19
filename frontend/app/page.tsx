@@ -141,16 +141,13 @@ export default function Home() {
   };
   const [privateSpaces, setPrivateSpaces] = useState<PrivateSpaceBox[]>([]);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [purchaseType, setPurchaseType] = useState<"MONTHLY" | "PERMANENT">(
-    "MONTHLY",
-  );
   const [accessMode, setAccessMode] = useState<
     "OWNER_ONLY" | "FRIENDS" | "SPECIFIC"
   >("OWNER_ONLY");
   const [memberInput, setMemberInput] = useState("");
   const [quote, setQuote] = useState<{
     pixels: number;
-    priceCents: number;
+    monthlyBits: number;
   } | null>(null);
   const [quoteError, setQuoteError] = useState("");
   const [purchasing, setPurchasing] = useState(false);
@@ -965,14 +962,13 @@ export default function Home() {
         y1: selection.y1,
         x2: selection.x2,
         y2: selection.y2,
-        purchaseType,
       }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        if (data.priceCents != null) {
-          setQuote({ pixels: data.pixels, priceCents: data.priceCents });
+        if (data.monthlyBits != null) {
+          setQuote({ pixels: data.pixels, monthlyBits: data.monthlyBits });
           setQuoteError("");
         } else {
           setQuote(null);
@@ -985,7 +981,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [showPurchaseModal, selection, purchaseType, token]);
+  }, [showPurchaseModal, selection, token]);
 
   useEffect(() => {
     if (!token) {
@@ -1249,7 +1245,6 @@ export default function Home() {
           x2: selection.x2,
           y2: selection.y2,
           accessMode,
-          purchaseType,
           memberNicknames,
         }),
       });
@@ -1797,24 +1792,6 @@ export default function Home() {
             </p>
 
             <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
-              {t("canvas.purchase.type")}
-            </p>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
-              <button
-                onClick={() => setPurchaseType("MONTHLY")}
-                style={toggleButton(purchaseType === "MONTHLY")}
-              >
-                {t("canvas.purchase.monthly")}
-              </button>
-              <button
-                onClick={() => setPurchaseType("PERMANENT")}
-                style={toggleButton(purchaseType === "PERMANENT")}
-              >
-                {t("canvas.purchase.permanent")}
-              </button>
-            </div>
-
-            <p style={{ fontSize: "var(--text-sm)", marginBottom: "4px" }}>
               {t("canvas.purchase.whoCanPaint")}
             </p>
             <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
@@ -1858,11 +1835,9 @@ export default function Home() {
                 <span>
                   {t("canvas.purchase.price")}{" "}
                   <strong style={{ color: "var(--color-brand)" }}>
-                    ${(quote.priceCents / 100).toFixed(2)}
+                    {quote.monthlyBits} Bits
                   </strong>
-                  {purchaseType === "MONTHLY"
-                    ? t("canvas.purchase.perMonth")
-                    : t("canvas.purchase.oneTime")}
+                  {t("canvas.purchase.perMonth")}
                 </span>
               ) : (
                 <span style={{ color: "var(--color-danger)" }}>

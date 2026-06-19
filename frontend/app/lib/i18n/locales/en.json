@@ -68,7 +68,8 @@
     "CODE_EXPIRED": "The code has expired",
     "ALREADY_VERIFIED": "The account is already verified",
     "INVALID_RESET_DATA": "Invalid data",
-    "PASSWORD_TOO_SHORT": "The password must be at least {{min}} characters"
+    "PASSWORD_TOO_SHORT": "The password must be at least {{min}} characters",
+    "SPACE_CAP_REACHED": "Private space is at capacity right now. Please try again later."
   },
   "resetPassword": {
     "title": "Reset password",

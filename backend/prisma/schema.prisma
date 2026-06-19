@@ -191,21 +191,19 @@ enum ReportStatus {
 }
 
 model PrivateSpace {
-  id             Int                  @id @default(autoincrement())
-  ownerId        Int
-  name           String?
-  x1             Int
-  y1             Int
-  x2             Int
-  y2             Int
-  accessMode     PrivateSpaceAccess   @default(OWNER_ONLY)
-  purchaseType   PurchaseType
-  pricePaidCents Int
-  expiresAt      DateTime?            // null = permanente; con fecha = renta mensual
-  createdAt      DateTime             @default(now())
-
-  owner          User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  members        PrivateSpaceMember[]
+  id          Int                  @id @default(autoincrement())
+  ownerId     Int
+  name        String?
+  x1          Int
+  y1          Int
+  x2          Int
+  y2          Int
+  accessMode  PrivateSpaceAccess   @default(OWNER_ONLY)
+  monthlyBits Int
+  expiresAt   DateTime
+  createdAt   DateTime             @default(now())
+  owner       User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members     PrivateSpaceMember[]
 }
 
 model PrivateSpaceMember {
@@ -224,11 +222,6 @@ enum PrivateSpaceAccess {
   OWNER_ONLY
   FRIENDS
   SPECIFIC
-}
-
-enum PurchaseType {
-  MONTHLY
-  PERMANENT
 }
 
 model Cosmetic {

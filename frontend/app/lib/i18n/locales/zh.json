@@ -68,7 +68,8 @@
     "CODE_EXPIRED": "验证码已过期",
     "ALREADY_VERIFIED": "该账户已验证",
     "INVALID_RESET_DATA": "数据无效",
-    "PASSWORD_TOO_SHORT": "密码至少需 {{min}} 个字符"
+    "PASSWORD_TOO_SHORT": "密码至少需 {{min}} 个字符",
+    "SPACE_CAP_REACHED": "私人空间暂时已满，请稍后再试。"
   },
   "resetPassword": {
     "title": "重置密码",

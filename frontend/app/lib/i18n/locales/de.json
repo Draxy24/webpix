@@ -68,7 +68,8 @@
     "CODE_EXPIRED": "Der Code ist abgelaufen",
     "ALREADY_VERIFIED": "Das Konto ist bereits verifiziert",
     "INVALID_RESET_DATA": "Ungültige Daten",
-    "PASSWORD_TOO_SHORT": "Das Passwort muss mindestens {{min}} Zeichen lang sein"
+    "PASSWORD_TOO_SHORT": "Das Passwort muss mindestens {{min}} Zeichen lang sein",
+    "SPACE_CAP_REACHED": "Privater Bereich ist gerade voll. Bitte versuche es später erneut."
   },
   "resetPassword": {
     "title": "Passwort zurücksetzen",

@@ -5,10 +5,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, PrivateSpaceAccess, PurchaseType } from '@prisma/client';
+import { Prisma, PrivateSpaceAccess } from '@prisma/client';
 import {
   PRIVATE_SPACE_CONFIG,
-  computePriceCents,
+  computeMonthlyBits,
 } from './private-spaces.config';
 
 @Injectable()
@@ -54,28 +54,13 @@ export class PrivateSpacesService {
   }
 
   private activeWhere(now: Date): Prisma.PrivateSpaceWhereInput {
-    return {
-      OR: [
-        { purchaseType: PurchaseType.PERMANENT },
-        { expiresAt: { gt: now } },
-      ],
-    };
+    return { expiresAt: { gt: now } };
   }
 
-  quote(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    purchaseType: 'MONTHLY' | 'PERMANENT',
-  ) {
+  quote(x1: number, y1: number, x2: number, y2: number) {
     const { minX, maxX, minY, maxY } = this.normalize(x1, y1, x2, y2);
     const pixels = this.validateSize(minX, maxX, minY, maxY);
-    return {
-      pixels,
-      purchaseType,
-      priceCents: computePriceCents(pixels, purchaseType),
-    };
+    return { pixels, monthlyBits: computeMonthlyBits(minX, maxX, minY, maxY) };
   }
 
   async purchase(
@@ -87,7 +72,6 @@ export class PrivateSpacesService {
       x2: number;
       y2: number;
       accessMode: 'OWNER_ONLY' | 'FRIENDS' | 'SPECIFIC';
-      purchaseType: 'MONTHLY' | 'PERMANENT';
       memberNicknames?: string[];
     },
   ) {
@@ -98,69 +82,9 @@ export class PrivateSpacesService {
       data.y2,
     );
     const pixels = this.validateSize(minX, maxX, minY, maxY);
-    const now = new Date();
+    const monthlyBits = computeMonthlyBits(minX, maxX, minY, maxY);
 
-    // Límites por usuario
-    const myActive = await this.prisma.privateSpace.findMany({
-      where: { ownerId: userId, ...this.activeWhere(now) },
-    });
-    if (myActive.length >= PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER) {
-      throw new BadRequestException({
-        message: `Ya tienes el máximo de ${PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER} espacios activos`,
-        code: 'SPACE_MAX_COUNT',
-        params: { max: PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER },
-      });
-    }
-    const myPixels = myActive.reduce(
-      (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
-      0,
-    );
-    if (myPixels + pixels > PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER) {
-      throw new BadRequestException({
-        message: `Superarías tu tope de ${PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER} píxeles privados`,
-        code: 'SPACE_MAX_PIXELS',
-        params: { max: PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER },
-      });
-    }
-
-    // Sin traslape con otro espacio activo
-    const overlap = await this.prisma.privateSpace.findFirst({
-      where: {
-        AND: [
-          {
-            x1: { lte: maxX },
-            x2: { gte: minX },
-            y1: { lte: maxY },
-            y2: { gte: minY },
-          },
-          this.activeWhere(now),
-        ],
-      },
-    });
-    if (overlap) {
-      throw new BadRequestException({
-        message: 'El área se traslapa con otro espacio privado existente',
-        code: 'SPACE_OVERLAP',
-      });
-    }
-
-    // Sin píxeles de otro usuario (vacío o tuyo está bien)
-    const foreign = await this.prisma.pixel.findFirst({
-      where: {
-        x: { gte: minX, lte: maxX },
-        y: { gte: minY, lte: maxY },
-        AND: [{ userId: { not: null } }, { userId: { not: userId } }],
-      },
-    });
-    if (foreign) {
-      throw new BadRequestException({
-        message:
-          'El área contiene píxeles de otro usuario. Solo puedes comprar zonas vacías o con tus propios píxeles.',
-        code: 'SPACE_HAS_FOREIGN',
-      });
-    }
-
-    // Resolver miembros (solo modo específico)
+    // Resolver miembros (solo modo específico) — lectura previa, fuera de la sección crítica
     let memberIds: number[] = [];
     if (data.accessMode === 'SPECIFIC' && data.memberNicknames?.length) {
       const unique = [...new Set(data.memberNicknames)].filter((n) => n);
@@ -180,37 +104,135 @@ export class PrivateSpacesService {
       memberIds = users.map((u) => u.id).filter((id) => id !== userId);
     }
 
-    const priceCents = computePriceCents(pixels, data.purchaseType);
-    const expiresAt =
-      data.purchaseType === 'MONTHLY'
-        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        : null;
+    const space = await this.prisma.$transaction(
+      async (tx) => {
+        // Serializa TODAS las compras contra el presupuesto global (lock por transacción)
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(740012)`;
+        const now = new Date();
 
-    // TODO: cuando integremos Stripe, el cobro real va AQUÍ antes de crear.
-    // Por ahora es compra simulada (sin cobro).
+        // Límites por usuario
+        const myActive = await tx.privateSpace.findMany({
+          where: { ownerId: userId, expiresAt: { gt: now } },
+          select: { x1: true, y1: true, x2: true, y2: true },
+        });
+        if (myActive.length >= PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER) {
+          throw new BadRequestException({
+            message: `Ya tienes el máximo de ${PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER} espacios activos`,
+            code: 'SPACE_MAX_COUNT',
+            params: { max: PRIVATE_SPACE_CONFIG.MAX_SPACES_PER_USER },
+          });
+        }
+        const myPixels = myActive.reduce(
+          (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
+          0,
+        );
+        if (
+          myPixels + pixels >
+          PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER
+        ) {
+          throw new BadRequestException({
+            message: `Superarías tu tope de ${PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER} píxeles privados`,
+            code: 'SPACE_MAX_PIXELS',
+            params: { max: PRIVATE_SPACE_CONFIG.MAX_TOTAL_PIXELS_PER_USER },
+          });
+        }
 
-    const space = await this.prisma.privateSpace.create({
-      data: {
-        ownerId: userId,
-        name: data.name || null,
-        x1: minX,
-        y1: minY,
-        x2: maxX,
-        y2: maxY,
-        accessMode: data.accessMode as PrivateSpaceAccess,
-        purchaseType: data.purchaseType as PurchaseType,
-        pricePaidCents: priceCents,
-        expiresAt,
-        members: memberIds.length
-          ? { create: memberIds.map((uid) => ({ userId: uid })) }
-          : undefined,
+        // Tope global (20% del lienzo)
+        const active = await tx.privateSpace.findMany({
+          where: { expiresAt: { gt: now } },
+          select: { x1: true, y1: true, x2: true, y2: true },
+        });
+        const usedPixels = active.reduce(
+          (s, sp) => s + (sp.x2 - sp.x1 + 1) * (sp.y2 - sp.y1 + 1),
+          0,
+        );
+        if (usedPixels + pixels > PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP) {
+          throw new BadRequestException({
+            message:
+              'El espacio privado está al tope por ahora. Vuelve a intentarlo más tarde.',
+            code: 'SPACE_CAP_REACHED',
+            params: {
+              cap: PRIVATE_SPACE_CONFIG.GLOBAL_PIXEL_CAP,
+              used: usedPixels,
+              requested: pixels,
+            },
+          });
+        }
+
+        // Sin traslape con otro espacio activo
+        const overlap = await tx.privateSpace.findFirst({
+          where: {
+            AND: [
+              {
+                x1: { lte: maxX },
+                x2: { gte: minX },
+                y1: { lte: maxY },
+                y2: { gte: minY },
+              },
+              { expiresAt: { gt: now } },
+            ],
+          },
+        });
+        if (overlap) {
+          throw new BadRequestException({
+            message: 'El área se traslapa con otro espacio privado existente',
+            code: 'SPACE_OVERLAP',
+          });
+        }
+
+        // Sin píxeles de otro usuario (vacío o tuyo está bien)
+        const foreign = await tx.pixel.findFirst({
+          where: {
+            x: { gte: minX, lte: maxX },
+            y: { gte: minY, lte: maxY },
+            AND: [{ userId: { not: null } }, { userId: { not: userId } }],
+          },
+        });
+        if (foreign) {
+          throw new BadRequestException({
+            message:
+              'El área contiene píxeles de otro usuario. Solo puedes comprar zonas vacías o con tus propios píxeles.',
+            code: 'SPACE_HAS_FOREIGN',
+          });
+        }
+
+        // Débito atómico de Bits (decremento condicional: sin condición de carrera)
+        const debit = await tx.user.updateMany({
+          where: { id: userId, bits: { gte: monthlyBits } },
+          data: { bits: { decrement: monthlyBits } },
+        });
+        if (debit.count === 0) {
+          throw new BadRequestException({
+            message: 'No tienes Bits suficientes para rentar este espacio.',
+            code: 'INSUFFICIENT_BITS',
+            params: { required: monthlyBits },
+          });
+        }
+
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        return tx.privateSpace.create({
+          data: {
+            ownerId: userId,
+            name: data.name || null,
+            x1: minX,
+            y1: minY,
+            x2: maxX,
+            y2: maxY,
+            accessMode: data.accessMode as PrivateSpaceAccess,
+            monthlyBits,
+            expiresAt,
+            members: memberIds.length
+              ? { create: memberIds.map((uid) => ({ userId: uid })) }
+              : undefined,
+          },
+        });
       },
-    });
+      { maxWait: 10000, timeout: 20000 },
+    );
 
     return { success: true, space };
   }
 
-  // Usado por PixelService (paso siguiente) para bloquear pintado/borrado
   async checkPaintAccess(
     userId: number | null,
     x: number,
@@ -251,7 +273,6 @@ export class PrivateSpacesService {
     return { inSpace: true, allowed: !!friendship };
   }
 
-  // ¿El área toca algún espacio privado activo? (para el borrado en área)
   async overlapsActiveSpace(
     minX: number,
     maxX: number,
@@ -310,11 +331,9 @@ export class PrivateSpacesService {
       x2: s.x2,
       y2: s.y2,
       accessMode: s.accessMode,
-      purchaseType: s.purchaseType,
+      monthlyBits: s.monthlyBits,
       expiresAt: s.expiresAt,
-      active:
-        s.purchaseType === 'PERMANENT' ||
-        (s.expiresAt != null && s.expiresAt > now),
+      active: s.expiresAt > now,
       pixels: (s.x2 - s.x1 + 1) * (s.y2 - s.y1 + 1),
       members: s.members.map((m) => m.user.nickname),
     }));

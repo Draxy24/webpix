@@ -34,13 +34,7 @@ export class PrivateSpacesController {
     @Body()
     body: QuoteSpaceDto,
   ) {
-    return this.service.quote(
-      body.x1,
-      body.y1,
-      body.x2,
-      body.y2,
-      body.purchaseType,
-    );
+    return this.service.quote(body.x1, body.y1, body.x2, body.y2);
   }
 
   @UseGuards(AuthGuard('jwt'), NotBannedGuard)
