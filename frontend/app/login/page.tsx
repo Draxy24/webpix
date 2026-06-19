@@ -9,7 +9,7 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const router = useRouter();
   return (
-    <AuthPageLayout title={t("login.title")}>
+    <AuthPageLayout title={t("auth.login.title")}>
       <LoginForm onSuccess={() => router.push("/")} />
     </AuthPageLayout>
   );

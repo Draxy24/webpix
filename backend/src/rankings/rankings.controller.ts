@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RankingsService } from './rankings.service';
+import { AdminGuard } from '../auth/admin.guard';
+import { PendingSeenDto } from './dto/rankings.dto';
 
 @Controller('rankings')
 export class RankingsController {
@@ -59,7 +61,7 @@ export class RankingsController {
     return this.rankingsService.creatorsMonthlyNational(country);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Post('admin/close/:period')
   adminClose(
     @Request() req: { user: { id: number } },
@@ -78,7 +80,7 @@ export class RankingsController {
   @Post('pending/seen')
   pendingSeen(
     @Request() req: { user: { id: number } },
-    @Body() body: { periods: string[] },
+    @Body() body: PendingSeenDto,
   ) {
     return this.rankingsService.markPendingSeen(
       req.user.id,

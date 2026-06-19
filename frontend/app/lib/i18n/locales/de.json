@@ -64,6 +64,7 @@
     "INVALID_CREDENTIALS": "Ungültige Anmeldedaten",
     "ACCOUNT_SUSPENDED": "Dein Konto ist gesperrt",
     "INVALID_CODE": "Ungültiger Code",
+    "TOO_MANY_ATTEMPTS": "Zu viele Versuche. Fordere einen neuen Code an.",
     "CODE_EXPIRED": "Der Code ist abgelaufen",
     "ALREADY_VERIFIED": "Das Konto ist bereits verifiziert",
     "INVALID_RESET_DATA": "Ungültige Daten",

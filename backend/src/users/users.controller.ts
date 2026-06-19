@@ -12,6 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { levelInfo } from '../rewards/rewards.config';
+import { UpdateMeDto } from './dto/users.dto';
 
 @Controller('users')
 export class UsersController {
@@ -66,7 +67,7 @@ export class UsersController {
   @Patch('me')
   async updateMe(
     @Request() req: { user: { id: number } },
-    @Body() body: { profilePic?: string; country?: string },
+    @Body() body: UpdateMeDto,
   ) {
     const updated = await this.prisma.user.update({
       where: { id: req.user.id },

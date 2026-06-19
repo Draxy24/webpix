@@ -12,6 +12,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../auth/admin.guard';
 import { CommunityService } from './community.service';
+import { CreateAnnouncementDto } from './dto/community.dto';
 
 @Controller('community')
 export class CommunityController {
@@ -26,7 +27,7 @@ export class CommunityController {
   @Post('announcements')
   createAnnouncement(
     @Request() req: { user: { id: number } },
-    @Body() body: { title?: string; body?: string; pinned?: boolean },
+    @Body() body: CreateAnnouncementDto,
   ) {
     return this.communityService.createAnnouncement(req.user.id, body);
   }

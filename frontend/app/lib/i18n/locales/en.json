@@ -64,6 +64,7 @@
     "INVALID_CREDENTIALS": "Invalid credentials",
     "ACCOUNT_SUSPENDED": "Your account is suspended",
     "INVALID_CODE": "Invalid code",
+    "TOO_MANY_ATTEMPTS": "Too many attempts. Request a new code.",
     "CODE_EXPIRED": "The code has expired",
     "ALREADY_VERIFIED": "The account is already verified",
     "INVALID_RESET_DATA": "Invalid data",

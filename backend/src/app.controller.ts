@@ -12,6 +12,7 @@ import { PixelService } from './pixel/pixel.service';
 import { OptionalJwtGuard } from './auth/optional-jwt.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { NotBannedGuard } from './auth/not-banned.guard';
+import { SetPixelDto, EraseDto, EraseAreaDto } from './dto/app.dto';
 
 @Controller()
 export class AppController {
@@ -47,7 +48,7 @@ export class AppController {
   @UseGuards(OptionalJwtGuard)
   @Post('pixel')
   async setPixel(
-    @Body() body: { x: number; y: number; color: string },
+    @Body() body: SetPixelDto,
     @Request()
     req: {
       user?: { id: number; nickname: string; banned?: boolean };
@@ -74,7 +75,7 @@ export class AppController {
   @Post('erase')
   async erasePixel(
     @Request() req: { user: { id: number } },
-    @Body() body: { x: number; y: number },
+    @Body() body: EraseDto,
   ) {
     return this.pixelService.eraseOne(req.user.id, body.x, body.y);
   }
@@ -83,7 +84,7 @@ export class AppController {
   @Post('erase-area')
   async eraseAreaEndpoint(
     @Request() req: { user: { id: number } },
-    @Body() body: { x1: number; y1: number; x2: number; y2: number },
+    @Body() body: EraseAreaDto,
   ) {
     return this.pixelService.eraseArea(
       req.user.id,

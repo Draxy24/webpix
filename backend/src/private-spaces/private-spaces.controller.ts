@@ -13,6 +13,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { NotBannedGuard } from '../auth/not-banned.guard';
 import { PrivateSpacesService } from './private-spaces.service';
+import {
+  QuoteSpaceDto,
+  PurchaseSpaceDto,
+  UpdateAccessDto,
+} from './dto/private-spaces.dto';
 
 @Controller('private-spaces')
 export class PrivateSpacesController {
@@ -27,13 +32,7 @@ export class PrivateSpacesController {
   @Post('quote')
   quote(
     @Body()
-    body: {
-      x1: number;
-      y1: number;
-      x2: number;
-      y2: number;
-      purchaseType: 'MONTHLY' | 'PERMANENT';
-    },
+    body: QuoteSpaceDto,
   ) {
     return this.service.quote(
       body.x1,
@@ -49,16 +48,7 @@ export class PrivateSpacesController {
   purchase(
     @Request() req: { user: { id: number } },
     @Body()
-    body: {
-      name?: string;
-      x1: number;
-      y1: number;
-      x2: number;
-      y2: number;
-      accessMode: 'OWNER_ONLY' | 'FRIENDS' | 'SPECIFIC';
-      purchaseType: 'MONTHLY' | 'PERMANENT';
-      memberNicknames?: string[];
-    },
+    body: PurchaseSpaceDto,
   ) {
     return this.service.purchase(req.user.id, body);
   }
@@ -75,11 +65,7 @@ export class PrivateSpacesController {
     @Request() req: { user: { id: number } },
     @Param('id', ParseIntPipe) id: number,
     @Body()
-    body: {
-      accessMode?: 'OWNER_ONLY' | 'FRIENDS' | 'SPECIFIC';
-      addNicknames?: string[];
-      removeNicknames?: string[];
-    },
+    body: UpdateAccessDto,
   ) {
     return this.service.updateAccess(req.user.id, id, body);
   }

@@ -15,6 +15,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../auth/admin.guard';
 import { NotBannedGuard } from '../auth/not-banned.guard';
 import { ModerationService } from './moderation.service';
+import {
+  CreateReportDto,
+  BanUserDto,
+  ModifyBanDto,
+} from './dto/moderation.dto';
 
 @Controller()
 export class ModerationController {
@@ -25,19 +30,7 @@ export class ModerationController {
   createReport(
     @Request() req: { user: { id: number } },
     @Body()
-    body: {
-      type: 'USER' | 'PUBLICATION' | 'COMMENT' | 'BUG' | 'CANVAS';
-      targetUserId?: number;
-      targetNickname?: string;
-      publicationId?: number;
-      commentId?: number;
-      x1?: number;
-      y1?: number;
-      x2?: number;
-      y2?: number;
-      reason: string;
-      details?: string;
-    },
+    body: CreateReportDto,
   ) {
     return this.moderationService.createReport(req.user.id, body);
   }
@@ -71,7 +64,7 @@ export class ModerationController {
   banUser(
     @Request() req: { user: { id: number } },
     @Body()
-    body: { userId: number; durationDays?: number | null; reason: string },
+    body: BanUserDto,
   ) {
     return this.moderationService.banUser(
       req.user.id,
@@ -86,7 +79,7 @@ export class ModerationController {
   modifyBan(
     @Request() req: { user: { id: number } },
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() body: { durationDays?: number | null },
+    @Body() body: ModifyBanDto,
   ) {
     return this.moderationService.modifyBan(
       req.user.id,

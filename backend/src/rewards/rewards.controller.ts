@@ -10,6 +10,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RewardsService } from './rewards.service';
 import { AdminGuard } from '../auth/admin.guard';
 import { SeedEnabledGuard } from '../auth/seed-enabled.guard';
+import { CosmeticDto } from './dto/rewards.dto';
 
 @Controller('rewards')
 export class RewardsController {
@@ -29,19 +30,13 @@ export class RewardsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('equip')
-  equip(
-    @Request() req: { user: { id: number } },
-    @Body() body: { cosmeticId: number },
-  ) {
+  equip(@Request() req: { user: { id: number } }, @Body() body: CosmeticDto) {
     return this.rewardsService.equip(req.user.id, body.cosmeticId);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('unequip')
-  unequip(
-    @Request() req: { user: { id: number } },
-    @Body() body: { cosmeticId: number },
-  ) {
+  unequip(@Request() req: { user: { id: number } }, @Body() body: CosmeticDto) {
     return this.rewardsService.unequip(req.user.id, body.cosmeticId);
   }
 

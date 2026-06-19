@@ -10,6 +10,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { ShopService } from './shop.service';
 import { AdminGuard } from '../auth/admin.guard';
 import { SeedEnabledGuard } from '../auth/seed-enabled.guard';
+import {
+  BuyDto,
+  BuyPaletteDto,
+  BuyBitsDto,
+  SubscribeDto,
+} from './dto/shop.dto';
 
 @Controller('shop')
 export class ShopController {
@@ -23,10 +29,7 @@ export class ShopController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('buy')
-  buy(
-    @Request() req: { user: { id: number } },
-    @Body() body: { cosmeticId: number },
-  ) {
+  buy(@Request() req: { user: { id: number } }, @Body() body: BuyDto) {
     return this.shop.buy(req.user.id, body.cosmeticId);
   }
 
@@ -46,7 +49,7 @@ export class ShopController {
   @Post('buy-palette')
   buyPalette(
     @Request() req: { user: { id: number } },
-    @Body() body: { paletteKey: string },
+    @Body() body: BuyPaletteDto,
   ) {
     return this.shop.buyPalette(req.user.id, body.paletteKey);
   }
@@ -59,10 +62,7 @@ export class ShopController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('buy-bits')
-  buyBits(
-    @Request() req: { user: { id: number } },
-    @Body() body: { packageKey: string },
-  ) {
+  buyBits(@Request() req: { user: { id: number } }, @Body() body: BuyBitsDto) {
     return this.shop.buyBits(req.user.id, body.packageKey);
   }
 
@@ -70,7 +70,7 @@ export class ShopController {
   @Post('subscribe')
   subscribe(
     @Request() req: { user: { id: number } },
-    @Body() body: { tier: string },
+    @Body() body: SubscribeDto,
   ) {
     return this.shop.subscribe(req.user.id, body.tier);
   }

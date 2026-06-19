@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -28,6 +29,14 @@ async function bootstrap() {
     .split(',')
     .map((s) => s.trim());
   app.enableCors({ origin: allowedOrigins, credentials: true });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // descarta props que no estén en el DTO
+      forbidNonWhitelisted: true, // rechaza con 400 si mandan props de más
+      transform: true, // convierte el body a instancia del DTO
+    }),
+  );
 
   await app.listen(3001);
 }

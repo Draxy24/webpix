@@ -13,6 +13,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { PublicationsService } from './publications.service';
 import { OptionalJwtGuard } from '../auth/optional-jwt.guard';
 import { NotBannedGuard } from '../auth/not-banned.guard';
+import {
+  CreatePublicationDto,
+  ReactDto,
+  AddCommentDto,
+} from './dto/publications.dto';
 
 @Controller('publications')
 export class PublicationsController {
@@ -23,7 +28,7 @@ export class PublicationsController {
   create(
     @Request() req: { user: { id: number } },
     @Body()
-    body: { title?: string; x1: number; y1: number; x2: number; y2: number },
+    body: CreatePublicationDto,
   ) {
     return this.publicationsService.create(req.user.id, body);
   }
@@ -56,7 +61,7 @@ export class PublicationsController {
   react(
     @Request() req: { user: { id: number } },
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { type: 'LIKE' | 'DISLIKE' },
+    @Body() body: ReactDto,
   ) {
     return this.publicationsService.react(id, req.user.id, body.type);
   }
@@ -66,7 +71,7 @@ export class PublicationsController {
   addComment(
     @Request() req: { user: { id: number } },
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { content: string },
+    @Body() body: AddCommentDto,
   ) {
     return this.publicationsService.addComment(id, req.user.id, body.content);
   }

@@ -76,7 +76,7 @@ export class AuthService {
     if (data.email) {
       await this.sendEmailVerification(user.id, data.email);
     } else if (data.phone) {
-      await this.sendPhoneVerification(user.id, data.phone);
+      await this.sendPhoneVerification(data.phone);
     }
 
     const token = this.jwtService.sign({
@@ -134,16 +134,11 @@ export class AuthService {
     await this.prisma.verificationCode.create({
       data: { userId, code, type: 'EMAIL', expiresAt },
     });
-    this.notificationService.sendEmailVerification(email, code);
+    await this.notificationService.sendEmailVerification(email, code);
   }
 
-  private async sendPhoneVerification(userId: number, phone: string) {
-    const code = crypto.randomInt(100000, 1000000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
-    await this.prisma.verificationCode.create({
-      data: { userId, code, type: 'PHONE', expiresAt },
-    });
-    this.notificationService.sendPhoneVerification(phone, code);
+  private async sendPhoneVerification(phone: string) {
+    await this.notificationService.startPhoneVerification(phone);
   }
 
   async verifyEmail(code: string) {
@@ -170,45 +165,25 @@ export class AuthService {
   }
 
   async verifyPhone(userId: number, code: string) {
-    const record = await this.prisma.verificationCode.findFirst({
-      where: { userId, type: 'PHONE' },
-      orderBy: { id: 'desc' },
-    });
-    if (!record)
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.phone)
       throw new BadRequestException({
         message: 'Código inválido',
         code: 'INVALID_CODE',
       });
-    if (record.expiresAt < new Date()) {
-      await this.prisma.verificationCode.delete({ where: { id: record.id } });
-      throw new BadRequestException({
-        message: 'El código ha expirado',
-        code: 'CODE_EXPIRED',
-      });
-    }
-    if (record.attempts >= MAX_CODE_ATTEMPTS) {
-      await this.prisma.verificationCode.delete({ where: { id: record.id } });
-      throw new BadRequestException({
-        message: 'Demasiados intentos. Solicita un código nuevo.',
-        code: 'TOO_MANY_ATTEMPTS',
-      });
-    }
-    if (record.code !== code) {
-      await this.prisma.verificationCode.update({
-        where: { id: record.id },
-        data: { attempts: { increment: 1 } },
-      });
+    const ok = await this.notificationService.checkPhoneVerification(
+      user.phone,
+      code,
+    );
+    if (!ok)
       throw new BadRequestException({
         message: 'Código inválido',
         code: 'INVALID_CODE',
       });
-    }
-
     await this.prisma.user.update({
       where: { id: userId },
       data: { verified: true },
     });
-    await this.prisma.verificationCode.delete({ where: { id: record.id } });
     return { success: true };
   }
 
@@ -232,7 +207,7 @@ export class AuthService {
     if (user.email) {
       await this.sendEmailVerification(user.id, user.email);
     } else if (user.phone) {
-      await this.sendPhoneVerification(user.id, user.phone);
+      await this.sendPhoneVerification(user.phone);
     }
     return { success: true };
   }
@@ -263,13 +238,9 @@ export class AuthService {
           expiresAt,
         },
       });
-      this.notificationService.sendPasswordResetEmail(user.email, token);
+      await this.notificationService.sendPasswordResetEmail(user.email, token);
     } else if (user.phone) {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      await this.prisma.verificationCode.create({
-        data: { userId: user.id, code, type: 'PASSWORD_RESET', expiresAt },
-      });
-      this.notificationService.sendPasswordResetPhone(user.phone, code);
+      await this.notificationService.startPhoneVerification(user.phone);
     }
 
     return { success: true };
@@ -285,38 +256,54 @@ export class AuthService {
         code: 'INVALID_RESET_DATA',
       });
 
-    const record = await this.prisma.verificationCode.findFirst({
-      where: { userId: user.id, type: 'PASSWORD_RESET' },
-      orderBy: { id: 'desc' },
-    });
-    if (!record)
-      throw new BadRequestException({
-        message: 'Código inválido',
-        code: 'INVALID_CODE',
+    const isPhone = user.phone != null && user.phone === emailOrPhone;
+    let resetRecordId: number | null = null;
+
+    if (isPhone) {
+      const ok = await this.notificationService.checkPhoneVerification(
+        user.phone!,
+        code,
+      );
+      if (!ok)
+        throw new BadRequestException({
+          message: 'Código inválido',
+          code: 'INVALID_CODE',
+        });
+    } else {
+      const record = await this.prisma.verificationCode.findFirst({
+        where: { userId: user.id, type: 'PASSWORD_RESET' },
+        orderBy: { id: 'desc' },
       });
-    if (record.expiresAt < new Date()) {
-      await this.prisma.verificationCode.delete({ where: { id: record.id } });
-      throw new BadRequestException({
-        message: 'El código ha expirado',
-        code: 'CODE_EXPIRED',
-      });
-    }
-    if (record.attempts >= MAX_CODE_ATTEMPTS) {
-      await this.prisma.verificationCode.delete({ where: { id: record.id } });
-      throw new BadRequestException({
-        message: 'Demasiados intentos. Solicita un código nuevo.',
-        code: 'TOO_MANY_ATTEMPTS',
-      });
-    }
-    if (record.code !== code) {
-      await this.prisma.verificationCode.update({
-        where: { id: record.id },
-        data: { attempts: { increment: 1 } },
-      });
-      throw new BadRequestException({
-        message: 'Código inválido',
-        code: 'INVALID_CODE',
-      });
+      if (!record)
+        throw new BadRequestException({
+          message: 'Código inválido',
+          code: 'INVALID_CODE',
+        });
+      if (record.expiresAt < new Date()) {
+        await this.prisma.verificationCode.delete({ where: { id: record.id } });
+        throw new BadRequestException({
+          message: 'El código ha expirado',
+          code: 'CODE_EXPIRED',
+        });
+      }
+      if (record.attempts >= MAX_CODE_ATTEMPTS) {
+        await this.prisma.verificationCode.delete({ where: { id: record.id } });
+        throw new BadRequestException({
+          message: 'Demasiados intentos. Solicita un código nuevo.',
+          code: 'TOO_MANY_ATTEMPTS',
+        });
+      }
+      if (record.code !== code) {
+        await this.prisma.verificationCode.update({
+          where: { id: record.id },
+          data: { attempts: { increment: 1 } },
+        });
+        throw new BadRequestException({
+          message: 'Código inválido',
+          code: 'INVALID_CODE',
+        });
+      }
+      resetRecordId = record.id;
     }
 
     if (newPassword.length < 6)
@@ -331,7 +318,11 @@ export class AuthService {
       where: { id: user.id },
       data: { passwordHash },
     });
-    await this.prisma.verificationCode.delete({ where: { id: record.id } });
+    if (resetRecordId !== null) {
+      await this.prisma.verificationCode.delete({
+        where: { id: resetRecordId },
+      });
+    }
     return { success: true };
   }
 }

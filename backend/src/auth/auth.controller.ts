@@ -10,6 +10,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Throttle } from '@nestjs/throttler';
+import {
+  RegisterDto,
+  LoginDto,
+  VerifyEmailDto,
+  VerifyPhoneDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto/auth.dto';
 
 const TIER_LIMITS = {
   FREE: { pixels: 30, cooldownHours: 3 },
@@ -28,26 +36,20 @@ export class AuthController {
   @Post('register')
   register(
     @Body()
-    body: {
-      email?: string;
-      phone?: string;
-      nickname: string;
-      password: string;
-      country?: string;
-    },
+    body: RegisterDto,
   ) {
     return this.authService.register(body);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
-  login(@Body() body: { emailOrPhone: string; password: string }) {
+  login(@Body() body: LoginDto) {
     return this.authService.login(body);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('verify-email')
-  verifyEmail(@Body() body: { code: string }) {
+  verifyEmail(@Body() body: VerifyEmailDto) {
     return this.authService.verifyEmail(body.code);
   }
 
@@ -56,7 +58,7 @@ export class AuthController {
   @Post('verify-phone')
   verifyPhone(
     @Request() req: { user: { id: number } },
-    @Body() body: { code: string },
+    @Body() body: VerifyPhoneDto,
   ) {
     return this.authService.verifyPhone(req.user.id, body.code);
   }
@@ -70,15 +72,13 @@ export class AuthController {
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('forgot-password')
-  forgotPassword(@Body() body: { emailOrPhone: string }) {
+  forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.forgotPassword(body.emailOrPhone);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('reset-password')
-  resetPassword(
-    @Body() body: { emailOrPhone: string; code: string; newPassword: string },
-  ) {
+  resetPassword(@Body() body: ResetPasswordDto) {
     return this.authService.resetPassword(
       body.emailOrPhone,
       body.code,

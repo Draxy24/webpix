@@ -6,7 +6,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:3000')
+  .split(',')
+  .map((s) => s.trim());
+
+@WebSocketGateway({ cors: { origin: allowedOrigins } })
 export class PixelGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
@@ -18,7 +22,7 @@ export class PixelGateway implements OnGatewayConnection {
       const token = client.handshake.auth?.token as string | undefined;
       if (!token) return; // anónimo: solo recibe la difusión global
       const payload = this.jwt.verify<{ sub: number }>(token, {
-        secret: process.env.JWT_SECRET ?? 'secret_temporal',
+        secret: process.env.JWT_SECRET!,
       });
       if (payload?.sub) client.join(`user:${payload.sub}`);
     } catch {
@@ -34,7 +38,6 @@ export class PixelGateway implements OnGatewayConnection {
     this.server.emit('erase', { cells });
   }
 
-  // Empuje a un usuario concreto (lo usarán amistades, likes, ranking…)
   emitToUser(userId: number, payload: unknown) {
     this.server.to(`user:${userId}`).emit('notification', payload);
   }

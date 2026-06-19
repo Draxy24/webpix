@@ -7,7 +7,7 @@ import AuthPageLayout from "../components/AuthPageLayout";
 export default function RegisterPage() {
   const { t } = useTranslation();
   return (
-    <AuthPageLayout title={t("register.title")}>
+    <AuthPageLayout title={t("auth.register.title")}>
       <RegisterForm />
     </AuthPageLayout>
   );
