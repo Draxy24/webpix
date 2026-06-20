@@ -7,8 +7,8 @@ import {
   Request,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from './prisma/prisma.service';
 import { PixelService } from './pixel/pixel.service';
+import { PixelCacheService } from './pixel/pixel-cache.service';
 import { OptionalJwtGuard } from './auth/optional-jwt.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { NotBannedGuard } from './auth/not-banned.guard';
@@ -17,26 +17,13 @@ import { SetPixelDto, EraseDto, EraseAreaDto } from './dto/app.dto';
 @Controller()
 export class AppController {
   constructor(
-    private prisma: PrismaService,
     private pixelService: PixelService,
+    private pixelCache: PixelCacheService,
   ) {}
 
   @Get('pixels')
-  async getPixels() {
-    const pixels = await this.prisma.pixel.findMany({
-      include: { user: { select: { nickname: true } } },
-    });
-
-    const colors: Record<string, string> = {};
-    const owners: Record<string, string> = {};
-
-    for (const pixel of pixels) {
-      const key = `${pixel.x},${pixel.y}`;
-      colors[key] = pixel.color;
-      if (pixel.user?.nickname) owners[key] = pixel.user.nickname;
-    }
-
-    return { colors, owners };
+  getPixels() {
+    return this.pixelCache.snapshot();
   }
 
   @Get('anonymous-state')

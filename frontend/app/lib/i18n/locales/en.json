@@ -586,7 +586,8 @@
     "noMembers": "No authorized users yet.",
     "addPlaceholder": "Add by nickname",
     "add": "Add",
-    "release": "Release space"
+    "release": "Release space",
+    "goTo": "Go to zone"
   },
   "admin": {
     "title": "Moderation panel",

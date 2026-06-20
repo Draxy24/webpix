@@ -616,7 +616,8 @@
     "noMembers": "Aucun utilisateur autorisé pour le moment.",
     "addPlaceholder": "Ajouter par pseudo",
     "add": "Ajouter",
-    "release": "Libérer l'espace"
+    "release": "Libérer l'espace",
+    "goTo": "Aller à la zone"
   },
   "admin": {
     "title": "Panneau de modération",

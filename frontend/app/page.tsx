@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
 import { useRouter } from "next/navigation";
@@ -973,6 +979,57 @@ export default function Home() {
     };
   }, [showPurchaseModal, token]);
 
+  // Cotiza el precio en Bits del área seleccionada al abrir el modal de compra
+  useEffect(() => {
+    if (!showPurchaseModal || !selection || !token) return;
+    let cancelled = false;
+    setQuote(null);
+    setQuoteError("");
+    (async () => {
+      try {
+        const res = await fetch(API_URL + "/private-spaces/quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            x1: selection.x1,
+            y1: selection.y1,
+            x2: selection.x2,
+            y2: selection.y2,
+          }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          setQuoteError(
+            apiErrorText(
+              data,
+              t,
+              t("canvas.purchase.quoteError", {
+                defaultValue: "No se pudo calcular el precio.",
+              }),
+            ),
+          );
+          return;
+        }
+        setQuote(data);
+      } catch {
+        if (!cancelled) {
+          setQuoteError(
+            t("canvas.purchase.quoteError", {
+              defaultValue: "No se pudo calcular el precio.",
+            }),
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showPurchaseModal, selection, token]);
+
   useEffect(() => {
     if (!token) {
       setExoticColors([]);
@@ -1019,6 +1076,61 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [notice]);
 
+  // Salta y hace zoom a una zona del lienzo, resaltándola unos segundos.
+  const jumpToZone = useCallback(
+    (rx1: number, ry1: number, rx2: number, ry2: number) => {
+      const x1 = Math.max(0, Math.min(rx1, rx2));
+      const y1 = Math.max(0, Math.min(ry1, ry2));
+      const x2 = Math.min(999, Math.max(rx1, rx2));
+      const y2 = Math.min(999, Math.max(ry1, ry2));
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const zoneW = x2 - x1 + 1;
+      const zoneH = y2 - y1 + 1;
+      const minZoom = Math.max(
+        1,
+        window.innerWidth / 1000,
+        window.innerHeight / 1000,
+      );
+      const fitZoom = Math.max(
+        minZoom,
+        Math.min(
+          40,
+          (container.clientWidth * 0.6) / zoneW,
+          (container.clientHeight * 0.6) / zoneH,
+        ),
+      );
+
+      const cx = (x1 + x2 + 1) / 2;
+      const cy = (y1 + y2 + 1) / 2;
+
+      setHighlightZone({ x1, y1, x2, y2 });
+      setZoom(fitZoom);
+
+      const centerOn = () => {
+        const c = containerRef.current;
+        if (!c) return;
+        const maxL = 1000 * fitZoom - c.clientWidth;
+        const maxT = 1000 * fitZoom - c.clientHeight;
+        c.scrollLeft = Math.max(
+          0,
+          Math.min(cx * fitZoom - c.clientWidth / 2, maxL),
+        );
+        c.scrollTop = Math.max(
+          0,
+          Math.min(cy * fitZoom - c.clientHeight / 2, maxT),
+        );
+      };
+      requestAnimationFrame(() => requestAnimationFrame(centerOn));
+
+      setTimeout(() => setHighlightZone(null), 4000);
+    },
+    [],
+  );
+
+  // Deep-link ?zone=x1_y1_x2_y2 (al cargar la página, p. ej. un enlace compartido)
   useEffect(() => {
     if (didJumpRef.current) return;
     const params = new URLSearchParams(window.location.search);
@@ -1029,61 +1141,12 @@ export default function Home() {
     if (parts.length !== 4 || parts.some((n) => Number.isNaN(n))) return;
 
     didJumpRef.current = true;
+    jumpToZone(parts[0], parts[1], parts[2], parts[3]);
 
-    const x1 = Math.max(0, Math.min(parts[0], parts[2]));
-    const y1 = Math.max(0, Math.min(parts[1], parts[3]));
-    const x2 = Math.min(999, Math.max(parts[0], parts[2]));
-    const y2 = Math.min(999, Math.max(parts[1], parts[3]));
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    const zoneW = x2 - x1 + 1;
-    const zoneH = y2 - y1 + 1;
-    const minZoom = Math.max(
-      1,
-      window.innerWidth / 1000,
-      window.innerHeight / 1000,
-    );
-    const fitZoom = Math.max(
-      minZoom,
-      Math.min(
-        40,
-        (container.clientWidth * 0.6) / zoneW,
-        (container.clientHeight * 0.6) / zoneH,
-      ),
-    );
-
-    const cx = (x1 + x2 + 1) / 2;
-    const cy = (y1 + y2 + 1) / 2;
-
-    setHighlightZone({ x1, y1, x2, y2 });
-    setZoom(fitZoom);
-
-    const centerOn = () => {
-      const c = containerRef.current;
-      if (!c) return;
-      const maxL = 1000 * fitZoom - c.clientWidth;
-      const maxT = 1000 * fitZoom - c.clientHeight;
-      c.scrollLeft = Math.max(
-        0,
-        Math.min(cx * fitZoom - c.clientWidth / 2, maxL),
-      );
-      c.scrollTop = Math.max(
-        0,
-        Math.min(cy * fitZoom - c.clientHeight / 2, maxT),
-      );
-    };
-    requestAnimationFrame(() => requestAnimationFrame(centerOn));
-
-    // limpia el parámetro para que un refresh no vuelva a saltar
     const url = new URL(window.location.href);
     url.searchParams.delete("zone");
     window.history.replaceState({}, "", url.pathname + url.search);
-
-    const t = setTimeout(() => setHighlightZone(null), 4000);
-    return () => clearTimeout(t);
-  }, []);
+  }, [jumpToZone]);
 
   useEffect(() => {
     if (!token) return;
@@ -2180,7 +2243,13 @@ export default function Home() {
                 ×
               </button>
             </div>
-            <PrivateSpacesView />
+            <PrivateSpacesView
+              onJumpToZone={(x1, y1, x2, y2) => {
+                setShowManageModal(false);
+                setPrivateMode("buy");
+                jumpToZone(x1, y1, x2, y2);
+              }}
+            />
           </div>
         </div>
       )}

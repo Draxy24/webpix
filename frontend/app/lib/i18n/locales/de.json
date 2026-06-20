@@ -604,7 +604,8 @@
     "noMembers": "Noch keine autorisierten Nutzer.",
     "addPlaceholder": "Per Nickname hinzufügen",
     "add": "Hinzufügen",
-    "release": "Bereich freigeben"
+    "release": "Bereich freigeben",
+    "goTo": "Zur Zone springen"
   },
   "admin": {
     "title": "Moderationsbereich",

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
+import { PixelCacheService } from './pixel-cache.service';
 
 const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:3000')
   .split(',')
@@ -15,7 +16,10 @@ export class PixelGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(private jwt: JwtService) {}
+  constructor(
+    private jwt: JwtService,
+    private pixelCache: PixelCacheService,
+  ) {}
 
   handleConnection(client: Socket) {
     try {
@@ -31,10 +35,12 @@ export class PixelGateway implements OnGatewayConnection {
   }
 
   broadcastPixel(x: number, y: number, color: string, nickname: string | null) {
+    this.pixelCache.set(x, y, color, nickname);
     this.server.emit('pixel', { x, y, color, nickname });
   }
 
   broadcastErase(cells: { x: number; y: number }[]) {
+    this.pixelCache.deleteMany(cells);
     this.server.emit('erase', { cells });
   }
 

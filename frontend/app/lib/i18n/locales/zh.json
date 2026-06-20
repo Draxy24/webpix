@@ -511,7 +511,8 @@
     "noMembers": "暂无授权用户。",
     "addPlaceholder": "按昵称添加",
     "add": "添加",
-    "release": "释放空间"
+    "release": "释放空间",
+    "goTo": "前往区域"
   },
   "admin": {
     "title": "管理面板",

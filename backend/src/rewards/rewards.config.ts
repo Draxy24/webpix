@@ -14,10 +14,8 @@ export const PROGRESSION_CONFIG = {
 export const LAUNCH_REWARD = {
   cosmeticKey: 'title_og',
   // AJUSTA estas fechas al mes real de lanzamiento.
-  // Para PROBAR ahora, pon un rango amplio (start en el pasado, end en el futuro)
-  // para que tu cuenta califique.
-  start: new Date('2026-07-01'),
-  end: new Date('2026-08-01'),
+  start: new Date('2026-06-22'),
+  end: new Date('2026-07-22'),
 };
 
 export function levelInfo(xp: number) {

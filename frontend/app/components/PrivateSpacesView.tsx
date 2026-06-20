@@ -17,9 +17,11 @@ type Space = {
   x2: number;
   y2: number;
   accessMode: "OWNER_ONLY" | "FRIENDS" | "SPECIFIC";
-  purchaseType: "MONTHLY" | "PERMANENT";
+  monthlyBits: number;
   expiresAt: string | null;
+  status: "active" | "grace" | "expired";
   active: boolean;
+  graceEndsAt: string | null;
   pixels: number;
   members: string[];
 };
@@ -30,7 +32,11 @@ const ACCESS_KEY: Record<Space["accessMode"], string> = {
   SPECIFIC: "canvas.purchase.specific",
 };
 
-export default function PrivateSpacesView() {
+export default function PrivateSpacesView({
+  onJumpToZone,
+}: {
+  onJumpToZone?: (x1: number, y1: number, x2: number, y2: number) => void;
+}) {
   const { t } = useTranslation();
   const { token } = useAuth();
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -65,7 +71,13 @@ export default function PrivateSpacesView() {
   return (
     <div className={styles.list}>
       {spaces.map((sp) => (
-        <SpaceCard key={sp.id} space={sp} token={token!} onChanged={load} />
+        <SpaceCard
+          key={sp.id}
+          space={sp}
+          token={token!}
+          onChanged={load}
+          onJump={onJumpToZone}
+        />
       ))}
     </div>
   );
@@ -75,10 +87,12 @@ function SpaceCard({
   space,
   token,
   onChanged,
+  onJump,
 }: {
   space: Space;
   token: string;
   onChanged: () => void;
+  onJump?: (x1: number, y1: number, x2: number, y2: number) => void;
 }) {
   const { t, i18n } = useTranslation();
   const { confirm } = useNotify();
@@ -162,11 +176,17 @@ function SpaceCard({
         </span>
         <div className={styles.badges}>
           <span className={styles.badge}>
-            {space.purchaseType === "MONTHLY"
-              ? t("canvas.purchase.monthly")
-              : t("canvas.purchase.permanent")}
+            {t("spaces.monthlyCost", {
+              defaultValue: "{{bits}} Bits/mes",
+              bits: space.monthlyBits,
+            })}
           </span>
-          {!space.active && (
+          {space.status === "grace" && (
+            <span className={`${styles.badge} ${styles.badgeExpired}`}>
+              {t("spaces.grace", { defaultValue: "Por renovar" })}
+            </span>
+          )}
+          {space.status === "expired" && (
             <span className={`${styles.badge} ${styles.badgeExpired}`}>
               {t("spaces.expired")}
             </span>
@@ -183,19 +203,26 @@ function SpaceCard({
           px: space.pixels,
         })}
       </div>
-      {space.purchaseType === "MONTHLY" && space.expiresAt && (
+      {space.expiresAt && (
         <div className={styles.meta}>
-          {space.active
+          {space.status === "active"
             ? t("spaces.renewsOn", {
                 date: new Date(space.expiresAt).toLocaleDateString(
                   i18n.language,
                 ),
               })
-            : t("spaces.expiredOn", {
-                date: new Date(space.expiresAt).toLocaleDateString(
-                  i18n.language,
-                ),
-              })}
+            : space.status === "grace"
+              ? t("spaces.graceUntil", {
+                  defaultValue: "Vence el {{date}} si no renuevas",
+                  date: space.graceEndsAt
+                    ? new Date(space.graceEndsAt).toLocaleString(i18n.language)
+                    : "",
+                })
+              : t("spaces.expiredOn", {
+                  date: new Date(space.expiresAt).toLocaleDateString(
+                    i18n.language,
+                  ),
+                })}
         </div>
       )}
 
@@ -259,6 +286,17 @@ function SpaceCard({
       )}
 
       {error && <div className={styles.error}>{error}</div>}
+
+      {onJump && (
+        <Button
+          variant="secondary"
+          size="sm"
+          fullWidth
+          onClick={() => onJump(space.x1, space.y1, space.x2, space.y2)}
+        >
+          {t("spaces.goTo", { defaultValue: "Ir al espacio" })}
+        </Button>
+      )}
 
       <Button
         variant="danger"
