@@ -36,10 +36,9 @@ export class StripeService {
     }
   }
 
-  // Tier de suscripción (asignación de estado: idempotente por naturaleza).
   async setSubscriptionTier(userId: number, tier: 'FREE' | 'PLUS' | 'PREMIUM') {
     if (!Number.isFinite(userId)) return;
-    await this.prisma.user.update({
+    await this.prisma.user.updateMany({
       where: { id: userId },
       data: { subscriptionTier: tier },
     });
@@ -75,6 +74,24 @@ export class StripeService {
       const code = (err as { code?: string } | null)?.code;
       if (code === 'P2002') return;
       throw err;
+    }
+  }
+
+  // Cancela todas las suscripciones de un customer (al eliminar la cuenta).
+  async cancelSubscriptionsForCustomer(customerId: string) {
+    const subs = await this.client.subscriptions.list({
+      customer: customerId,
+      status: 'all',
+      limit: 100,
+    });
+    for (const sub of subs.data) {
+      if (sub.status !== 'canceled' && sub.status !== 'incomplete_expired') {
+        try {
+          await this.client.subscriptions.cancel(sub.id);
+        } catch {
+          // ya cancelada o no cancelable: continuar
+        }
+      }
     }
   }
 }

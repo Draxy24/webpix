@@ -846,18 +846,27 @@ export default function Home() {
   useEffect(() => {
     const socket = io(API_URL, { auth: token ? { token } : undefined });
     socket.on(
-      "pixel",
+      "pixel-batch",
       (data: {
-        x: number;
-        y: number;
-        color: string;
-        nickname: string | null;
+        pixels: {
+          x: number;
+          y: number;
+          color: string;
+          nickname: string | null;
+        }[];
       }) => {
-        const key = `${data.x},${data.y}`;
-        setPixels((prev) => ({ ...prev, [key]: data.color }));
-        if (data.nickname) {
-          setPixelOwners((prev) => ({ ...prev, [key]: data.nickname! }));
-        }
+        setPixels((prev) => {
+          const next = { ...prev };
+          for (const p of data.pixels) next[`${p.x},${p.y}`] = p.color;
+          return next;
+        });
+        setPixelOwners((prev) => {
+          const next = { ...prev };
+          for (const p of data.pixels) {
+            if (p.nickname) next[`${p.x},${p.y}`] = p.nickname;
+          }
+          return next;
+        });
       },
     );
     socket.on("erase", (data: { cells: { x: number; y: number }[] }) => {

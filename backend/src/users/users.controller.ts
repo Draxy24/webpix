@@ -13,12 +13,17 @@ import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { levelInfo } from '../rewards/rewards.config';
 import { UpdateMeDto } from './dto/users.dto';
+import { BadRequestException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PixelCacheService } from '../pixel/pixel-cache.service';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private usersService: UsersService,
     private prisma: PrismaService,
+    private pixelCache: PixelCacheService,
+    private jwt: JwtService,
   ) {}
 
   @Get(':nickname')
@@ -69,18 +74,44 @@ export class UsersController {
     @Request() req: { user: { id: number } },
     @Body() body: UpdateMeDto,
   ) {
+    const current = await this.prisma.user.findUnique({
+      where: { id: req.user.id },
+    });
+    if (!current) throw new NotFoundException('Usuario no encontrado');
+
+    let nicknameChanged = false;
+    if (body.nickname && body.nickname !== current.nickname) {
+      const taken = await this.usersService.findByNickname(body.nickname);
+      if (taken) {
+        throw new BadRequestException({
+          message: 'El nickname ya está en uso',
+          code: 'NICKNAME_TAKEN',
+        });
+      }
+      nicknameChanged = true;
+    }
+
     const updated = await this.prisma.user.update({
       where: { id: req.user.id },
       data: {
         profilePic: body.profilePic,
         country: body.country,
+        ...(nicknameChanged ? { nickname: body.nickname } : {}),
       },
     });
+
+    // Si cambió el nickname: sincronizamos el caché del lienzo y emitimos token nuevo
+    let token: string | undefined;
+    if (nicknameChanged) {
+      this.pixelCache.updateNickname(current.nickname, updated.nickname);
+      token = this.jwt.sign({ sub: updated.id, nickname: updated.nickname });
+    }
 
     return {
       nickname: updated.nickname,
       profilePic: updated.profilePic,
       country: updated.country,
+      token, // solo viene cuando cambió el nickname
     };
   }
 }

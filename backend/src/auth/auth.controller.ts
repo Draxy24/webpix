@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   UseGuards,
   Request,
@@ -139,5 +140,11 @@ export class AuthController {
           : Math.max(limit.pixels - pixelsUsed, 0),
       cooldownSeconds,
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('account')
+  deleteAccount(@Request() req: { user: { id: number } }) {
+    return this.authService.deleteAccount(req.user.id);
   }
 }

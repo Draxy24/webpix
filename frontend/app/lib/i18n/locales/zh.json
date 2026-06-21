@@ -867,7 +867,13 @@
       "error": "注册失败",
       "haveAccount": "已有账户？",
       "login": "登录",
-      "title": "创建账户"
+      "title": "创建账户",
+      "mustAccept": "你必须接受条款才能继续。",
+      "acceptPre": "我已阅读并同意",
+      "termsLink": "服务条款",
+      "privacyLink": "隐私政策",
+      "acceptAnd": "和",
+      "refundsLink": "退款政策"
     },
     "login": {
       "emailOrPhone": "邮箱或电话",
@@ -894,7 +900,9 @@
     "edit": {
       "picUrl": "头像图片网址",
       "country": "国家",
-      "noCountry": "无国家"
+      "noCountry": "无国家",
+      "nickname": "用户名",
+      "saveError": "无法保存。"
     },
     "admin": "管理员",
     "stats": {
@@ -1016,6 +1024,14 @@
       "title": "外观与声音",
       "lightMode": "浅色模式",
       "sound": "音效"
+    },
+    "account": {
+      "title": "账户",
+      "deleteHint": "删除账户将取消你的订阅并永久删除你的数据。",
+      "delete": "删除账户",
+      "deleting": "正在删除...",
+      "confirmDelete": "这将永久删除你的账户，以及你的 Bits、装饰品和作品。此操作无法撤销。是否继续？",
+      "deleteFailed": "无法删除账户。"
     }
   },
   "toolbox": {

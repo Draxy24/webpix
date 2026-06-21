@@ -1030,7 +1030,13 @@
       "error": "Registrierung fehlgeschlagen",
       "haveAccount": "Hast du schon ein Konto?",
       "login": "Anmelden",
-      "title": "Konto erstellen"
+      "title": "Konto erstellen",
+      "mustAccept": "Du musst die Bedingungen akzeptieren, um fortzufahren.",
+      "acceptPre": "Ich akzeptiere die",
+      "termsLink": "Nutzungsbedingungen",
+      "privacyLink": "Datenschutzrichtlinie",
+      "acceptAnd": "und die",
+      "refundsLink": "Rückerstattungsrichtlinie"
     },
     "login": {
       "emailOrPhone": "E-Mail oder Telefon",
@@ -1061,7 +1067,9 @@
     "edit": {
       "picUrl": "URL des Profilbilds",
       "country": "Land",
-      "noCountry": "Kein Land"
+      "noCountry": "Kein Land",
+      "nickname": "Benutzername",
+      "saveError": "Konnte nicht gespeichert werden."
     },
     "admin": "Admin",
     "stats": {
@@ -1183,6 +1191,14 @@
       "title": "Darstellung und Ton",
       "lightMode": "Heller Modus",
       "sound": "Soundeffekte"
+    },
+    "account": {
+      "title": "Konto",
+      "deleteHint": "Wenn du dein Konto löschst, wird dein Abonnement gekündigt und deine Daten werden dauerhaft gelöscht.",
+      "delete": "Konto löschen",
+      "deleting": "Wird gelöscht...",
+      "confirmDelete": "Dies löscht dein Konto dauerhaft, zusammen mit deinen Bits, Kosmetika und Veröffentlichungen. Diese Aktion kann nicht rückgängig gemacht werden. Fortfahren?",
+      "deleteFailed": "Konto konnte nicht gelöscht werden."
     }
   },
   "toolbox": {

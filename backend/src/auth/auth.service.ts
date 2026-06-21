@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { StripeService } from '../stripe/stripe.service';
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -20,7 +21,45 @@ export class AuthService {
     private jwtService: JwtService,
     private prisma: PrismaService,
     private notificationService: NotificationService,
+    private stripe: StripeService,
   ) {}
+
+  async deleteAccount(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException({
+        message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
+      });
+    }
+
+    // 1. Cancelar suscripciones en Stripe (llamada externa, fuera de la transacción).
+    //    Si falla, abortamos y NO borramos, para no dejar una suscripción cobrando.
+    if (user.stripeCustomerId) {
+      await this.stripe.cancelSubscriptionsForCustomer(user.stripeCustomerId);
+    }
+
+    // 2. Limpieza y borrado en una sola transacción.
+    await this.prisma.$transaction(async (tx) => {
+      // Los píxeles del lienzo común permanecen, pero sin dueño (anonimizados).
+      await tx.pixel.updateMany({ where: { userId }, data: { userId: null } });
+
+      // Relaciones que NO cascadean desde User: hay que limpiarlas a mano.
+      await tx.friendship.deleteMany({
+        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+      });
+      await tx.publicationReaction.deleteMany({ where: { userId } });
+      await tx.publicationComment.deleteMany({ where: { userId } });
+      await tx.publication.deleteMany({ where: { userId } });
+
+      // Al borrar el usuario cascadean solas: verificationCodes, privateSpaces
+      // (+ members), waitlist, cosmetics, achievements, weeklyTasks,
+      // monthlyScores, rankingWins. Announcement.authorId queda en null.
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    return { success: true };
+  }
 
   async register(data: {
     email?: string;
@@ -323,6 +362,5 @@ export class AuthService {
         where: { id: resetRecordId },
       });
     }
-    return { success: true };
   }
 }

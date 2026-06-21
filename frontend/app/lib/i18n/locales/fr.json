@@ -1039,7 +1039,13 @@
       "error": "Échec de l'inscription",
       "haveAccount": "Vous avez déjà un compte ?",
       "login": "Se connecter",
-      "title": "Créer un compte"
+      "title": "Créer un compte",
+      "mustAccept": "Tu dois accepter les conditions pour continuer.",
+      "acceptPre": "J'ai lu et j'accepte les",
+      "termsLink": "Conditions d'utilisation",
+      "privacyLink": "Politique de confidentialité",
+      "acceptAnd": "et la",
+      "refundsLink": "Politique de remboursement"
     },
     "login": {
       "emailOrPhone": "E-mail ou téléphone",
@@ -1070,7 +1076,9 @@
     "edit": {
       "picUrl": "URL de la photo de profil",
       "country": "Pays",
-      "noCountry": "Aucun pays"
+      "noCountry": "Aucun pays",
+      "nickname": "Nom d'utilisateur",
+      "saveError": "Impossible d'enregistrer."
     },
     "admin": "Admin",
     "stats": {
@@ -1195,6 +1203,14 @@
       "title": "Apparence et son",
       "lightMode": "Mode clair",
       "sound": "Effets sonores"
+    },
+    "account": {
+      "title": "Compte",
+      "deleteHint": "La suppression de ton compte annule ton abonnement et efface définitivement tes données.",
+      "delete": "Supprimer le compte",
+      "deleting": "Suppression...",
+      "confirmDelete": "Cela supprimera définitivement ton compte, ainsi que tes Bits, cosmétiques et publications. Cette action est irréversible. Continuer ?",
+      "deleteFailed": "Impossible de supprimer le compte."
     }
   },
   "toolbox": {

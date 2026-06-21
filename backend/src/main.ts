@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
+import compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -21,6 +22,10 @@ async function bootstrap() {
   // Cabeceras de seguridad. crossOriginResourcePolicy en 'cross-origin' para que el
   // frontend (otro origen) pueda seguir cargando las imágenes servidas desde public/.
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+  // Compresión de respuestas: gran ahorro en GET /pixels (JSON grande). Solo toca el cuerpo
+  // de las RESPUESTAS, así que no interfiere con el rawBody del webhook de Stripe.
+  app.use(compression());
 
   app.useStaticAssets(join(process.cwd(), 'public'));
 

@@ -25,6 +25,13 @@ export class PixelCacheService implements OnModuleInit {
     this.logger.log(`Lienzo cargado en memoria: ${this.cache.size} píxeles`);
   }
 
+  // Sincroniza el nickname desnormalizado en todos los píxeles de un usuario.
+  updateNickname(oldNickname: string, newNickname: string) {
+    for (const entry of this.cache.values()) {
+      if (entry.nickname === oldNickname) entry.nickname = newNickname;
+    }
+  }
+
   set(x: number, y: number, color: string, nickname: string | null) {
     this.cache.set(`${x},${y}`, { color, nickname });
   }

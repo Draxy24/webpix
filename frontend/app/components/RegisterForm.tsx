@@ -29,10 +29,19 @@ export default function RegisterForm({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [country, setCountry] = useState("");
+  const [accepted, setAccepted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!accepted) {
+      setError(
+        t("auth.register.mustAccept", {
+          defaultValue: "Debes aceptar los términos para continuar.",
+        }),
+      );
+      return;
+    }
     setLoading(true);
     try {
       let body;
@@ -140,8 +149,62 @@ export default function RegisterForm({
             </option>
           ))}
       </select>
+      <label
+        style={{
+          display: "flex",
+          gap: "8px",
+          alignItems: "flex-start",
+          fontSize: "var(--text-sm)",
+          color: "var(--color-text-secondary)",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={accepted}
+          onChange={(e) => setAccepted(e.target.checked)}
+          required
+        />
+        <span>
+          {t("auth.register.acceptPre", {
+            defaultValue: "He leído y acepto los",
+          })}{" "}
+          <a
+            href="/terminos"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--color-brand)" }}
+          >
+            {t("auth.register.termsLink", {
+              defaultValue: "Términos de Servicio",
+            })}
+          </a>
+          {", "}
+          <a
+            href="/privacidad"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--color-brand)" }}
+          >
+            {t("auth.register.privacyLink", {
+              defaultValue: "Política de Privacidad",
+            })}
+          </a>{" "}
+          {t("auth.register.acceptAnd", { defaultValue: "y la" })}{" "}
+          <a
+            href="/reembolsos"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--color-brand)" }}
+          >
+            {t("auth.register.refundsLink", {
+              defaultValue: "Política de Reembolsos",
+            })}
+          </a>
+          .
+        </span>
+      </label>
       {error && <p className={styles.error}>{error}</p>}
-      <Button type="submit" disabled={loading} fullWidth size="lg">
+      <Button type="submit" disabled={loading || !accepted} fullWidth size="lg">
         {loading ? t("auth.register.submitting") : t("auth.register.submit")}
       </Button>
       <div className={styles.footerLinks}>

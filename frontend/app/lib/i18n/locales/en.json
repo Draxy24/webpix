@@ -1003,7 +1003,13 @@
       "error": "Registration failed",
       "haveAccount": "Already have an account?",
       "login": "Log in",
-      "title": "Create account"
+      "title": "Create account",
+      "mustAccept": "You must accept the terms to continue.",
+      "acceptPre": "I have read and accept the",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "acceptAnd": "and the",
+      "refundsLink": "Refund Policy"
     },
     "login": {
       "emailOrPhone": "Email or phone",
@@ -1034,7 +1040,9 @@
     "edit": {
       "picUrl": "Profile picture URL",
       "country": "Country",
-      "noCountry": "No country"
+      "noCountry": "No country",
+      "nickname": "Username",
+      "saveError": "Could not save."
     },
     "admin": "Admin",
     "stats": {
@@ -1159,6 +1167,14 @@
       "title": "Appearance and sound",
       "lightMode": "Light mode",
       "sound": "Sound effects"
+    },
+    "account": {
+      "title": "Account",
+      "deleteHint": "Deleting your account cancels your subscription and permanently erases your data.",
+      "delete": "Delete account",
+      "deleting": "Deleting...",
+      "confirmDelete": "This will permanently delete your account, along with your Bits, cosmetics and publications. This action cannot be undone. Continue?",
+      "deleteFailed": "Could not delete the account."
     }
   },
   "toolbox": {

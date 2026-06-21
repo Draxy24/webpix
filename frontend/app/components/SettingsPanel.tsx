@@ -4,6 +4,13 @@ import { useSettings } from "../context/settings";
 import styles from "./SettingsPanel.module.css";
 import { useTranslation } from "react-i18next";
 import { LANGS, setLanguage } from "../lib/i18n";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../context/auth";
+import { useNotify } from "./NotificationProvider";
+import Button from "./Button";
+import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 
 export default function SettingsPanel({
   palette,
@@ -14,6 +21,52 @@ export default function SettingsPanel({
 }) {
   const { settings, updateSetting } = useSettings();
   const { t, i18n } = useTranslation();
+  const { token, logout } = useAuth();
+  const { confirm, error } = useNotify();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    const ok = await confirm({
+      message: t("settings.account.confirmDelete", {
+        defaultValue:
+          "Esto eliminará tu cuenta de forma permanente, junto con tus Bits, cosméticos y publicaciones. Esta acción no se puede deshacer. ¿Continuar?",
+      }),
+      danger: true,
+    });
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(API_URL + "/auth/account", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          apiErrorText(
+            data,
+            t,
+            t("settings.account.deleteFailed", {
+              defaultValue: "No se pudo eliminar la cuenta.",
+            }),
+          ),
+        );
+      }
+      logout();
+      router.push("/");
+    } catch (err) {
+      error(
+        err instanceof Error
+          ? err.message
+          : t("settings.account.deleteFailed", {
+              defaultValue: "No se pudo eliminar la cuenta.",
+            }),
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -113,6 +166,27 @@ export default function SettingsPanel({
             ))}
           </select>
         </label>
+      </section>
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>
+          {t("settings.account.title", { defaultValue: "Cuenta" })}
+        </h3>
+        <p className={styles.hint}>
+          {t("settings.account.deleteHint", {
+            defaultValue:
+              "Al eliminar tu cuenta se cancela tu suscripción y se borran tus datos de forma permanente.",
+          })}
+        </p>
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={handleDeleteAccount}
+          disabled={deleting}
+        >
+          {deleting
+            ? t("settings.account.deleting", { defaultValue: "Eliminando..." })
+            : t("settings.account.delete", { defaultValue: "Eliminar cuenta" })}
+        </Button>
       </section>
     </div>
   );

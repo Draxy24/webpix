@@ -15,6 +15,7 @@ import FriendsView from "./FriendsView";
 import RewardsView from "./RewardsView";
 import { useProfileModal } from "./ProfileModalContext";
 import { API_URL } from "@/app/lib/api";
+import { apiErrorText } from "@/app/lib/apiError";
 
 export default function MenuPanel({
   nickname,
@@ -32,7 +33,7 @@ export default function MenuPanel({
   onClose: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { token } = useAuth();
+  const { token, login } = useAuth();
   const { openProfile } = useProfileModal();
   const goToProfile = (nick: string) => {
     openProfile(nick);
@@ -54,6 +55,8 @@ export default function MenuPanel({
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [frameRing, setFrameRing] = useState<string | null>(null);
   const [frameImg, setFrameImg] = useState<string | null>(null);
+  const [nickInput, setNickInput] = useState("");
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     if (!nickname) return;
@@ -70,13 +73,16 @@ export default function MenuPanel({
   }, [nickname]);
 
   const startEdit = () => {
+    setNickInput(nickname ?? "");
     setPicInput(profilePic);
     setCountryInput(country);
+    setEditError("");
     setEditing(true);
   };
 
   const handleSave = async () => {
     setSaving(true);
+    setEditError("");
     try {
       const res = await fetch(API_URL + "/users/me", {
         method: "PATCH",
@@ -84,13 +90,35 @@ export default function MenuPanel({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ profilePic: picInput, country: countryInput }),
+        body: JSON.stringify({
+          nickname: nickInput,
+          profilePic: picInput,
+          country: countryInput,
+        }),
       });
-      if (res.ok) {
-        setProfilePic(picInput);
-        setCountry(countryInput);
-        setEditing(false);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          apiErrorText(
+            data,
+            t,
+            t("menu.edit.saveError", { defaultValue: "No se pudo guardar." }),
+          ),
+        );
       }
+      setProfilePic(picInput);
+      setCountry(countryInput);
+      // Si cambió el nickname, el backend manda token nuevo: actualizamos la sesión
+      if (data.token) {
+        login(data.token, data.nickname);
+      }
+      setEditing(false);
+    } catch (err) {
+      setEditError(
+        err instanceof Error
+          ? err.message
+          : t("menu.edit.saveError", { defaultValue: "No se pudo guardar." }),
+      );
     } finally {
       setSaving(false);
     }
@@ -141,6 +169,17 @@ export default function MenuPanel({
                 onChange={(e) => setCountryInput(e.target.value)}
                 className={styles.editInput}
               >
+                <label className={styles.editLabel}>
+                  {t("menu.edit.nickname", {
+                    defaultValue: "Nombre de usuario",
+                  })}
+                </label>
+                <input
+                  type="text"
+                  value={nickInput}
+                  onChange={(e) => setNickInput(e.target.value)}
+                  className={styles.editInput}
+                />
                 <option value="">{t("menu.edit.noCountry")}</option>
                 {COUNTRIES.map((c) => ({
                   code: c.code,
@@ -153,6 +192,7 @@ export default function MenuPanel({
                     </option>
                   ))}
               </select>
+              {editError && <p className={styles.error}>{editError}</p>}
               <Button
                 variant="primary"
                 fullWidth
