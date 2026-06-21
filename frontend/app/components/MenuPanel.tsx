@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "./Button";
 import Flag from "./Flag";
@@ -49,7 +49,6 @@ export default function MenuPanel({
   } | null>(null);
 
   const [editing, setEditing] = useState(false);
-  const [picInput, setPicInput] = useState("");
   const [countryInput, setCountryInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -57,6 +56,9 @@ export default function MenuPanel({
   const [frameImg, setFrameImg] = useState<string | null>(null);
   const [nickInput, setNickInput] = useState("");
   const [editError, setEditError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!nickname) return;
@@ -74,7 +76,6 @@ export default function MenuPanel({
 
   const startEdit = () => {
     setNickInput(nickname ?? "");
-    setPicInput(profilePic);
     setCountryInput(country);
     setEditError("");
     setEditing(true);
@@ -92,7 +93,6 @@ export default function MenuPanel({
         },
         body: JSON.stringify({
           nickname: nickInput,
-          profilePic: picInput,
           country: countryInput,
         }),
       });
@@ -106,7 +106,6 @@ export default function MenuPanel({
           ),
         );
       }
-      setProfilePic(picInput);
       setCountry(countryInput);
       // Si cambió el nickname, el backend manda token nuevo: actualizamos la sesión
       if (data.token) {
@@ -121,6 +120,46 @@ export default function MenuPanel({
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(API_URL + "/users/me/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          apiErrorText(
+            data,
+            t,
+            t("menu.edit.uploadError", {
+              defaultValue: "No se pudo subir la imagen.",
+            }),
+          ),
+        );
+      }
+      setProfilePic(data.profilePic);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error
+          ? err.message
+          : t("menu.edit.uploadError", {
+              defaultValue: "No se pudo subir la imagen.",
+            }),
+      );
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -152,15 +191,53 @@ export default function MenuPanel({
           editing ? (
             <div className={styles.box}>
               <label className={styles.editLabel}>
-                {t("menu.edit.picUrl")}
+                {t("menu.edit.nickname", { defaultValue: "Nombre de usuario" })}
               </label>
               <input
                 type="text"
-                value={picInput}
-                onChange={(e) => setPicInput(e.target.value)}
-                placeholder="https://..."
+                value={nickInput}
+                onChange={(e) => setNickInput(e.target.value)}
                 className={styles.editInput}
               />
+
+              <label className={styles.editLabel}>
+                {t("menu.edit.photo", { defaultValue: "Foto de perfil" })}
+              </label>
+              <div
+                className={styles.avatar}
+                style={
+                  profilePic
+                    ? {
+                        backgroundImage: `url(${profilePic})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }
+                    : undefined
+                }
+              >
+                {!profilePic && nickname?.charAt(0).toUpperCase()}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                style={{ display: "none" }}
+              />
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading
+                  ? t("menu.edit.uploading", { defaultValue: "Subiendo..." })
+                  : t("menu.edit.changePhoto", {
+                      defaultValue: "Cambiar foto",
+                    })}
+              </Button>
+              {uploadError && <p className={styles.error}>{uploadError}</p>}
+
               <label className={styles.editLabel}>
                 {t("menu.edit.country")}
               </label>
@@ -169,17 +246,6 @@ export default function MenuPanel({
                 onChange={(e) => setCountryInput(e.target.value)}
                 className={styles.editInput}
               >
-                <label className={styles.editLabel}>
-                  {t("menu.edit.nickname", {
-                    defaultValue: "Nombre de usuario",
-                  })}
-                </label>
-                <input
-                  type="text"
-                  value={nickInput}
-                  onChange={(e) => setNickInput(e.target.value)}
-                  className={styles.editInput}
-                />
                 <option value="">{t("menu.edit.noCountry")}</option>
                 {COUNTRIES.map((c) => ({
                   code: c.code,
@@ -192,7 +258,9 @@ export default function MenuPanel({
                     </option>
                   ))}
               </select>
+
               {editError && <p className={styles.error}>{editError}</p>}
+
               <Button
                 variant="primary"
                 fullWidth

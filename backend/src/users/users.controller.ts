@@ -16,6 +16,11 @@ import { UpdateMeDto } from './dto/users.dto';
 import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PixelCacheService } from '../pixel/pixel-cache.service';
+import { Post, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { randomUUID } from 'crypto';
+import sharp from 'sharp';
+import { StorageService } from '../storage/storage.service';
 
 @Controller('users')
 export class UsersController {
@@ -24,6 +29,7 @@ export class UsersController {
     private prisma: PrismaService,
     private pixelCache: PixelCacheService,
     private jwt: JwtService,
+    private storage: StorageService,
   ) {}
 
   @Get(':nickname')
@@ -113,5 +119,46 @@ export class UsersController {
       country: updated.country,
       token, // solo viene cuando cambió el nickname
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/avatar')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
+  async uploadAvatar(
+    @Request() req: { user: { id: number } },
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException({
+        message: 'No se recibió ninguna imagen',
+        code: 'NO_FILE',
+      });
+    }
+
+    let processed: Buffer;
+    try {
+      processed = await sharp(file.buffer)
+        .rotate() // respeta la orientación EXIF antes de descartar metadatos
+        .resize(256, 256, { fit: 'cover' })
+        .webp({ quality: 80 })
+        .toBuffer();
+    } catch {
+      throw new BadRequestException({
+        message: 'El archivo no es una imagen válida',
+        code: 'INVALID_IMAGE',
+      });
+    }
+
+    const key = `avatars/${req.user.id}-${randomUUID()}.webp`;
+    const url = await this.storage.uploadObject(key, processed, 'image/webp');
+
+    await this.prisma.user.update({
+      where: { id: req.user.id },
+      data: { profilePic: url },
+    });
+
+    return { profilePic: url };
   }
 }
