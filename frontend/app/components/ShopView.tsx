@@ -478,7 +478,7 @@ export default function ShopView() {
                 )}
                 <div className={styles.cardFooter}>
                   <span className={styles.price}>
-                    ${(pkg.priceCents / 100).toFixed(2)}
+                    ${(pkg.priceCents / 100).toFixed(2)} MXN
                   </span>
                   <button
                     className={styles.buyBtn}
