@@ -297,7 +297,7 @@ export class ShopService {
         {
           quantity: 1,
           price_data: {
-            currency: 'usd',
+            currency: 'mxn',
             unit_amount: pkg.priceCents,
             product_data: {
               name: `${pkg.name} — ${total.toLocaleString('en-US')} Bits`,

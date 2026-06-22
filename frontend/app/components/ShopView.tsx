@@ -504,9 +504,9 @@ export default function ShopView() {
               const isCurrent = data.tier === tier;
               const price =
                 tier === "PLUS"
-                  ? "$2 USD"
+                  ? "$35 MXN"
                   : tier === "PREMIUM"
-                    ? "$5 USD"
+                    ? "$85 MXN"
                     : null;
               return (
                 <div

@@ -1725,7 +1725,7 @@ export const BIT_PACKAGES = [
     name: 'Puñado de Bits',
     bits: 100,
     bonus: 0,
-    priceCents: 99,
+    priceCents: 2000,
     icon: '/bits/bits_punado.webp',
   },
   {
@@ -1733,7 +1733,7 @@ export const BIT_PACKAGES = [
     name: 'Bolsa de Bits',
     bits: 550,
     bonus: 50,
-    priceCents: 499,
+    priceCents: 10000,
     icon: '/bits/bits_bolsa.webp',
   },
   {
@@ -1741,7 +1741,7 @@ export const BIT_PACKAGES = [
     name: 'Cofre de Bits',
     bits: 1200,
     bonus: 200,
-    priceCents: 999,
+    priceCents: 20000,
     icon: '/bits/bits_cofre.webp',
   },
   {
@@ -1749,7 +1749,7 @@ export const BIT_PACKAGES = [
     name: 'Baúl de Bits',
     bits: 2600,
     bonus: 600,
-    priceCents: 1999,
+    priceCents: 35000,
     icon: '/bits/bits_baul.webp',
   },
   {
@@ -1757,7 +1757,7 @@ export const BIT_PACKAGES = [
     name: 'Tesoro de Bits',
     bits: 7000,
     bonus: 2000,
-    priceCents: 4999,
+    priceCents: 85000,
     icon: '/bits/bits_tesoro.webp',
   },
 ];
