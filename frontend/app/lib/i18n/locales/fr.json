@@ -729,7 +729,9 @@
       "PALETTE_NOT_FOUND": "Palette introuvable.",
       "PALETTE_EMPTY": "Cette palette n'a aucune couleur.",
       "PALETTE_ALREADY_OWNED": "Tu possèdes déjà toute cette palette.",
-      "PACKAGE_NOT_FOUND": "Forfait introuvable."
+      "PACKAGE_NOT_FOUND": "Forfait introuvable.",
+      "NO_SUBSCRIPTION": "Tu n'as aucun abonnement à gérer.",
+      "PLAN_NOT_FOUND": "Ce forfait n'est pas disponible."
     },
     "modalTitle": "Boutique",
     "rarity": {
@@ -1184,6 +1186,9 @@
       "waitInfo": "On t'enverra un email quand ce sera ton tour.",
       "leave": "Quitter la liste",
       "failed": "Échec de l'inscription."
+    },
+    "drag": {
+      "paintedXofY": "Tu as peint {{x}} pixels sur {{y}} (limite atteinte)."
     }
   },
   "settings": {

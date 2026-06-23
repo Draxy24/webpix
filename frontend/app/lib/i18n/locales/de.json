@@ -717,7 +717,9 @@
       "PALETTE_NOT_FOUND": "Palette nicht gefunden.",
       "PALETTE_EMPTY": "Diese Palette hat keine Farben.",
       "PALETTE_ALREADY_OWNED": "Du besitzt diese Palette bereits vollständig.",
-      "PACKAGE_NOT_FOUND": "Paket nicht gefunden."
+      "PACKAGE_NOT_FOUND": "Paket nicht gefunden.",
+      "NO_SUBSCRIPTION": "Du hast kein Abo, das du verwalten kannst.",
+      "PLAN_NOT_FOUND": "Dieser Plan ist nicht verfügbar."
     },
     "modalTitle": "Shop",
     "rarity": {
@@ -1172,6 +1174,9 @@
       "waitInfo": "Wir benachrichtigen dich per E-Mail, wenn du dran bist.",
       "leave": "Warteliste verlassen",
       "failed": "Eintragen fehlgeschlagen."
+    },
+    "drag": {
+      "paintedXofY": "Du hast {{x}} von {{y}} Pixeln gemalt (Limit erreicht)."
     }
   },
   "settings": {

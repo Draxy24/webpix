@@ -699,7 +699,9 @@
       "PALETTE_NOT_FOUND": "Palette not found.",
       "PALETTE_EMPTY": "This palette has no colors.",
       "PALETTE_ALREADY_OWNED": "You already own this whole palette.",
-      "PACKAGE_NOT_FOUND": "Package not found."
+      "PACKAGE_NOT_FOUND": "Package not found.",
+      "NO_SUBSCRIPTION": "You don't have a subscription to manage.",
+      "PLAN_NOT_FOUND": "This plan isn't available."
     },
     "modalTitle": "Shop",
     "rarity": {
@@ -1148,6 +1150,9 @@
       "waitInfo": "We'll email you when it's your turn.",
       "leave": "Leave waitlist",
       "failed": "Couldn't join."
+    },
+    "drag": {
+      "paintedXofY": "You painted {{x}} of {{y}} pixels (limit reached)."
     }
   },
   "settings": {
