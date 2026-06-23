@@ -10,7 +10,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { Throttle } from '@nestjs/throttler';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import {
   RegisterDto,
   LoginDto,
@@ -87,6 +87,7 @@ export class AuthController {
     );
   }
 
+  @SkipThrottle()
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getMe(@Request() req: { user: { id: number; nickname: string } }) {

@@ -13,6 +13,7 @@ import { OptionalJwtGuard } from './auth/optional-jwt.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { NotBannedGuard } from './auth/not-banned.guard';
 import { SetPixelDto, EraseDto, EraseAreaDto } from './dto/app.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller()
 export class AppController {
@@ -32,6 +33,7 @@ export class AppController {
     return this.pixelService.getAnonymousState(ip);
   }
 
+  @Throttle({ default: { limit: 600, ttl: 60000 } })
   @UseGuards(OptionalJwtGuard)
   @Post('pixel')
   async setPixel(
@@ -58,6 +60,7 @@ export class AppController {
     );
   }
 
+  @Throttle({ default: { limit: 600, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post('erase')
   async erasePixel(

@@ -26,7 +26,7 @@ import { StripeModule } from './stripe/stripe.module';
     // tráfico real. El pintado de píxeles va por el gateway WebSocket, así que NO se ve
     // afectado por este guard HTTP (el lienzo sigue fluido).
     SentryModule.forRoot(),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 300 }]),
     PrismaModule,
     UsersModule,
     AuthModule,
