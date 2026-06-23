@@ -393,76 +393,6 @@ export default function Home() {
         eraseAtPoint(x, y, key);
         return;
       }
-      if (cooldownRef.current > 0) {
-        if (soundEnabledRef.current) playError();
-        return;
-      }
-      if (clicksRef.current <= 0) {
-        if (soundEnabledRef.current) playError();
-        return;
-      }
-
-      ctx.fillStyle = resolveColor(colorRef.current, x, y);
-      ctx.fillRect(x, y, 1, 1);
-      if (soundEnabledRef.current) playPaint();
-
-      const color = colorRef.current;
-      setPixels((prev) => ({ ...prev, [key]: color }));
-      setClicksLeft((prev) => {
-        const newValue = Math.max(prev - 1, 0);
-        if (newValue <= 0) setCooldown(3 * 60 * 60);
-        return newValue;
-      });
-
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (tokenRef.current)
-        headers["Authorization"] = `Bearer ${tokenRef.current}`;
-
-      fetch(API_URL + "/pixel", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ x, y, color }),
-      })
-        .then(async (res) => {
-          const data = await res.json();
-          if (!data.success) {
-            setPixels((prev) => {
-              const reverted = { ...prev };
-              delete reverted[key];
-              return reverted;
-            });
-            setClicksLeft((prev) => prev + 1);
-            if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
-            else if (data.message || data.code)
-              setNotice(apiErrorText(data, tRef.current));
-            return;
-          }
-          if (data.state) {
-            if (data.state.isAdmin || data.state.pixelsLeft === null) {
-              setClicksLeft(Infinity);
-            } else {
-              setClicksLeft(data.state.pixelsLeft);
-              if (data.state.cooldownSeconds > 0)
-                setCooldown(data.state.cooldownSeconds);
-            }
-          }
-          if (Array.isArray(data.events)) {
-            for (const ev of data.events) {
-              eventToast(ev, tRef.current, rewardRef.current);
-            }
-          }
-        })
-        .catch(() => {
-          setPixels((prev) => {
-            const reverted = { ...prev };
-            delete reverted[key];
-            return reverted;
-          });
-          setClicksLeft((prev) => prev + 1);
-          console.error("Error al guardar el pixel, se revirtió el cambio.");
-        });
     };
 
     canvas.addEventListener("click", handleClick);
@@ -581,6 +511,234 @@ export default function Home() {
       ctx.strokeRect(x1 + 0.5, y1 + 0.5, w - 1, h - 1);
     }
   }, [pixels, zoom, highlightZone]);
+
+  // Pintar con brocha arrastrando: junta celdas mientras mantienes el clic
+  // izquierdo y las manda en tandas a /pixel-batch. Un clic suelto = tanda de 1.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let dragging = false;
+    let dragColor = "#000000";
+    let lastCell: { x: number; y: number } | null = null;
+    const triedThisDrag = new Set<string>(); // todas las celdas que tocó el arrastre
+    const paintedThisDrag = new Set<string>(); // las que sí cupieron en la cuota
+    let buffer: { x: number; y: number }[] = []; // pendientes de mandar al server
+    let localBudget = Infinity; // presupuesto optimista (clicksLeft)
+    let budgetHit = false;
+    let flushTimer: ReturnType<typeof setInterval> | null = null;
+    let lastSoundAt = 0;
+
+    const FLUSH_MS = 120;
+    const MAX_PER_REQUEST = 200; // muy por debajo del cap de 500 del server
+
+    const toCell = (event: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: Math.floor((event.clientX - rect.left) * scaleX),
+        y: Math.floor((event.clientY - rect.top) * scaleY),
+      };
+    };
+
+    // Bresenham: rellena la línea entre dos puntos para que los arrastres
+    // rápidos no dejen huecos.
+    const lineCells = (x0: number, y0: number, x1: number, y1: number) => {
+      const cells: { x: number; y: number }[] = [];
+      const dx = Math.abs(x1 - x0);
+      const dy = Math.abs(y1 - y0);
+      const sx = x0 < x1 ? 1 : -1;
+      const sy = y0 < y1 ? 1 : -1;
+      let err = dx - dy;
+      let cx = x0;
+      let cy = y0;
+      for (;;) {
+        cells.push({ x: cx, y: cy });
+        if (cx === x1 && cy === y1) break;
+        const e2 = 2 * err;
+        if (e2 > -dy) {
+          err -= dy;
+          cx += sx;
+        }
+        if (e2 < dx) {
+          err += dx;
+          cy += sy;
+        }
+      }
+      return cells;
+    };
+
+    const commitCells = (cands: { x: number; y: number }[]) => {
+      const accepted: { x: number; y: number }[] = [];
+      for (const c of cands) {
+        if (c.x < 0 || c.x > 999 || c.y < 0 || c.y > 999) continue;
+        const key = `${c.x},${c.y}`;
+        if (triedThisDrag.has(key)) continue;
+        triedThisDrag.add(key);
+        if (localBudget <= 0) {
+          budgetHit = true;
+          continue; // contamos la celda como "intentada" pero ya no cabe
+        }
+        localBudget -= 1;
+        paintedThisDrag.add(key);
+        accepted.push(c);
+        ctx.fillStyle = resolveColor(dragColor, c.x, c.y);
+        ctx.fillRect(c.x, c.y, 1, 1);
+      }
+      if (accepted.length === 0) return;
+      const now = Date.now();
+      if (soundEnabledRef.current && now - lastSoundAt > 60) {
+        playPaint();
+        lastSoundAt = now;
+      }
+      for (const c of accepted) buffer.push(c);
+      // Mergeamos al estado para que sobrevivan a redibujos (socket, zoom).
+      setPixels((prev) => {
+        const next = { ...prev };
+        for (const c of accepted) next[`${c.x},${c.y}`] = dragColor;
+        return next;
+      });
+    };
+
+    const sendChunk = (cells: { x: number; y: number }[]) => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (tokenRef.current)
+        headers["Authorization"] = `Bearer ${tokenRef.current}`;
+
+      fetch(API_URL + "/pixel-batch", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ color: dragColor, cells }),
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!data.success) {
+            setPixels((prev) => {
+              const next = { ...prev };
+              for (const c of cells) delete next[`${c.x},${c.y}`];
+              return next;
+            });
+            if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
+            else if (data.message || data.code)
+              setNotice(apiErrorText(data, tRef.current));
+            return;
+          }
+          // Revertir solo lo que el server NO pintó (cuota o espacio privado).
+          if (Array.isArray(data.skipped) && data.skipped.length > 0) {
+            setPixels((prev) => {
+              const next = { ...prev };
+              for (const c of data.skipped) delete next[`${c.x},${c.y}`];
+              return next;
+            });
+          }
+          if (data.state) {
+            if (data.state.isAdmin || data.state.pixelsLeft === null) {
+              setClicksLeft(Infinity);
+            } else {
+              setClicksLeft(data.state.pixelsLeft);
+              if (data.state.cooldownSeconds > 0)
+                setCooldown(data.state.cooldownSeconds);
+            }
+          }
+          if (Array.isArray(data.events)) {
+            for (const ev of data.events)
+              eventToast(ev, tRef.current, rewardRef.current);
+          }
+        })
+        .catch(() => {
+          setPixels((prev) => {
+            const next = { ...prev };
+            for (const c of cells) delete next[`${c.x},${c.y}`];
+            return next;
+          });
+        });
+    };
+
+    const flush = (isFinal = false) => {
+      if (buffer.length === 0) return;
+      do {
+        sendChunk(buffer.splice(0, MAX_PER_REQUEST));
+      } while (isFinal && buffer.length > 0); // en el final, drena todo
+    };
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0) return; // solo clic izquierdo (el derecho hace pan)
+      if (event.ctrlKey) return; // ctrl+clic = ver perfil (lo maneja el click)
+      if (multiTouchRef.current) return;
+      if (activeToolRef.current !== "brush") return;
+      if (selectionModeRef.current) return;
+      if (cooldownRef.current > 0) {
+        if (soundEnabledRef.current) playError();
+        return;
+      }
+      if (clicksRef.current <= 0) {
+        if (soundEnabledRef.current) playError();
+        return;
+      }
+
+      dragging = true;
+      dragColor = colorRef.current;
+      triedThisDrag.clear();
+      paintedThisDrag.clear();
+      buffer = [];
+      budgetHit = false;
+      localBudget =
+        isAdminRef.current || clicksRef.current === Infinity
+          ? Infinity
+          : clicksRef.current;
+
+      const { x, y } = toCell(event);
+      lastCell = { x, y };
+      commitCells([{ x, y }]);
+      flushTimer = setInterval(() => flush(false), FLUSH_MS);
+    };
+
+    const onMouseMove = (event: MouseEvent) => {
+      if (!dragging) return;
+      const { x, y } = toCell(event);
+      if (lastCell && (lastCell.x !== x || lastCell.y !== y)) {
+        const seg = lineCells(lastCell.x, lastCell.y, x, y).slice(1); // sin el inicio
+        commitCells(seg);
+        lastCell = { x, y };
+      }
+    };
+
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      lastCell = null;
+      if (flushTimer) {
+        clearInterval(flushTimer);
+        flushTimer = null;
+      }
+      flush(true);
+      if (budgetHit) {
+        setNotice(
+          tRef.current("canvas.drag.paintedXofY", {
+            defaultValue: "Pinté {{x}} de {{y}} píxeles (límite alcanzado).",
+            x: paintedThisDrag.size,
+            y: triedThisDrag.size,
+          }),
+        );
+      }
+    };
+
+    canvas.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", endDrag);
+
+    return () => {
+      canvas.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", endDrag);
+      if (flushTimer) clearInterval(flushTimer);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("pixels", JSON.stringify(pixels));

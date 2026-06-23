@@ -624,7 +624,9 @@
       "PALETTE_NOT_FOUND": "未找到调色板。",
       "PALETTE_EMPTY": "该调色板没有颜色。",
       "PALETTE_ALREADY_OWNED": "你已拥有整个调色板。",
-      "PACKAGE_NOT_FOUND": "未找到礼包。"
+      "PACKAGE_NOT_FOUND": "未找到礼包。",
+      "NO_SUBSCRIPTION": "你没有可管理的订阅。",
+      "PLAN_NOT_FOUND": "此订阅方案不可用。"
     },
     "modalTitle": "商店",
     "rarity": {
@@ -1005,6 +1007,9 @@
       "waitInfo": "轮到你时我们会发邮件通知你。",
       "leave": "退出名单",
       "failed": "加入失败。"
+    },
+    "drag": {
+      "paintedXofY": "已绘制 {{x}}/{{y}} 个像素（已达上限）。"
     }
   },
   "settings": {

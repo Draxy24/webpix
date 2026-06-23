@@ -114,19 +114,24 @@ export class AchievementsService {
   }
 
   // Marcador mensual del ranking: acumula actividad del periodo actual
-  async recordMonthly(userId: number, field: 'pixels' | 'creations') {
+  async recordMonthly(
+    userId: number,
+    field: 'pixels' | 'creations',
+    increment = 1,
+  ) {
+    if (increment <= 0) return;
     const period = currentPeriod();
     const isPixels = field === 'pixels';
     await this.prisma.monthlyScore.upsert({
       where: { userId_period: { userId, period } },
       update: isPixels
-        ? { pixels: { increment: 1 } }
-        : { creations: { increment: 1 } },
+        ? { pixels: { increment } }
+        : { creations: { increment } },
       create: {
         userId,
         period,
-        pixels: isPixels ? 1 : 0,
-        creations: isPixels ? 0 : 1,
+        pixels: isPixels ? increment : 0,
+        creations: isPixels ? 0 : increment,
       },
     });
   }

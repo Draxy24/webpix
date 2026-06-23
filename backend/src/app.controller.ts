@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { NotBannedGuard } from './auth/not-banned.guard';
 import { SetPixelDto, EraseDto, EraseAreaDto } from './dto/app.dto';
 import { Throttle } from '@nestjs/throttler';
+import { PaintBatchDto } from './dto/app.dto';
 
 @Controller()
 export class AppController {
@@ -82,6 +83,29 @@ export class AppController {
       body.y1,
       body.x2,
       body.y2,
+    );
+  }
+
+  @Throttle({ default: { limit: 600, ttl: 60000 } })
+  @UseGuards(OptionalJwtGuard)
+  @Post('pixel-batch')
+  async setPixelBatch(
+    @Body() body: PaintBatchDto,
+    @Request()
+    req: {
+      user?: { id: number; nickname: string; banned?: boolean };
+      ip?: string;
+    },
+  ) {
+    if (req.user?.banned) {
+      throw new ForbiddenException('Tu cuenta está suspendida');
+    }
+    return this.pixelService.checkAndPaintBatch(
+      body.cells,
+      body.color,
+      req.user?.id ?? null,
+      req.user?.nickname ?? null,
+      req.ip ?? 'unknown',
     );
   }
 }

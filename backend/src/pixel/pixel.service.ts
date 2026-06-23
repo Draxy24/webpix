@@ -44,6 +44,28 @@ type EraseResult =
     }
   | { success: false; message: string; code: string };
 
+const MAX_BATCH = 500;
+
+type PaintBatchResult =
+  | {
+      success: true;
+      painted: number;
+      requested: number;
+      skipped: { x: number; y: number }[];
+      state: {
+        isAdmin: boolean;
+        pixelsLeft: number | null;
+        cooldownSeconds: number;
+      };
+      events: RewardEvent[];
+    }
+  | {
+      success: false;
+      cooldownSeconds: number;
+      message: string;
+      code: string;
+    };
+
 const anonymousCooldowns = new Map<
   string,
   { pixelsUsed: number; cooldownUntil: Date | null }
@@ -566,5 +588,361 @@ export class PixelService {
       const data = uc.cosmetic.data as { token?: string } | null;
       return data?.token === token;
     });
+  }
+
+  async checkAndPaintBatch(
+    cells: { x: number; y: number }[],
+    color: string,
+    userId: number | null,
+    nickname: string | null,
+    ip: string,
+  ): Promise<PaintBatchResult> {
+    // Dedup: un arrastre puede repetir celdas; no deben consumir cuota doble.
+    const seen = new Set<string>();
+    const unique: { x: number; y: number }[] = [];
+    for (const c of cells) {
+      const k = `${c.x},${c.y}`;
+      if (!seen.has(k)) {
+        seen.add(k);
+        unique.push(c);
+      }
+    }
+
+    if (unique.length === 0)
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Tanda vacía',
+        code: 'BATCH_EMPTY',
+      };
+    if (unique.length > MAX_BATCH)
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Tanda demasiado grande',
+        code: 'BATCH_TOO_LARGE',
+      };
+
+    if (userId) {
+      return this.paintBatchAsUser(unique, color, userId, nickname);
+    }
+    return this.paintBatchAsAnonymous(unique, color, ip);
+  }
+
+  private async paintBatchAsUser(
+    cells: { x: number; y: number }[],
+    color: string,
+    userId: number,
+    nickname: string | null,
+  ): Promise<PaintBatchResult> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user)
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Usuario no encontrado',
+        code: 'USER_NOT_FOUND',
+      };
+
+    // Color exótico: verificar posesión UNA vez para toda la tanda.
+    if (!isHexColor(color) && !(await this.userOwnsColorToken(userId, color)))
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'No posees este color exótico',
+        code: 'COLOR_NOT_OWNED',
+      };
+
+    const now = new Date();
+    const limit = TIER_LIMITS[user.subscriptionTier];
+
+    // ----- Clasificar celdas -----
+    // free = dentro de un privado con acceso (no consume cuota)
+    // normal = fuera de privados (consume cuota)
+    // denied = dentro de un privado sin acceso (se saltan en silencio)
+    const freeCells: { x: number; y: number }[] = [];
+    const normalCells: { x: number; y: number }[] = [];
+
+    const xs = cells.map((c) => c.x);
+    const ys = cells.map((c) => c.y);
+    const touchesPrivate = await this.privateSpaces.overlapsActiveSpace(
+      Math.min(...xs),
+      Math.max(...xs),
+      Math.min(...ys),
+      Math.max(...ys),
+    );
+
+    if (!touchesPrivate) {
+      normalCells.push(...cells); // fast-path: nada toca privados
+    } else {
+      for (const c of cells) {
+        const access = await this.privateSpaces.checkPaintAccess(
+          userId,
+          c.x,
+          c.y,
+        );
+        if (access.inSpace) {
+          if (access.allowed || user.isAdmin) freeCells.push(c);
+          // si no, se queda fuera (denied) y se revertirá vía 'skipped'
+        } else {
+          normalCells.push(c);
+        }
+      }
+    }
+
+    // ----- Cooldown (solo no-admin) -----
+    let pixelsUsed = user.pixelsUsed;
+    let cooldownActive = false;
+    if (!user.isAdmin) {
+      if (user.cooldownUntil && user.cooldownUntil > now) {
+        cooldownActive = true;
+      } else if (user.cooldownUntil && user.cooldownUntil <= now) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { pixelsUsed: 0, cooldownUntil: null },
+        });
+        pixelsUsed = 0;
+        user.cooldownUntil = null;
+      }
+    }
+
+    // ----- Cuánto de lo "normal" se puede pintar -----
+    let normalToPaint: { x: number; y: number }[];
+    if (user.isAdmin || limit.pixels === Infinity) {
+      normalToPaint = normalCells; // sin tope
+    } else if (cooldownActive) {
+      normalToPaint = []; // en cooldown no se pintan celdas normales
+    } else {
+      const available = Math.max(limit.pixels - pixelsUsed, 0);
+      normalToPaint = normalCells.slice(0, available);
+    }
+
+    const toPaint = [...freeCells, ...normalToPaint];
+
+    if (toPaint.length === 0) {
+      if (cooldownActive) {
+        const cooldownSeconds = Math.ceil(
+          (user.cooldownUntil!.getTime() - now.getTime()) / 1000,
+        );
+        return {
+          success: false,
+          cooldownSeconds,
+          message: 'En cooldown',
+          code: 'COOLDOWN',
+        };
+      }
+      if (
+        !user.isAdmin &&
+        limit.pixels !== Infinity &&
+        pixelsUsed >= limit.pixels
+      ) {
+        let cd = user.cooldownUntil;
+        if (!cd) {
+          cd = new Date(Date.now() + limit.cooldownHours * 60 * 60 * 1000);
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: { cooldownUntil: cd },
+          });
+        }
+        return {
+          success: false,
+          cooldownSeconds: Math.ceil((cd.getTime() - Date.now()) / 1000),
+          message: 'Límite alcanzado',
+          code: 'LIMIT_REACHED',
+        };
+      }
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'No se pintó ningún píxel',
+        code: 'NOTHING_PAINTED',
+      };
+    }
+
+    // ----- Persistir (atómico) y difundir -----
+    const paintedAt = new Date();
+    await this.prisma.$transaction(
+      toPaint.map((c) =>
+        this.prisma.pixel.upsert({
+          where: { x_y: { x: c.x, y: c.y } },
+          update: { color, userId, paintedAt },
+          create: { x: c.x, y: c.y, color, userId },
+        }),
+      ),
+    );
+    for (const c of toPaint)
+      this.gateway.broadcastPixel(c.x, c.y, color, nickname);
+
+    // ----- Logros/XP/mensual: solo celdas normales (igual que el single, admin incluido) -----
+    let events: RewardEvent[] = [];
+    const normalPainted = normalToPaint.length;
+    if (normalPainted > 0) {
+      events = await this.achievements.track(
+        userId,
+        'PIXELS_PLACED',
+        normalPainted,
+      );
+      await this.achievements.recordMonthly(userId, 'pixels', normalPainted);
+    }
+
+    // ----- Cuota y cooldown (no-admin) -----
+    let cooldownSeconds = 0;
+    let pixelsLeft: number | null = null;
+
+    if (!user.isAdmin && normalPainted > 0) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { pixelsUsed: { increment: normalPainted } },
+      });
+    }
+
+    if (user.isAdmin || limit.pixels === Infinity) {
+      pixelsLeft = null;
+    } else {
+      const updated = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (updated!.pixelsUsed >= limit.pixels && !updated!.cooldownUntil) {
+        const cooldownUntil = new Date(
+          Date.now() + limit.cooldownHours * 60 * 60 * 1000,
+        );
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { cooldownUntil },
+        });
+        cooldownSeconds = limit.cooldownHours * 60 * 60;
+      } else if (
+        updated!.cooldownUntil &&
+        updated!.cooldownUntil > new Date()
+      ) {
+        cooldownSeconds = Math.ceil(
+          (updated!.cooldownUntil.getTime() - Date.now()) / 1000,
+        );
+      }
+      pixelsLeft = Math.max(limit.pixels - updated!.pixelsUsed, 0);
+    }
+
+    const paintedSet = new Set(toPaint.map((c) => `${c.x},${c.y}`));
+    const skipped = cells.filter((c) => !paintedSet.has(`${c.x},${c.y}`));
+
+    return {
+      success: true,
+      painted: toPaint.length,
+      requested: cells.length,
+      skipped,
+      state: { isAdmin: user.isAdmin, pixelsLeft, cooldownSeconds },
+      events,
+    };
+  }
+
+  private async paintBatchAsAnonymous(
+    cells: { x: number; y: number }[],
+    color: string,
+    ip: string,
+  ): Promise<PaintBatchResult> {
+    if (!isHexColor(color))
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'Inicia sesión para usar colores exóticos',
+        code: 'LOGIN_FOR_EXOTIC',
+      };
+
+    const now = new Date();
+    const state = anonymousCooldowns.get(ip) ?? {
+      pixelsUsed: 0,
+      cooldownUntil: null,
+    };
+
+    if (state.cooldownUntil && state.cooldownUntil > now)
+      return {
+        success: false,
+        cooldownSeconds: Math.ceil(
+          (state.cooldownUntil.getTime() - now.getTime()) / 1000,
+        ),
+        message: 'En cooldown',
+        code: 'COOLDOWN',
+      };
+    if (state.cooldownUntil && state.cooldownUntil <= now) {
+      state.pixelsUsed = 0;
+      state.cooldownUntil = null;
+    }
+
+    // Anónimos no pueden pintar dentro de espacios privados: filtrarlas.
+    let paintable = cells;
+    const xs = cells.map((c) => c.x);
+    const ys = cells.map((c) => c.y);
+    if (
+      await this.privateSpaces.overlapsActiveSpace(
+        Math.min(...xs),
+        Math.max(...xs),
+        Math.min(...ys),
+        Math.max(...ys),
+      )
+    ) {
+      const ok: { x: number; y: number }[] = [];
+      for (const c of cells) {
+        const access = await this.privateSpaces.checkPaintAccess(
+          null,
+          c.x,
+          c.y,
+        );
+        if (!access.inSpace) ok.push(c);
+      }
+      paintable = ok;
+    }
+
+    const available = Math.max(30 - state.pixelsUsed, 0);
+    const toPaint = paintable.slice(0, available);
+
+    if (toPaint.length === 0) {
+      if (available === 0) {
+        state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
+        anonymousCooldowns.set(ip, state);
+        return {
+          success: false,
+          cooldownSeconds: 3 * 60 * 60,
+          message: 'Límite alcanzado',
+          code: 'LIMIT_REACHED',
+        };
+      }
+      return {
+        success: false,
+        cooldownSeconds: 0,
+        message: 'No se pintó ningún píxel',
+        code: 'NOTHING_PAINTED',
+      };
+    }
+
+    const paintedAt = new Date();
+    await this.prisma.$transaction(
+      toPaint.map((c) =>
+        this.prisma.pixel.upsert({
+          where: { x_y: { x: c.x, y: c.y } },
+          update: { color, userId: null, paintedAt },
+          create: { x: c.x, y: c.y, color, userId: null },
+        }),
+      ),
+    );
+    for (const c of toPaint) this.gateway.broadcastPixel(c.x, c.y, color, null);
+
+    state.pixelsUsed += toPaint.length;
+    anonymousCooldowns.set(ip, state);
+
+    const paintedSet = new Set(toPaint.map((c) => `${c.x},${c.y}`));
+    const skipped = cells.filter((c) => !paintedSet.has(`${c.x},${c.y}`));
+
+    return {
+      success: true,
+      painted: toPaint.length,
+      requested: cells.length,
+      skipped,
+      state: {
+        isAdmin: false,
+        pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
+        cooldownSeconds: 0,
+      },
+      events: [],
+    };
   }
 }
