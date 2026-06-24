@@ -405,17 +405,13 @@ export default function Home() {
       const mouseX = event.clientX - containerRect.left;
       const mouseY = event.clientY - containerRect.top;
       setZoom((prev) => {
-        const factor = Math.exp(-event.deltaY * 0.001);
-        const minZoom = Math.max(
-          1,
-          window.innerWidth / 1000,
-          window.innerHeight / 1000,
-        );
-        const newZoom = Math.max(minZoom, Math.min(prev * factor, 40));
+        const dir = event.deltaY < 0 ? 1 : -1; // arriba acerca, abajo aleja
+        const next = clampZoomInt(prev + dir);
+        if (next === prev) return prev; // ya en el tope: no recolocar
         const canvasX = (container.scrollLeft + mouseX) / prev;
         const canvasY = (container.scrollTop + mouseY) / prev;
         pendingZoomRef.current = { canvasX, canvasY, mouseX, mouseY };
-        return newZoom;
+        return next;
       });
     };
     canvas.addEventListener("wheel", handleWheel);
@@ -898,14 +894,7 @@ export default function Home() {
   }, [settings.soundEnabled]);
 
   useEffect(() => {
-    const clampZoom = () => {
-      const minZoom = Math.max(
-        1,
-        window.innerWidth / 1000,
-        window.innerHeight / 1000,
-      );
-      setZoom((prev) => Math.max(prev, minZoom));
-    };
+    const clampZoom = () => setZoom((prev) => clampZoomInt(prev));
     clampZoom();
     window.addEventListener("resize", clampZoom);
     return () => window.removeEventListener("resize", clampZoom);
@@ -953,15 +942,8 @@ export default function Home() {
           (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
 
         setZoom((prev) => {
-          const minZoom = Math.max(
-            1,
-            window.innerWidth / 1000,
-            window.innerHeight / 1000,
-          );
-          const newZoom = Math.max(
-            minZoom,
-            Math.min(pinchStartZoom * ratio, 40),
-          );
+          const next = clampZoomInt(pinchStartZoom * ratio);
+          if (next === prev) return prev;
           const canvasX = (container.scrollLeft + midX) / prev;
           const canvasY = (container.scrollTop + midY) / prev;
           pendingZoomRef.current = {
@@ -970,7 +952,7 @@ export default function Home() {
             mouseX: midX,
             mouseY: midY,
           };
-          return newZoom;
+          return next;
         });
       }
     };
@@ -1261,10 +1243,8 @@ export default function Home() {
         window.innerWidth / 1000,
         window.innerHeight / 1000,
       );
-      const fitZoom = Math.max(
-        minZoom,
+      const fitZoom = clampZoomInt(
         Math.min(
-          40,
           (container.clientWidth * 0.6) / zoneW,
           (container.clientHeight * 0.6) / zoneH,
         ),
@@ -1296,6 +1276,16 @@ export default function Home() {
     },
     [],
   );
+
+  const minZoomInt = () =>
+    Math.max(
+      1,
+      Math.ceil(window.innerWidth / 1000),
+      Math.ceil(window.innerHeight / 1000),
+    );
+
+  const clampZoomInt = (z: number) =>
+    Math.max(minZoomInt(), Math.min(Math.round(z), 40));
 
   // Deep-link ?zone=x1_y1_x2_y2 (al cargar la página, p. ej. un enlace compartido)
   useEffect(() => {
