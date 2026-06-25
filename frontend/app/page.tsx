@@ -1541,8 +1541,12 @@ export default function Home() {
     const container = containerRef.current;
     if (!container) return;
     const { canvasX, canvasY, mouseX, mouseY } = pendingZoomRef.current;
-    container.scrollLeft = canvasX * zoom - mouseX;
-    container.scrollTop = canvasY * zoom - mouseY;
+
+    const maxL = Math.max(0, 1000 * zoom - container.clientWidth);
+    const maxT = Math.max(0, 1000 * zoom - container.clientHeight);
+
+    container.scrollLeft = Math.max(0, Math.min(canvasX * zoom - mouseX, maxL));
+    container.scrollTop = Math.max(0, Math.min(canvasY * zoom - mouseY, maxT));
     pendingZoomRef.current = null;
   }, [zoom]);
 

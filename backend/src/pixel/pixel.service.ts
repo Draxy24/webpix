@@ -937,6 +937,15 @@ export class PixelService {
     for (const c of toPaint) this.gateway.broadcastPixel(c.x, c.y, color, null);
 
     state.pixelsUsed += toPaint.length;
+
+    // Si esta tanda agotó la cuota, arma el cooldown YA y devuélvelo en esta
+    // misma respuesta exitosa (mismo criterio que el pintado de un solo píxel).
+    let cooldownSeconds = 0;
+    if (state.pixelsUsed >= 30) {
+      state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      cooldownSeconds = 3 * 60 * 60;
+    }
+
     anonymousCooldowns.set(ip, state);
 
     const paintedSet = new Set(toPaint.map((c) => `${c.x},${c.y}`));
@@ -950,7 +959,7 @@ export class PixelService {
       state: {
         isAdmin: false,
         pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
-        cooldownSeconds: 0,
+        cooldownSeconds,
       },
       events: [],
     };
