@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { UserThrottlerGuard } from './auth/user-throttler.guard';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
@@ -47,7 +48,7 @@ import { StripeModule } from './stripe/stripe.module';
   controllers: [AppController],
   providers: [
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
   ],
 })
 export class AppModule {}
