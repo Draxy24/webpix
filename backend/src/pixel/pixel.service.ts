@@ -342,14 +342,24 @@ export class PixelService {
     this.gateway.broadcastPixel(x, y, color, null);
 
     state.pixelsUsed += 1;
+
+    // Si este píxel agotó la cuota, arma el cooldown YA y devuélvelo en esta
+    // misma respuesta exitosa, para que el anónimo vea el reloj sin tener que
+    // intentar (y fallar) un píxel de más.
+    let cooldownSeconds = 0;
+    if (state.pixelsUsed >= 30) {
+      state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      cooldownSeconds = 3 * 60 * 60;
+    }
+
     anonymousCooldowns.set(ip, state);
 
     return {
       success: true,
       state: {
         isAdmin: false,
-        pixelsLeft: 30 - state.pixelsUsed,
-        cooldownSeconds: 0,
+        pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
+        cooldownSeconds,
       },
       events: [],
     };
