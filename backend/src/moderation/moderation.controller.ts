@@ -20,11 +20,13 @@ import {
   BanUserDto,
   ModifyBanDto,
 } from './dto/moderation.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller()
 export class ModerationController {
   constructor(private moderationService: ModerationService) {}
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post('reports')
   createReport(

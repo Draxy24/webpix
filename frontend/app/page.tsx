@@ -192,6 +192,8 @@ export default function Home() {
   const [colorRefresh, setColorRefresh] = useState(0);
   const zoomRef = useRef(zoom);
   const multiTouchRef = useRef(false);
+  const [gestureLock, setGestureLock] = useState(false);
+  const gestureLockRef = useRef(false);
 
   const selectionModeRef = useRef(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -843,6 +845,68 @@ export default function Home() {
     };
   }, []);
 
+  // Pan táctil de un dedo: tomamos control del desplazamiento para que la
+  // diagonal sea fluida (el scroll nativo la descomponía en escalera).
+  // Con lock activo NO hace pan (deja el dedo libre para pintar/seleccionar).
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let panning = false;
+    let startX = 0;
+    let startY = 0;
+    let startScrollLeft = 0;
+    let startScrollTop = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      // Solo un dedo. Dos o más = pinch-zoom, no nos metemos.
+      if (e.touches.length !== 1) {
+        panning = false;
+        return;
+      }
+      // Con lock activo, el dedo es para pintar/seleccionar, no para pan.
+      if (gestureLockRef.current) return;
+
+      panning = true;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startScrollLeft = container.scrollLeft;
+      startScrollTop = container.scrollTop;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!panning) return;
+      if (e.touches.length !== 1) {
+        panning = false; // apareció un segundo dedo: cede al pinch
+        return;
+      }
+      // Movemos el scroll nosotros, en ambos ejes a la vez (diagonal libre).
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      const maxL = Math.max(0, 1000 * zoomRef.current - container.clientWidth);
+      const maxT = Math.max(0, 1000 * zoomRef.current - container.clientHeight);
+      container.scrollLeft = Math.max(0, Math.min(startScrollLeft - dx, maxL));
+      container.scrollTop = Math.max(0, Math.min(startScrollTop - dy, maxT));
+      e.preventDefault(); // evita cualquier scroll nativo residual
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) panning = false;
+    };
+
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd);
+    container.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, []);
+
   useEffect(() => {
     if (cooldown <= 0) return;
     const interval = setInterval(() => {
@@ -884,6 +948,9 @@ export default function Home() {
   useEffect(() => {
     zoomRef.current = zoom;
   }, [zoom]);
+  useEffect(() => {
+    gestureLockRef.current = gestureLock;
+  }, [gestureLock]);
 
   useEffect(() => {
     showCoordsRef.current = settings.showCoords;
@@ -1567,7 +1634,7 @@ export default function Home() {
           inset: 0,
           overflow: "auto",
           cursor: "grab",
-          touchAction: "pan-x pan-y",
+          touchAction: "none",
           overscrollBehavior: "contain",
         }}
       >

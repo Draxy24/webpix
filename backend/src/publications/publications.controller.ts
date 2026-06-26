@@ -18,11 +18,13 @@ import {
   ReactDto,
   AddCommentDto,
 } from './dto/publications.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('publications')
 export class PublicationsController {
   constructor(private publicationsService: PublicationsService) {}
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post()
   create(
@@ -66,6 +68,7 @@ export class PublicationsController {
     return this.publicationsService.react(id, req.user.id, body.type);
   }
 
+  @Throttle({ default: { limit: 15, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt'), NotBannedGuard)
   @Post(':id/comments')
   addComment(
