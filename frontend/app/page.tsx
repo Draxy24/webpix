@@ -2234,11 +2234,6 @@ export default function Home() {
       {isMobile && (
         <button
           onClick={() => setGestureLock((v) => !v)}
-          onTouchEnd={(e) => {
-            e.preventDefault(); // evita el click sintético duplicado
-            e.stopPropagation(); // que el toque no llegue a los handlers del lienzo
-            setGestureLock((v) => !v);
-          }}
           aria-label={
             gestureLock
               ? t("canvas.lock.unlock", {
