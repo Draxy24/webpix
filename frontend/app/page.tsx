@@ -61,7 +61,13 @@ function formatPeriod(period: string, lang: string) {
 
 function LockIcon({ locked }: { locked: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ pointerEvents: "none" }}
+    >
       {/* Arco del candado: cerrado = baja y cierra; abierto = levantado y desplazado */}
       {locked ? (
         <>
