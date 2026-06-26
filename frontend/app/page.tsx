@@ -59,6 +59,31 @@ function formatPeriod(period: string, lang: string) {
   });
 }
 
+function LockIcon({ locked }: { locked: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor">
+      {/* Arco del candado: cerrado = baja y cierra; abierto = levantado y desplazado */}
+      {locked ? (
+        <>
+          <rect x="5" y="2" width="6" height="2" />
+          <rect x="5" y="4" width="2" height="3" />
+          <rect x="9" y="4" width="2" height="3" />
+        </>
+      ) : (
+        <>
+          <rect x="7" y="1" width="6" height="2" />
+          <rect x="7" y="3" width="2" height="4" />
+          <rect x="11" y="3" width="2" height="2" />
+        </>
+      )}
+      {/* Cuerpo del candado (igual en ambos estados) */}
+      <rect x="3" y="7" width="10" height="7" />
+      {/* Ojo de la cerradura, en hueco (color de fondo) */}
+      <rect x="7" y="9" width="2" height="3" fill="var(--color-surface)" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { success, error, reward, info } = useNotify();
@@ -91,6 +116,7 @@ export default function Home() {
   const showCoordsRef = useRef(settings.showCoords);
   const soundEnabledRef = useRef(settings.soundEnabled);
   const [pixelOwners, setPixelOwners] = useState<Record<string, string>>({});
+  const [isMobile, setIsMobile] = useState(false);
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
@@ -961,6 +987,14 @@ export default function Home() {
   }, [settings.soundEnabled]);
 
   useEffect(() => {
+    const mq = window.matchMedia("(max-width: 600px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
     const clampZoom = () => setZoom((prev) => clampZoomInt(prev));
     clampZoom();
     window.addEventListener("resize", clampZoom);
@@ -995,7 +1029,7 @@ export default function Home() {
 
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length >= 2) {
-        e.preventDefault(); // evita el scroll nativo durante el pellizco
+        e.preventDefault();
         const dist = getDist(e.touches);
         if (pinchStartDist === 0) {
           pinchStartDist = dist;
@@ -1008,18 +1042,32 @@ export default function Home() {
         const midY =
           (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
 
-        setZoom((prev) => {
-          const next = clampZoomInt(pinchStartZoom * ratio);
-          if (next === prev) return prev;
-          const canvasX = (container.scrollLeft + midX) / prev;
-          const canvasY = (container.scrollTop + midY) / prev;
-          pendingZoomRef.current = {
-            canvasX,
-            canvasY,
-            mouseX: midX,
-            mouseY: midY,
-          };
-          return next;
+        const prev = zoomRef.current;
+        const next = clampZoomInt(pinchStartZoom * ratio);
+        if (next === prev) return;
+
+        // Punto del lienzo bajo el centro del pinch (antes de cambiar zoom)
+        const canvasX = (container.scrollLeft + midX) / prev;
+        const canvasY = (container.scrollTop + midY) / prev;
+
+        // Aplicamos el zoom al estado...
+        setZoom(next);
+        zoomRef.current = next; // sincronizamos el ref de inmediato
+
+        // ...y reposicionamos el scroll YA, sin esperar el ciclo de React.
+        // El contenedor se redimensiona en el mismo frame al cambiar el ancho/alto
+        // del hijo, así que clampeamos contra el nuevo tamaño.
+        requestAnimationFrame(() => {
+          const maxL = Math.max(0, 1000 * next - container.clientWidth);
+          const maxT = Math.max(0, 1000 * next - container.clientHeight);
+          container.scrollLeft = Math.max(
+            0,
+            Math.min(canvasX * next - midX, maxL),
+          );
+          container.scrollTop = Math.max(
+            0,
+            Math.min(canvasY * next - midY, maxT),
+          );
         });
       }
     };
@@ -1169,6 +1217,261 @@ export default function Home() {
       setSelection(null);
     }
   }, [activeTool, eraseMode, privateMode]);
+
+  // Con LOCK ACTIVO, el dedo queda libre: pinta (pincel) o selecciona (área).
+  // Reutiliza la misma lógica de píxeles/selección del escritorio.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const toCell = (touch: Touch) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: Math.floor((touch.clientX - rect.left) * scaleX),
+        y: Math.floor((touch.clientY - rect.top) * scaleY),
+      };
+    };
+
+    // --- Estado del arrastre táctil (pincel) ---
+    let painting = false;
+    let dragColor = "#000000";
+    let lastCell: { x: number; y: number } | null = null;
+    const triedThisDrag = new Set<string>();
+    const paintedThisDrag = new Set<string>();
+    let buffer: { x: number; y: number }[] = [];
+    let localBudget = Infinity;
+    let budgetHit = false;
+    let flushTimer: ReturnType<typeof setInterval> | null = null;
+    let lastSoundAt = 0;
+    const FLUSH_MS = 120;
+    const MAX_PER_REQUEST = 200;
+    const ctx = canvas.getContext("2d");
+
+    const lineCells = (x0: number, y0: number, x1: number, y1: number) => {
+      const cells: { x: number; y: number }[] = [];
+      const dx = Math.abs(x1 - x0);
+      const dy = Math.abs(y1 - y0);
+      const sx = x0 < x1 ? 1 : -1;
+      const sy = y0 < y1 ? 1 : -1;
+      let err = dx - dy;
+      let cx = x0;
+      let cy = y0;
+      for (;;) {
+        cells.push({ x: cx, y: cy });
+        if (cx === x1 && cy === y1) break;
+        const e2 = 2 * err;
+        if (e2 > -dy) {
+          err -= dy;
+          cx += sx;
+        }
+        if (e2 < dx) {
+          err += dx;
+          cy += sy;
+        }
+      }
+      return cells;
+    };
+
+    const commitCells = (cands: { x: number; y: number }[]) => {
+      if (!ctx) return;
+      const accepted: { x: number; y: number }[] = [];
+      for (const c of cands) {
+        if (c.x < 0 || c.x > 999 || c.y < 0 || c.y > 999) continue;
+        const key = `${c.x},${c.y}`;
+        if (triedThisDrag.has(key)) continue;
+        triedThisDrag.add(key);
+        if (localBudget <= 0) {
+          budgetHit = true;
+          continue;
+        }
+        localBudget -= 1;
+        paintedThisDrag.add(key);
+        accepted.push(c);
+        ctx.fillStyle = resolveColor(dragColor, c.x, c.y);
+        ctx.fillRect(c.x, c.y, 1, 1);
+      }
+      if (accepted.length === 0) return;
+      const now = Date.now();
+      if (soundEnabledRef.current && now - lastSoundAt > 60) {
+        playPaint();
+        lastSoundAt = now;
+      }
+      for (const c of accepted) buffer.push(c);
+      setPixels((prev) => {
+        const next = { ...prev };
+        for (const c of accepted) next[`${c.x},${c.y}`] = dragColor;
+        return next;
+      });
+    };
+
+    const sendChunk = (cells: { x: number; y: number }[]) => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (tokenRef.current)
+        headers["Authorization"] = `Bearer ${tokenRef.current}`;
+      fetch(API_URL + "/pixel-batch", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ color: dragColor, cells }),
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!data.success) {
+            setPixels((prev) => {
+              const next = { ...prev };
+              for (const c of cells) delete next[`${c.x},${c.y}`];
+              return next;
+            });
+            if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
+            else if (data.message || data.code)
+              setNotice(apiErrorText(data, tRef.current));
+            return;
+          }
+          if (Array.isArray(data.skipped) && data.skipped.length > 0) {
+            setPixels((prev) => {
+              const next = { ...prev };
+              for (const c of data.skipped) delete next[`${c.x},${c.y}`];
+              return next;
+            });
+          }
+          if (data.state) {
+            if (data.state.isAdmin || data.state.pixelsLeft === null)
+              setClicksLeft(Infinity);
+            else {
+              setClicksLeft(data.state.pixelsLeft);
+              if (data.state.cooldownSeconds > 0)
+                setCooldown(data.state.cooldownSeconds);
+            }
+          }
+          if (Array.isArray(data.events))
+            for (const ev of data.events)
+              eventToast(ev, tRef.current, rewardRef.current);
+        })
+        .catch(() => {
+          setPixels((prev) => {
+            const next = { ...prev };
+            for (const c of cells) delete next[`${c.x},${c.y}`];
+            return next;
+          });
+        });
+    };
+
+    const flush = (isFinal = false) => {
+      if (buffer.length === 0) return;
+      do {
+        sendChunk(buffer.splice(0, MAX_PER_REQUEST));
+      } while (isFinal && buffer.length > 0);
+    };
+
+    // --- touchstart ---
+    const onTouchStart = (e: TouchEvent) => {
+      if (!gestureLockRef.current) return; // sin lock: lo maneja el pan
+      if (e.touches.length !== 1) return; // un dedo
+      const touch = e.touches[0];
+      const { x, y } = toCell(touch);
+
+      // Modo selección: arrancar el rectángulo
+      if (selectionModeRef.current) {
+        selectionStartRef.current = { x, y };
+        setSelection({ x1: x, y1: y, x2: x, y2: y });
+        e.preventDefault();
+        return;
+      }
+
+      // Modo pincel: arrancar el pintado
+      if (activeToolRef.current === "brush") {
+        if (cooldownRef.current > 0 || clicksRef.current <= 0) {
+          if (soundEnabledRef.current) playError();
+          return;
+        }
+        painting = true;
+        dragColor = colorRef.current;
+        triedThisDrag.clear();
+        paintedThisDrag.clear();
+        buffer = [];
+        budgetHit = false;
+        localBudget =
+          isAdminRef.current || clicksRef.current === Infinity
+            ? Infinity
+            : clicksRef.current;
+        lastCell = { x, y };
+        commitCells([{ x, y }]);
+        flushTimer = setInterval(() => flush(false), FLUSH_MS);
+        e.preventDefault();
+      }
+    };
+
+    // --- touchmove ---
+    const onTouchMove = (e: TouchEvent) => {
+      if (!gestureLockRef.current) return;
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const { x, y } = toCell(touch);
+
+      // Selección: actualizar el rectángulo
+      if (selectionModeRef.current && selectionStartRef.current) {
+        const start = selectionStartRef.current;
+        setSelection({
+          x1: Math.min(start.x, x),
+          y1: Math.min(start.y, y),
+          x2: Math.max(start.x, x),
+          y2: Math.max(start.y, y),
+        });
+        e.preventDefault();
+        return;
+      }
+
+      // Pincel: pintar la línea interpolada
+      if (painting && lastCell && (lastCell.x !== x || lastCell.y !== y)) {
+        const seg = lineCells(lastCell.x, lastCell.y, x, y).slice(1);
+        commitCells(seg);
+        lastCell = { x, y };
+        e.preventDefault();
+      }
+    };
+
+    // --- touchend ---
+    const onTouchEnd = () => {
+      if (selectionModeRef.current) {
+        selectionStartRef.current = null;
+        return;
+      }
+      if (painting) {
+        painting = false;
+        lastCell = null;
+        if (flushTimer) {
+          clearInterval(flushTimer);
+          flushTimer = null;
+        }
+        flush(true);
+        if (budgetHit) {
+          setNotice(
+            tRef.current("canvas.drag.paintedXofY", {
+              defaultValue: "Pinté {{x}} de {{y}} píxeles (límite alcanzado).",
+              x: paintedThisDrag.size,
+              y: triedThisDrag.size,
+            }),
+          );
+        }
+      }
+    };
+
+    canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+    canvas.addEventListener("touchend", onTouchEnd);
+    canvas.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("touchend", onTouchEnd);
+      canvas.removeEventListener("touchcancel", onTouchEnd);
+      if (flushTimer) clearInterval(flushTimer);
+    };
+  }, []);
 
   // Cargar zonas privadas activas para dibujar sus bordes
   useEffect(() => {
@@ -1926,6 +2229,43 @@ export default function Home() {
           if (mode === "manage") setShowManageModal(true);
         }}
       />
+
+      {/* Botón de candado (lock de gesto) — solo móvil */}
+      {isMobile && (
+        <button
+          onClick={() => setGestureLock((v) => !v)}
+          aria-label={
+            gestureLock
+              ? t("canvas.lock.unlock", {
+                  defaultValue: "Desbloquear pantalla",
+                })
+              : t("canvas.lock.lock", { defaultValue: "Bloquear pantalla" })
+          }
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            left: "24px",
+            zIndex: 40,
+            width: "52px",
+            height: "52px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "var(--radius-md)",
+            border: `var(--border-normal) solid ${
+              gestureLock ? "var(--color-brand)" : "var(--color-border-strong)"
+            }`,
+            background: gestureLock
+              ? "var(--color-elevated)"
+              : "var(--color-surface)",
+            color: gestureLock ? "var(--color-brand)" : "var(--color-text)",
+            boxShadow: "var(--shadow-soft-md)",
+            cursor: "pointer",
+          }}
+        >
+          <LockIcon locked={gestureLock} />
+        </button>
+      )}
 
       {/* Tooltip */}
       {tooltip &&
