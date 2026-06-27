@@ -180,7 +180,6 @@ export default function Home() {
       return {};
     }
   });
-  const [zoom, setZoom] = useState(10);
   const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTool, setActiveTool] = useState<Tool>("brush");
@@ -212,12 +211,6 @@ export default function Home() {
   const [purchasing, setPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState("");
   const [notice, setNotice] = useState("");
-  const pendingZoomRef = useRef<{
-    canvasX: number;
-    canvasY: number;
-    mouseX: number;
-    mouseY: number;
-  } | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selection, setSelection] = useState<{
     x1: number;
@@ -243,11 +236,15 @@ export default function Home() {
     { key: string; token: string; swatch: string; name: string }[]
   >([]);
   const [colorRefresh, setColorRefresh] = useState(0);
-  const zoomRef = useRef(zoom);
+
   const multiTouchRef = useRef(false);
   const [gestureLock, setGestureLock] = useState(false);
   const gestureLockRef = useRef(false);
-
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  // Fuente de verdad de la cámara. transform-origin del wrapper = 0,0, así que
+  // un punto del lienzo (cx,cy) cae en pantalla en (tx + cx*scale, ty + cy*scale).
+  const viewRef = useRef({ scale: 10, tx: 0, ty: 0 });
   const selectionModeRef = useRef(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const activeToolRef = useRef(activeTool);
@@ -452,25 +449,6 @@ export default function Home() {
 
     canvas.addEventListener("click", handleClick);
 
-    const handleWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      const container = containerRef.current;
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      const mouseX = event.clientX - containerRect.left;
-      const mouseY = event.clientY - containerRect.top;
-      setZoom((prev) => {
-        const dir = event.deltaY < 0 ? 1 : -1; // arriba acerca, abajo aleja
-        const next = clampZoomInt(prev + dir);
-        if (next === prev) return prev; // ya en el tope: no recolocar
-        const canvasX = (container.scrollLeft + mouseX) / prev;
-        const canvasY = (container.scrollTop + mouseY) / prev;
-        pendingZoomRef.current = { canvasX, canvasY, mouseX, mouseY };
-        return next;
-      });
-    };
-    canvas.addEventListener("wheel", handleWheel);
-
     const handleMouseMove = (event: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
@@ -532,7 +510,6 @@ export default function Home() {
 
     return () => {
       canvas.removeEventListener("click", handleClick);
-      canvas.removeEventListener("wheel", handleWheel);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mousedown", handleSelectionMouseDown);
       canvas.removeEventListener("mouseup", handleSelectionMouseUp);
@@ -561,7 +538,7 @@ export default function Home() {
       ctx.lineWidth = 1;
       ctx.strokeRect(x1 + 0.5, y1 + 0.5, w - 1, h - 1);
     }
-  }, [pixels, zoom, highlightZone]);
+  }, [pixels, highlightZone]);
 
   // Pintar con brocha arrastrando: junta celdas mientras mantienes el clic
   // izquierdo y las manda en tandas a /pixel-batch. Un clic suelto = tanda de 1.
@@ -855,112 +832,6 @@ export default function Home() {
   }, [router, token]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    let isDragging = false;
-    let startX = 0,
-      startY = 0,
-      scrollLeft = 0,
-      scrollTop = 0;
-
-    const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 2) return;
-      isDragging = true;
-      container.style.cursor = "grabbing";
-      startX = e.pageX;
-      startY = e.pageY;
-      scrollLeft = container.scrollLeft;
-      scrollTop = container.scrollTop;
-    };
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      const dx = e.pageX - startX;
-      const dy = e.pageY - startY;
-      container.scrollLeft = scrollLeft - dx;
-      container.scrollTop = scrollTop - dy;
-    };
-    const onMouseUp = () => {
-      isDragging = false;
-      container.style.cursor = "grab";
-    };
-    const disableContextMenu = (e: MouseEvent) => e.preventDefault();
-
-    container.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    container.addEventListener("contextmenu", disableContextMenu);
-
-    return () => {
-      container.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-      container.removeEventListener("contextmenu", disableContextMenu);
-    };
-  }, []);
-
-  // Pan táctil de un dedo: tomamos control del desplazamiento para que la
-  // diagonal sea fluida (el scroll nativo la descomponía en escalera).
-  // Con lock activo NO hace pan (deja el dedo libre para pintar/seleccionar).
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let panning = false;
-    let startX = 0;
-    let startY = 0;
-    let startScrollLeft = 0;
-    let startScrollTop = 0;
-
-    const onTouchStart = (e: TouchEvent) => {
-      // Solo un dedo. Dos o más = pinch-zoom, no nos metemos.
-      if (e.touches.length !== 1) {
-        panning = false;
-        return;
-      }
-      // Con lock activo, el dedo es para pintar/seleccionar, no para pan.
-      if (gestureLockRef.current) return;
-
-      panning = true;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      startScrollLeft = container.scrollLeft;
-      startScrollTop = container.scrollTop;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!panning) return;
-      if (e.touches.length !== 1) {
-        panning = false; // apareció un segundo dedo: cede al pinch
-        return;
-      }
-      // Movemos el scroll nosotros, en ambos ejes a la vez (diagonal libre).
-      const dx = e.touches[0].clientX - startX;
-      const dy = e.touches[0].clientY - startY;
-      const maxL = Math.max(0, 1000 * zoomRef.current - container.clientWidth);
-      const maxT = Math.max(0, 1000 * zoomRef.current - container.clientHeight);
-      container.scrollLeft = Math.max(0, Math.min(startScrollLeft - dx, maxL));
-      container.scrollTop = Math.max(0, Math.min(startScrollTop - dy, maxT));
-      e.preventDefault(); // evita cualquier scroll nativo residual
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length === 0) panning = false;
-    };
-
-    container.addEventListener("touchstart", onTouchStart, { passive: false });
-    container.addEventListener("touchmove", onTouchMove, { passive: false });
-    container.addEventListener("touchend", onTouchEnd);
-    container.addEventListener("touchcancel", onTouchEnd);
-
-    return () => {
-      container.removeEventListener("touchstart", onTouchStart);
-      container.removeEventListener("touchmove", onTouchMove);
-      container.removeEventListener("touchend", onTouchEnd);
-      container.removeEventListener("touchcancel", onTouchEnd);
-    };
-  }, []);
-
-  useEffect(() => {
     if (cooldown <= 0) return;
     const interval = setInterval(() => {
       setCooldown((prev) => {
@@ -999,9 +870,6 @@ export default function Home() {
     cooldownRef.current = cooldown;
   }, [cooldown]);
   useEffect(() => {
-    zoomRef.current = zoom;
-  }, [zoom]);
-  useEffect(() => {
     gestureLockRef.current = gestureLock;
   }, [gestureLock]);
 
@@ -1019,110 +887,6 @@ export default function Home() {
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
-  }, []);
-
-  useEffect(() => {
-    const clampZoom = () => setZoom((prev) => clampZoomInt(prev));
-    clampZoom();
-    window.addEventListener("resize", clampZoom);
-    return () => window.removeEventListener("resize", clampZoom);
-  }, []);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let pinchStartDist = 0;
-    let pinchStartZoom = 0;
-    let resetTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const getDist = (t: TouchList) => {
-      const dx = t[0].clientX - t[1].clientX;
-      const dy = t[0].clientY - t[1].clientY;
-      return Math.hypot(dx, dy);
-    };
-
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length >= 2) {
-        multiTouchRef.current = true;
-        if (resetTimer) {
-          clearTimeout(resetTimer);
-          resetTimer = null;
-        }
-        pinchStartDist = getDist(e.touches);
-        pinchStartZoom = zoomRef.current;
-      }
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length >= 2) {
-        e.preventDefault();
-        const dist = getDist(e.touches);
-        if (pinchStartDist === 0) {
-          pinchStartDist = dist;
-          return;
-        }
-        const ratio = dist / pinchStartDist;
-        const rect = container.getBoundingClientRect();
-        const midX =
-          (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-        const midY =
-          (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-
-        const prev = zoomRef.current;
-        const next = clampZoomInt(pinchStartZoom * ratio);
-        if (next === prev) return;
-
-        // Punto del lienzo bajo el centro del pinch (antes de cambiar zoom)
-        const canvasX = (container.scrollLeft + midX) / prev;
-        const canvasY = (container.scrollTop + midY) / prev;
-
-        // Aplicamos el zoom al estado...
-        setZoom(next);
-        zoomRef.current = next; // sincronizamos el ref de inmediato
-
-        // ...y reposicionamos el scroll YA, sin esperar el ciclo de React.
-        // El contenedor se redimensiona en el mismo frame al cambiar el ancho/alto
-        // del hijo, así que clampeamos contra el nuevo tamaño.
-        requestAnimationFrame(() => {
-          const maxL = Math.max(0, 1000 * next - container.clientWidth);
-          const maxT = Math.max(0, 1000 * next - container.clientHeight);
-          container.scrollLeft = Math.max(
-            0,
-            Math.min(canvasX * next - midX, maxL),
-          );
-          container.scrollTop = Math.max(
-            0,
-            Math.min(canvasY * next - midY, maxT),
-          );
-        });
-      }
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length === 0) {
-        pinchStartDist = 0;
-        // mantener el bloqueo un instante para ignorar el click sintético tras el pellizco
-        if (resetTimer) clearTimeout(resetTimer);
-        resetTimer = setTimeout(() => {
-          multiTouchRef.current = false;
-          resetTimer = null;
-        }, 350);
-      }
-    };
-
-    container.addEventListener("touchstart", onTouchStart, { passive: false });
-    container.addEventListener("touchmove", onTouchMove, { passive: false });
-    container.addEventListener("touchend", onTouchEnd);
-    container.addEventListener("touchcancel", onTouchEnd);
-
-    return () => {
-      container.removeEventListener("touchstart", onTouchStart);
-      container.removeEventListener("touchmove", onTouchMove);
-      container.removeEventListener("touchend", onTouchEnd);
-      container.removeEventListener("touchcancel", onTouchEnd);
-      if (resetTimer) clearTimeout(resetTimer);
-    };
   }, []);
 
   useEffect(() => {
@@ -1622,67 +1386,291 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [notice]);
 
-  // Salta y hace zoom a una zona del lienzo, resaltándola unos segundos.
   const jumpToZone = useCallback(
     (rx1: number, ry1: number, rx2: number, ry2: number) => {
       const x1 = Math.max(0, Math.min(rx1, rx2));
       const y1 = Math.max(0, Math.min(ry1, ry2));
       const x2 = Math.min(999, Math.max(rx1, rx2));
       const y2 = Math.min(999, Math.max(ry1, ry2));
-
-      const container = containerRef.current;
-      if (!container) return;
-
-      const zoneW = x2 - x1 + 1;
-      const zoneH = y2 - y1 + 1;
-      const minZoom = Math.max(
-        1,
-        window.innerWidth / 1000,
-        window.innerHeight / 1000,
-      );
-      const fitZoom = clampZoomInt(
+      const fit = clampScale(
         Math.min(
-          (container.clientWidth * 0.6) / zoneW,
-          (container.clientHeight * 0.6) / zoneH,
+          (window.innerWidth * 0.6) / (x2 - x1 + 1),
+          (window.innerHeight * 0.6) / (y2 - y1 + 1),
         ),
       );
-
-      const cx = (x1 + x2 + 1) / 2;
-      const cy = (y1 + y2 + 1) / 2;
-
+      const cx = (x1 + x2 + 1) / 2,
+        cy = (y1 + y2 + 1) / 2;
+      setViewRef.current(
+        fit,
+        window.innerWidth / 2 - cx * fit,
+        window.innerHeight / 2 - cy * fit,
+      );
       setHighlightZone({ x1, y1, x2, y2 });
-      setZoom(fitZoom);
-
-      const centerOn = () => {
-        const c = containerRef.current;
-        if (!c) return;
-        const maxL = 1000 * fitZoom - c.clientWidth;
-        const maxT = 1000 * fitZoom - c.clientHeight;
-        c.scrollLeft = Math.max(
-          0,
-          Math.min(cx * fitZoom - c.clientWidth / 2, maxL),
-        );
-        c.scrollTop = Math.max(
-          0,
-          Math.min(cy * fitZoom - c.clientHeight / 2, maxT),
-        );
-      };
-      requestAnimationFrame(() => requestAnimationFrame(centerOn));
-
       setTimeout(() => setHighlightZone(null), 4000);
     },
     [],
   );
 
-  const minZoomInt = () =>
-    Math.max(
-      1,
-      Math.ceil(window.innerWidth / 1000),
-      Math.ceil(window.innerHeight / 1000),
-    );
+  const MAX_SCALE = 40;
+  const minScale = () => Math.max(window.innerWidth, window.innerHeight) / 1000; // el lienzo siempre cubre
+  const clampScale = (s: number) =>
+    Math.max(minScale(), Math.min(s, MAX_SCALE));
 
-  const clampZoomInt = (z: number) =>
-    Math.max(minZoomInt(), Math.min(Math.round(z), 40));
+  // Evita que el lienzo se "pierda": lo ancla a las orillas, o lo centra si cabe.
+  const clampOffset = (scale: number, tx: number, ty: number) => {
+    const fit = (t: number, scaled: number, view: number) =>
+      scaled <= view
+        ? (view - scaled) / 2
+        : Math.max(view - scaled, Math.min(t, 0));
+    return {
+      tx: fit(tx, 1000 * scale, window.innerWidth),
+      ty: fit(ty, 1000 * scale, window.innerHeight),
+    };
+  };
+
+  // Aplica la cámara YA, imperativamente (sin ciclo de React = sin teletransporte).
+  const applyView = useCallback(() => {
+    const { scale, tx, ty } = viewRef.current;
+    const wrapper = wrapperRef.current;
+    if (wrapper) {
+      wrapper.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      wrapper.style.setProperty("--scale", String(scale));
+    }
+    const grid = gridRef.current;
+    if (grid) {
+      if (scale >= settings.gridThreshold) {
+        grid.style.display = "block";
+        grid.style.backgroundSize = `${scale}px ${scale}px`;
+        grid.style.backgroundPositionX = `${tx % scale}px`;
+        grid.style.backgroundPositionY = `${ty % scale}px`;
+      } else {
+        grid.style.display = "none";
+      }
+    }
+  }, [settings.gridThreshold]);
+  const applyViewRef = useRef(applyView);
+  useEffect(() => {
+    applyViewRef.current = applyView;
+  }, [applyView]);
+
+  const setView = useCallback((scale: number, tx: number, ty: number) => {
+    const s = clampScale(scale);
+    const off = clampOffset(s, tx, ty);
+    viewRef.current = { scale: s, tx: off.tx, ty: off.ty };
+    applyViewRef.current();
+  }, []);
+  const setViewRef = useRef(setView);
+  useEffect(() => {
+    setViewRef.current = setView;
+  }, [setView]);
+
+  // Cambia la escala clavando un punto de pantalla (cursor o centro del pinch).
+  const zoomAt = useCallback(
+    (nextScale: number, screenX: number, screenY: number) => {
+      const { scale, tx, ty } = viewRef.current;
+      const s = clampScale(nextScale);
+      if (s === scale) return;
+      const cx = (screenX - tx) / scale; // punto del lienzo bajo el ancla
+      const cy = (screenY - ty) / scale;
+      setViewRef.current(s, screenX - cx * s, screenY - cy * s);
+    },
+    [],
+  );
+  const zoomAtRef = useRef(zoomAt);
+  useEffect(() => {
+    zoomAtRef.current = zoomAt;
+  }, [zoomAt]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const cur = viewRef.current.scale;
+      const next =
+        e.deltaY < 0 ? Math.floor(cur + 1e-3) + 1 : Math.ceil(cur - 1e-3) - 1;
+      zoomAtRef.current(next, e.clientX - rect.left, e.clientY - rect.top);
+    };
+    container.addEventListener("wheel", onWheel, { passive: false });
+    return () => container.removeEventListener("wheel", onWheel);
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let dragging = false;
+    let sx = 0,
+      sy = 0,
+      stx = 0,
+      sty = 0;
+    const onDown = (e: MouseEvent) => {
+      if (e.button !== 2) return;
+      dragging = true;
+      container.style.cursor = "grabbing";
+      sx = e.clientX;
+      sy = e.clientY;
+      stx = viewRef.current.tx;
+      sty = viewRef.current.ty;
+    };
+    const onMove = (e: MouseEvent) => {
+      if (!dragging) return;
+      setViewRef.current(
+        viewRef.current.scale,
+        stx + (e.clientX - sx),
+        sty + (e.clientY - sy),
+      );
+    };
+    const onUp = () => {
+      dragging = false;
+      container.style.cursor = "grab";
+    };
+    const noMenu = (e: MouseEvent) => e.preventDefault();
+    container.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    container.addEventListener("contextmenu", noMenu);
+    return () => {
+      container.removeEventListener("mousedown", onDown);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      container.removeEventListener("contextmenu", noMenu);
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let panning = false;
+    let sx = 0,
+      sy = 0,
+      stx = 0,
+      sty = 0;
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) {
+        panning = false;
+        return;
+      }
+      if (gestureLockRef.current) return; // con lock el dedo pinta/selecciona
+      panning = true;
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      stx = viewRef.current.tx;
+      sty = viewRef.current.ty;
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!panning) return;
+      if (e.touches.length !== 1) {
+        panning = false;
+        return;
+      }
+      setViewRef.current(
+        viewRef.current.scale,
+        stx + (e.touches[0].clientX - sx),
+        sty + (e.touches[0].clientY - sy),
+      );
+      e.preventDefault();
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) panning = false;
+    };
+    container.addEventListener("touchstart", onStart, { passive: false });
+    container.addEventListener("touchmove", onMove, { passive: false });
+    container.addEventListener("touchend", onEnd);
+    container.addEventListener("touchcancel", onEnd);
+    return () => {
+      container.removeEventListener("touchstart", onStart);
+      container.removeEventListener("touchmove", onMove);
+      container.removeEventListener("touchend", onEnd);
+      container.removeEventListener("touchcancel", onEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let startDist = 0,
+      startScale = 0,
+      midX = 0,
+      midY = 0;
+    let snapRAF: number | null = null;
+    const dist = (t: TouchList) =>
+      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        multiTouchRef.current = true;
+        if (snapRAF) {
+          cancelAnimationFrame(snapRAF);
+          snapRAF = null;
+        }
+        startDist = dist(e.touches);
+        startScale = viewRef.current.scale;
+      }
+    };
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length < 2) return;
+      e.preventDefault();
+      const d = dist(e.touches);
+      if (startDist === 0) {
+        startDist = d;
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      zoomAtRef.current(startScale * (d / startDist), midX, midY);
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length !== 0) return;
+      startDist = 0;
+      const from = viewRef.current.scale;
+      const to = clampScale(Math.round(from));
+      const ax = midX,
+        ay = midY;
+      if (Math.abs(to - from) > 0.001) {
+        const t0 = performance.now(),
+          dur = 130;
+        const ease = (p: number) => 1 - Math.pow(1 - p, 3);
+        const step = (now: number) => {
+          const p = Math.min(1, (now - t0) / dur);
+          zoomAtRef.current(from + (to - from) * ease(p), ax, ay);
+          snapRAF = p < 1 ? requestAnimationFrame(step) : null;
+        };
+        snapRAF = requestAnimationFrame(step);
+      }
+      setTimeout(() => {
+        multiTouchRef.current = false;
+      }, 350);
+    };
+    container.addEventListener("touchstart", onStart, { passive: false });
+    container.addEventListener("touchmove", onMove, { passive: false });
+    container.addEventListener("touchend", onEnd);
+    container.addEventListener("touchcancel", onEnd);
+    return () => {
+      container.removeEventListener("touchstart", onStart);
+      container.removeEventListener("touchmove", onMove);
+      container.removeEventListener("touchend", onEnd);
+      container.removeEventListener("touchcancel", onEnd);
+      if (snapRAF) cancelAnimationFrame(snapRAF);
+    };
+  }, []);
+
+  // Arranque + re-clampeo al cambiar el tamaño de la ventana.
+  useEffect(() => {
+    const s = clampScale(10);
+    setViewRef.current(
+      s,
+      (window.innerWidth - 1000 * s) / 2,
+      (window.innerHeight - 1000 * s) / 2,
+    );
+    const onResize = () => {
+      const v = viewRef.current;
+      setViewRef.current(v.scale, v.tx, v.ty);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Deep-link ?zone=x1_y1_x2_y2 (al cargar la página, p. ej. un enlace compartido)
   useEffect(() => {
@@ -1933,20 +1921,6 @@ export default function Home() {
     } catch {}
   };
 
-  useLayoutEffect(() => {
-    if (!pendingZoomRef.current) return;
-    const container = containerRef.current;
-    if (!container) return;
-    const { canvasX, canvasY, mouseX, mouseY } = pendingZoomRef.current;
-
-    const maxL = Math.max(0, 1000 * zoom - container.clientWidth);
-    const maxT = Math.max(0, 1000 * zoom - container.clientHeight);
-
-    container.scrollLeft = Math.max(0, Math.min(canvasX * zoom - mouseX, maxL));
-    container.scrollTop = Math.max(0, Math.min(canvasY * zoom - mouseY, maxT));
-    pendingZoomRef.current = null;
-  }, [zoom]);
-
   return (
     <main
       style={{
@@ -1962,55 +1936,43 @@ export default function Home() {
         style={{
           position: "absolute",
           inset: 0,
-          overflow: "auto",
+          overflow: "hidden", // ya no scrolleamos: movemos con transform
           cursor: "grab",
           touchAction: "none",
           overscrollBehavior: "contain",
         }}
       >
         <div
+          ref={wrapperRef}
           style={{
-            position: "relative",
-            width: `${1000 * zoom}px`,
-            height: `${1000 * zoom}px`,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "1000px",
+            height: "1000px",
+            transformOrigin: "0 0",
+            willChange: "transform",
           }}
         >
           <canvas
             ref={canvasRef}
             style={{
-              width: `${1000 * zoom}px`,
-              height: `${1000 * zoom}px`,
+              width: "1000px",
+              height: "1000px",
               imageRendering: "pixelated",
               display: "block",
               background: "#fff",
             }}
           />
-          {zoom >= settings.gridThreshold && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                pointerEvents: "none",
-                backgroundImage: `
-                  linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px),
-                  linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px)
-                `,
-                backgroundSize: `${zoom}px ${zoom}px`,
-              }}
-            />
-          )}
           {selection && (
             <div
               style={{
                 position: "absolute",
-                left: `${selection.x1 * zoom}px`,
-                top: `${selection.y1 * zoom}px`,
-                width: `${(selection.x2 - selection.x1 + 1) * zoom}px`,
-                height: `${(selection.y2 - selection.y1 + 1) * zoom}px`,
-                border: "2px solid var(--color-brand)",
+                left: `${selection.x1}px`,
+                top: `${selection.y1}px`,
+                width: `${selection.x2 - selection.x1 + 1}px`,
+                height: `${selection.y2 - selection.y1 + 1}px`,
+                border: "calc(2px / var(--scale, 10)) solid var(--color-brand)",
                 background: "rgba(255, 122, 26, 0.15)",
                 pointerEvents: "none",
                 boxSizing: "border-box",
@@ -2022,11 +1984,11 @@ export default function Home() {
               key={sp.id}
               style={{
                 position: "absolute",
-                left: `${sp.x1 * zoom}px`,
-                top: `${sp.y1 * zoom}px`,
-                width: `${(sp.x2 - sp.x1 + 1) * zoom}px`,
-                height: `${(sp.y2 - sp.y1 + 1) * zoom}px`,
-                border: "2px dashed #8B5CF6",
+                left: `${sp.x1}px`,
+                top: `${sp.y1}px`,
+                width: `${sp.x2 - sp.x1 + 1}px`,
+                height: `${sp.y2 - sp.y1 + 1}px`,
+                border: "calc(2px / var(--scale, 10)) dashed #8B5CF6",
                 background: "rgba(139, 92, 246, 0.08)",
                 pointerEvents: "none",
                 boxSizing: "border-box",
@@ -2036,9 +1998,10 @@ export default function Home() {
               <span
                 style={{
                   position: "absolute",
-                  top: 0,
                   left: 0,
-                  transform: "translateY(-100%)",
+                  bottom: "100%",
+                  transformOrigin: "left bottom",
+                  scale: "calc(1 / var(--scale, 10))", // contra-escala: no crece con el zoom
                   background: "#8B5CF6",
                   color: "#fff",
                   fontSize: "10px",
@@ -2052,6 +2015,21 @@ export default function Home() {
             </div>
           ))}
         </div>
+
+        {/* Rejilla en espacio de pantalla: líneas siempre de 1px, las pinta applyView() */}
+        <div
+          ref={gridRef}
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            display: "none",
+            backgroundImage: `
+        linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px)
+      `,
+          }}
+        />
       </div>
 
       {/* Overlay esquina superior izquierda: info de píxeles */}
@@ -2270,7 +2248,7 @@ export default function Home() {
           }
           style={{
             position: "fixed",
-            bottom: "24px",
+            bottom: "80px",
             left: "24px",
             zIndex: 40,
             width: "52px",
