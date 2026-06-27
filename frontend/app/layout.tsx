@@ -32,6 +32,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${inter.variable} ${pressStart.variable}`}>
+      <head>
+        <link
+          rel="preconnect"
+          href="https://api.webpix.art"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://cdn.webpix.art"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body>
         <I18nProvider>
           <NotificationProvider>

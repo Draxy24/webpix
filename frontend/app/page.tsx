@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { useAuth } from "./context/auth";
 import { io } from "socket.io-client";
 import { useRouter } from "next/navigation";
@@ -16,14 +17,7 @@ import FloatingToolbox, {
   type PrivateMode,
 } from "./components/FloatingToolbox";
 import SideButtons, { type PanelSection } from "./components/SideButtons";
-import SidePanel from "./components/SidePanel";
-import MenuPanel from "./components/MenuPanel";
 import { useSettings } from "./context/settings";
-import SettingsPanel from "./components/SettingsPanel";
-import BugReportView from "./components/BugReportView";
-import PrivateSpacesView from "./components/PrivateSpacesView";
-import AchievementsView from "./components/AchievementsView";
-import WeeklyTasksView from "./components/WeeklyTasksView";
 import { useProfileModal } from "./components/ProfileModalContext";
 import { useShopModal } from "./components/ShopModalContext";
 import { resolveColor } from "./lib/colors";
@@ -41,14 +35,41 @@ import {
   playPublish,
   playNav,
 } from "./lib/sounds";
-import ReportModal from "./components/ReportModal";
 import { useTranslation } from "react-i18next";
-import CommunityView from "./components/CommunityView";
 import {
   eventToast,
   handleSocketNotification,
   type SocketNotification,
 } from "./lib/rewardToast";
+const SidePanel = dynamic(() => import("./components/SidePanel"), {
+  ssr: false,
+});
+const MenuPanel = dynamic(() => import("./components/MenuPanel"), {
+  ssr: false,
+});
+const SettingsPanel = dynamic(() => import("./components/SettingsPanel"), {
+  ssr: false,
+});
+const BugReportView = dynamic(() => import("./components/BugReportView"), {
+  ssr: false,
+});
+const PrivateSpacesView = dynamic(
+  () => import("./components/PrivateSpacesView"),
+  { ssr: false },
+);
+const AchievementsView = dynamic(
+  () => import("./components/AchievementsView"),
+  { ssr: false },
+);
+const WeeklyTasksView = dynamic(() => import("./components/WeeklyTasksView"), {
+  ssr: false,
+});
+const CommunityView = dynamic(() => import("./components/CommunityView"), {
+  ssr: false,
+});
+const ReportModal = dynamic(() => import("./components/ReportModal"), {
+  ssr: false,
+});
 
 function formatPeriod(period: string, lang: string) {
   const [y, m] = period.split("-").map(Number);
