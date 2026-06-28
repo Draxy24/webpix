@@ -370,5 +370,6 @@ export class AuthService {
         where: { id: resetRecordId },
       });
     }
+    return { success: true };
   }
 }

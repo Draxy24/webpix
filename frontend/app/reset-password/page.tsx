@@ -32,7 +32,7 @@ function ResetPasswordInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailOrPhone, code, newPassword }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok)
         throw new Error(apiErrorText(data, t, t("resetPassword.error")));
       setSuccess(true);
