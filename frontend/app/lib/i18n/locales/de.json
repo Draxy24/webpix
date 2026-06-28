@@ -1097,6 +1097,81 @@
       "community": "Community"
     }
   },
+  "welcome": {
+    "lead": "Willkommen bei WebPix! Eine Pixel-Art-Leinwand, auf der Tausende von Menschen gemeinsam erschaffen, Pixel für Pixel.",
+    "norms": "Damit alle Spaß haben: keine unangemessenen oder beleidigenden Inhalte und nichts, was die Arbeit anderer beschädigt. Die vollständigen Regeln findest du im Community-Bereich.",
+    "startTour": "Rundgang starten",
+    "skip": "Überspringen",
+    "skipTour": "Rundgang überspringen",
+    "hookTitle": "Konto erstellen",
+    "registerHook": "Erstelle ein kostenloses Konto, um das vollständige Webpix-Erlebnis zu nutzen.",
+    "register": "Konto erstellen",
+    "done": "Fertig, los geht's!",
+    "s1": {
+      "title": "Eine Leinwand für alle",
+      "body": "Willkommen bei Webpix! Das ist eine 1000×1000-Pixel-Leinwand, auf der alles, was du malst, sofort von allen gesehen wird."
+    },
+    "s2": {
+      "title": "Werkzeuge",
+      "body": "Das ist dein Werkzeugkasten: Damit kannst du malen, löschen, veröffentlichen, private Bereiche mieten/verwalten und Bereiche mit unangemessenen Inhalten melden. Du kannst ihn auch überallhin auf dem Bildschirm verschieben."
+    },
+    "s3": {
+      "title": "Malen",
+      "body": "Mit dem Mal-Werkzeug erschaffst du deine Werke, Punkt für Punkt oder per Schnellmalen, indem du die Maustaste gedrückt hältst (oder am Handy mit dem Finger ziehst)."
+    },
+    "s4": {
+      "title": "Löschen",
+      "body": "Mit dem Radierer entfernst du deine eigenen Pixel, falls du dich vertan hast – einzeln oder durch Auswahl eines Bereichs."
+    },
+    "s5": {
+      "title": "Veröffentlichen",
+      "body": "Mit dem Veröffentlichen-Werkzeug wählst du einen Bereich aus und stellst ihn auf deinem Profil online, damit andere ihn sehen, liken und kommentieren können."
+    },
+    "s6": {
+      "title": "Private Bereiche",
+      "body": "Möchtest du eine Zone nur für dich oder deine Freunde? Miete monatlich einen privaten Bereich mit Bits und entscheide, wer dort malen darf. Du kannst bis zu 3 private Bereiche gleichzeitig haben."
+    },
+    "s7": {
+      "title": "Melden",
+      "body": "Wenn du unangemessene Inhalte siehst, melde sie mit dem dafür vorgesehenen Werkzeug und wähle den Bereich aus. Die vollständigen Regeln findest du im Community-Bereich."
+    },
+    "s8": {
+      "title": "Pixel-Zähler",
+      "body": "Oben links hast du den Pixel-Zähler: Beim Malen sinkt er, und beim Löschen bekommst du die gelöschten Pixel zurück, solange du nicht im Cooldown bist."
+    },
+    "s9": {
+      "title": "Sperre",
+      "body": "Am Handy hast du diese Sperrtaste: Sie sperrt die Bildschirmbewegung, damit du schnell malen oder die Auswahlwerkzeuge nutzen kannst."
+    },
+    "s10": {
+      "title": "Seitenleiste",
+      "body": "Rechts hast du die Schaltflächen der Seitenleiste: Von hier erreichst du dein Profil, die Einstellungen, Erfolge, wöchentliche Aufgaben, die Community, den Shop oder das Melden von Fehlern."
+    },
+    "s11": {
+      "title": "Profil",
+      "body": "Hier kannst du dein Profil ansehen, bearbeiten, deine Veröffentlichungen ansehen und die erhaltenen Kosmetika ausrüsten."
+    },
+    "s12": {
+      "title": "Ranglisten",
+      "body": "Im Ranglisten-Tab siehst du globale und länderbezogene Ranglisten, nach gemalten Pixeln und nach erstellten Veröffentlichungen. Am Ende jedes Monats gibt es Belohnungen."
+    },
+    "s13": {
+      "title": "Freunde",
+      "body": "Im Freunde-Tab siehst du deine hinzugefügten Freunde, prüfst gesendete Anfragen und beantwortest erhaltene."
+    },
+    "s14": {
+      "title": "Bits",
+      "body": "Bits bekommst du durch Levelaufstiege, das Abschließen von Erfolgen und wöchentlichen Aufgaben, über die Ranglisten und auch im Shop."
+    },
+    "s15": {
+      "title": "Shop",
+      "body": "Im Shop bekommst du Kosmetika für dein Profil und exotischere Farben zum Malen. Hier bekommst du auch Bits und die monatlichen Abos."
+    },
+    "s16": {
+      "title": "Stufen und Abos",
+      "body": "Im Abo-Tab des Shops kannst du deine Stufe auf Plus oder Premium hochstufen, jede mit ihren eigenen Vorteilen."
+    }
+  },
   "common": {
     "cancel": "Abbrechen",
     "save": "Speichern",
@@ -1104,6 +1179,7 @@
     "loading": "Wird geladen...",
     "close": "Schließen",
     "back": "Zurück",
+    "next": "Weiter",
     "confirm": "Bestätigen"
   },
   "canvas": {
@@ -1177,7 +1253,8 @@
     },
     "drag": {
       "paintedXofY": "Du hast {{x}} von {{y}} Pixeln gemalt (Limit erreicht)."
-    }
+    },
+    "lock": { "lock": "Bildschirm sperren", "unlock": "Bildschirm entsperren" }
   },
   "settings": {
     "language": "Sprache",
