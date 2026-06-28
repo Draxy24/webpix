@@ -14,6 +14,7 @@ model User {
   nickname         String           @unique
   passwordHash     String
   verified         Boolean          @default(false)
+  hasSeenWelcome   Boolean          @default(false)
   profilePic       String?
   subscriptionTier SubscriptionTier @default(FREE)
   isAdmin          Boolean          @default(false)
