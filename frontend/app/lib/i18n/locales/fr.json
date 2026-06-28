@@ -1106,6 +1106,81 @@
       "community": "Communauté"
     }
   },
+  "welcome": {
+    "lead": "Bienvenue sur WebPix ! Une toile de pixel-art où des milliers de personnes créent ensemble, un pixel à la fois.",
+    "norms": "Pour que tout le monde passe un bon moment : aucun contenu inapproprié ou offensant, ni rien qui endommage le travail des autres. Tu peux lire les règles complètes dans la section Communauté.",
+    "startTour": "Commencer la visite",
+    "skip": "Passer",
+    "skipTour": "Passer la visite",
+    "hookTitle": "Crée ton compte",
+    "registerHook": "Crée un compte gratuit pour accéder à l'expérience complète de Webpix.",
+    "register": "Créer un compte",
+    "done": "C'est parti, à toi de peindre !",
+    "s1": {
+      "title": "Une toile pour tous",
+      "body": "Bienvenue sur Webpix ! C'est une toile de 1000×1000 pixels où tout ce que tu peins est vu par tout le monde instantanément."
+    },
+    "s2": {
+      "title": "Outils",
+      "body": "Voici ta boîte à outils : tu peux peindre, effacer, publier, louer/gérer des espaces privés et signaler des zones au contenu inapproprié. Tu peux aussi la déplacer où tu veux sur l'écran."
+    },
+    "s3": {
+      "title": "Peindre",
+      "body": "L'outil peindre te permet de créer tes œuvres, point par point ou avec la peinture rapide en maintenant le clic (ou en glissant le doigt sur mobile)."
+    },
+    "s4": {
+      "title": "Effacer",
+      "body": "La gomme te permet de retirer tes propres pixels au cas où tu te serais trompé, un par un ou en sélectionnant une zone."
+    },
+    "s5": {
+      "title": "Publier",
+      "body": "L'outil publier te permet de sélectionner une zone et de la publier sur ton profil pour que d'autres la voient, l'aiment et la commentent."
+    },
+    "s6": {
+      "title": "Espaces privés",
+      "body": "Tu veux une zone rien que pour toi ou tes amis ? Loue un espace privé chaque mois avec des Bits et décide qui peut y peindre. Tu peux avoir jusqu'à 3 espaces privés à la fois."
+    },
+    "s7": {
+      "title": "Signaler",
+      "body": "Si tu vois du contenu inapproprié, signale-le avec l'outil dédié en sélectionnant la zone. Les règles complètes sont dans la section Communauté."
+    },
+    "s8": {
+      "title": "Compteur de pixels",
+      "body": "En haut à gauche se trouve le compteur de pixels : il diminue quand tu peins et te rend les pixels effacés quand tu effaces, tant que tu n'es pas en temps de recharge."
+    },
+    "s9": {
+      "title": "Verrou",
+      "body": "Sur mobile tu auras ce bouton verrou : il bloque le déplacement de l'écran pour que tu puisses peindre rapidement ou utiliser les outils de sélection."
+    },
+    "s10": {
+      "title": "Panneau latéral",
+      "body": "À ta droite se trouvent les boutons du panneau latéral : d'ici tu accèdes à ton profil, aux paramètres, aux succès, aux tâches hebdomadaires, à la Communauté, à la boutique ou au signalement de bugs."
+    },
+    "s11": {
+      "title": "Profil",
+      "body": "Ici tu peux consulter ton profil, le modifier, voir tes publications et équiper les cosmétiques obtenus."
+    },
+    "s12": {
+      "title": "Classements",
+      "body": "Dans l'onglet classements tu vois les classements mondiaux et par pays, par pixels peints et par publications créées. Des récompenses sont distribuées à la fin de chaque mois."
+    },
+    "s13": {
+      "title": "Amis",
+      "body": "Dans l'onglet amis tu vois tes amis ajoutés, tu consultes les demandes envoyées et tu réponds à celles reçues."
+    },
+    "s14": {
+      "title": "Bits",
+      "body": "Les Bits s'obtiennent en montant de niveau, en complétant des succès et des tâches hebdomadaires, via les classements et aussi depuis la boutique."
+    },
+    "s15": {
+      "title": "Boutique",
+      "body": "Dans la boutique tu obtiens des cosmétiques pour ton profil et des couleurs plus exotiques pour peindre. Ici tu peux aussi obtenir des Bits et les abonnements mensuels."
+    },
+    "s16": {
+      "title": "Niveaux et abonnements",
+      "body": "Depuis l'onglet abonnements de la boutique tu peux passer ton niveau à Plus ou Premium, chacun avec ses propres avantages."
+    }
+  },
   "common": {
     "cancel": "Annuler",
     "save": "Enregistrer",
@@ -1113,6 +1188,7 @@
     "loading": "Chargement...",
     "close": "Fermer",
     "back": "Retour",
+    "next": "Suivant",
     "confirm": "Confirmer"
   },
   "canvas": {
@@ -1189,7 +1265,8 @@
     },
     "drag": {
       "paintedXofY": "Tu as peint {{x}} pixels sur {{y}} (limite atteinte)."
-    }
+    },
+    "lock": { "lock": "Verrouiller l'écran", "unlock": "Déverrouiller l'écran" }
   },
   "settings": {
     "language": "Langue",

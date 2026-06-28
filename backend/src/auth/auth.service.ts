@@ -61,6 +61,14 @@ export class AuthService {
     return { success: true };
   }
 
+  async markWelcomeSeen(userId: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hasSeenWelcome: true },
+    });
+    return { success: true };
+  }
+
   async register(data: {
     email?: string;
     phone?: string;

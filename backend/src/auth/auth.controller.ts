@@ -128,6 +128,7 @@ export class AuthController {
       verified: user.verified,
       needsVerification,
       subscriptionTier: user.subscriptionTier,
+      hasSeenWelcome: user.hasSeenWelcome,
       banned: isBanned,
       banReason: user.banReason,
       bannedUntil: user.bannedUntil,
@@ -141,6 +142,12 @@ export class AuthController {
           : Math.max(limit.pixels - pixelsUsed, 0),
       cooldownSeconds,
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('welcome-seen')
+  markWelcomeSeen(@Request() req: { user: { id: number } }) {
+    return this.authService.markWelcomeSeen(req.user.id);
   }
 
   @UseGuards(AuthGuard('jwt'))

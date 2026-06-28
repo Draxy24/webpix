@@ -1070,6 +1070,81 @@
       "community": "Community"
     }
   },
+  "welcome": {
+    "lead": "Welcome to WebPix! A pixel-art canvas where thousands of people create together, one pixel at a time.",
+    "norms": "So everyone has a good time: no inappropriate or offensive content, and nothing that damages other people's work. You can read the full rules in the Community section.",
+    "startTour": "Start tour",
+    "skip": "Skip",
+    "skipTour": "Skip tour",
+    "hookTitle": "Create your account",
+    "registerHook": "Create a free account to access the full Webpix experience.",
+    "register": "Create account",
+    "done": "Done, let's paint!",
+    "s1": {
+      "title": "A canvas for everyone",
+      "body": "Welcome to Webpix! This is a 1000×1000 pixel canvas where whatever you paint is seen by everyone instantly."
+    },
+    "s2": {
+      "title": "Tools",
+      "body": "This is your toolbox: with it you can paint, erase, publish, rent/manage private spaces and report areas with inappropriate content. You can also move it anywhere on the screen."
+    },
+    "s3": {
+      "title": "Paint",
+      "body": "The paint tool lets you create your art, dot by dot or with quick paint by holding the click (or dragging your finger on mobile)."
+    },
+    "s4": {
+      "title": "Erase",
+      "body": "The eraser lets you remove your own pixels in case you made a mistake, one by one or by selecting an area."
+    },
+    "s5": {
+      "title": "Publish",
+      "body": "The publish tool lets you select an area and publish it on your profile so others can see it, like it and comment."
+    },
+    "s6": {
+      "title": "Private spaces",
+      "body": "Want a zone just for you or your friends? Rent a private space monthly with Bits and decide who can paint there. You can have up to 3 private spaces at once."
+    },
+    "s7": {
+      "title": "Report",
+      "body": "If you see inappropriate content, report it using the dedicated tool and selecting the area. The full rules are in the Community section."
+    },
+    "s8": {
+      "title": "Pixel counter",
+      "body": "In the top left you have the pixel counter: it goes down as you paint and gives back erased pixels when you erase, as long as you're not on cooldown."
+    },
+    "s9": {
+      "title": "Lock",
+      "body": "On mobile you'll have this lock button: it locks the screen from moving so you can paint quickly or use the selection tools."
+    },
+    "s10": {
+      "title": "Side panel",
+      "body": "On your right you have the side panel buttons: from here you reach your profile, settings, achievements, weekly tasks, the Community, the shop or report bugs."
+    },
+    "s11": {
+      "title": "Profile",
+      "body": "Here you can check your profile, edit it, view your publications and equip the cosmetics you've earned."
+    },
+    "s12": {
+      "title": "Rankings",
+      "body": "In the rankings tab you see global and per-country rankings, by pixels painted and by publications created. Rewards are handed out at the end of each month."
+    },
+    "s13": {
+      "title": "Friends",
+      "body": "In the friends tab you see your added friends, check the requests you've sent and respond to the ones you've received."
+    },
+    "s14": {
+      "title": "Bits",
+      "body": "Bits are earned by leveling up, completing achievements and weekly tasks, through the rankings and also from the shop."
+    },
+    "s15": {
+      "title": "Shop",
+      "body": "In the shop you get cosmetics for your profile and more exotic colors to paint with. Here you can also get Bits and the monthly subscriptions."
+    },
+    "s16": {
+      "title": "Tiers and subscriptions",
+      "body": "From the subscriptions tab in the shop you can upgrade your tier to Plus or Premium, each with its own benefits."
+    }
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",
@@ -1077,6 +1152,7 @@
     "loading": "Loading...",
     "close": "Close",
     "back": "Back",
+    "next": "Next",
     "confirm": "Confirm"
   },
   "canvas": {
@@ -1153,7 +1229,8 @@
     },
     "drag": {
       "paintedXofY": "You painted {{x}} of {{y}} pixels (limit reached)."
-    }
+    },
+    "lock": { "lock": "Lock screen", "unlock": "Unlock screen" }
   },
   "settings": {
     "language": "Language",

@@ -70,6 +70,9 @@ const CommunityView = dynamic(() => import("./components/CommunityView"), {
 const ReportModal = dynamic(() => import("./components/ReportModal"), {
   ssr: false,
 });
+const WelcomeModal = dynamic(() => import("./components/WelcomeModal"), {
+  ssr: false,
+});
 
 function formatPeriod(period: string, lang: string) {
   const [y, m] = period.split("-").map(Number);
@@ -144,6 +147,7 @@ export default function Home() {
   const soundEnabledRef = useRef(settings.soundEnabled);
   const [pixelOwners, setPixelOwners] = useState<Record<string, string>>({});
   const [isMobile, setIsMobile] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
@@ -792,6 +796,9 @@ export default function Home() {
           setClicksLeft(data.pixelsLeft);
           setCooldown(data.cooldownSeconds);
         });
+      try {
+        if (!localStorage.getItem("webpix_seen_welcome")) setShowWelcome(true);
+      } catch {}
       return;
     }
 
@@ -826,6 +833,7 @@ export default function Home() {
         }
         setUserTier(data.subscriptionTier ?? "FREE");
       }
+      if (!data.hasSeenWelcome) setShowWelcome(true);
     };
 
     fetchUserState();
@@ -1476,6 +1484,21 @@ export default function Home() {
     },
     [],
   );
+
+  const closeWelcome = useCallback(() => {
+    setShowWelcome(false);
+    if (tokenRef.current) {
+      fetch(API_URL + "/auth/welcome-seen", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tokenRef.current}` },
+      }).catch(() => {});
+    } else {
+      try {
+        localStorage.setItem("webpix_seen_welcome", "1");
+      } catch {}
+    }
+  }, []);
+
   const zoomAtRef = useRef(zoomAt);
   useEffect(() => {
     zoomAtRef.current = zoomAt;
@@ -2423,6 +2446,14 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
+      {showWelcome && (
+        <WelcomeModal
+          isLoggedIn={!!token}
+          onClose={closeWelcome}
+          onRegister={() => router.push("/register")}
+        />
       )}
 
       {showReportModal && selection && (
