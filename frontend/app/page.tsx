@@ -806,6 +806,13 @@ export default function Home() {
       const res = await fetch(API_URL + "/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // Token vencido o inválido: el server responde 401. NO es falta de verificación.
+      if (!res.ok) {
+        if (res.status === 401) logout(); // limpia el token muerto → queda como anónimo
+        return; // nunca mandes a /verify por una respuesta fallida
+      }
+
       const data = await res.json();
 
       if (data.banned) {
