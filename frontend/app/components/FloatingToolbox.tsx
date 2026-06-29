@@ -107,6 +107,21 @@ export default function FloatingToolbox({
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
+  const toolboxRef = useRef<HTMLDivElement>(null);
+
+  // Mantiene la toolbox dentro de la pantalla: el cabezal nunca se va arriba del
+  // borde superior y siempre queda una franja visible para volver a agarrarla.
+  const clampPosition = (pos: { x: number; y: number }) => {
+    const el = toolboxRef.current;
+    const w = el?.offsetWidth ?? 240;
+    const h = el?.offsetHeight ?? 200;
+    const margin = 32; // franja mínima que siempre queda a la vista
+    return {
+      x: Math.max(margin - w, Math.min(pos.x, window.innerWidth - margin)),
+      y: Math.max(0, Math.min(pos.y, window.innerHeight - margin)),
+    };
+  };
+
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -122,16 +137,24 @@ export default function FloatingToolbox({
   // Init position from localStorage or default (solo escritorio)
   useEffect(() => {
     const saved = localStorage.getItem("toolboxPosition");
+    let initial: { x: number; y: number } | null = null;
     if (saved) {
       try {
-        setPosition(JSON.parse(saved));
-        return;
+        initial = JSON.parse(saved);
       } catch {}
     }
-    setPosition({
-      x: window.innerWidth / 2 - 110,
-      y: window.innerHeight - 240,
-    });
+    if (!initial) {
+      initial = { x: window.innerWidth / 2 - 110, y: window.innerHeight - 240 };
+    }
+    setPosition(initial);
+    // Tras pintar, mide la toolbox y la mete dentro de cuadro.
+    // Esto rescata solo a quien la dejó fuera de la pantalla.
+    requestAnimationFrame(() => setPosition((p) => (p ? clampPosition(p) : p)));
+
+    const onResize = () => setPosition((p) => (p ? clampPosition(p) : p));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save on every position update (cheap)
@@ -145,10 +168,12 @@ export default function FloatingToolbox({
   useEffect(() => {
     if (!dragging) return;
     const handleMove = (clientX: number, clientY: number) => {
-      setPosition({
-        x: clientX - dragOffsetRef.current.x,
-        y: clientY - dragOffsetRef.current.y,
-      });
+      setPosition(
+        clampPosition({
+          x: clientX - dragOffsetRef.current.x,
+          y: clientY - dragOffsetRef.current.y,
+        }),
+      );
     };
     const onMouseMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
     const onTouchMove = (e: TouchEvent) => {
@@ -356,6 +381,7 @@ export default function FloatingToolbox({
 
   return (
     <div
+      ref={toolboxRef}
       className={styles.toolbox}
       style={{ left: position.x, top: position.y }}
     >
