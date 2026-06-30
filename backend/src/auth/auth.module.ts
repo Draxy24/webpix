@@ -18,7 +18,7 @@ import { StripeModule } from '../stripe/stripe.module';
         if (!secret) {
           throw new Error('JWT_SECRET no está definido en el entorno');
         }
-        return { secret, signOptions: { expiresIn: '7d' } };
+        return { secret, signOptions: { expiresIn: '30d' } };
       },
     }),
   ],
