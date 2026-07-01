@@ -5,17 +5,28 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import AuthPageLayout from "../components/AuthPageLayout";
 import Button from "../components/Button";
+import PhoneCountrySelect from "../components/PhoneCountrySelect";
 import styles from "../components/AuthForm.module.css";
 import { API_URL } from "@/app/lib/api";
 import { apiErrorText } from "@/app/lib/apiError";
+import { COUNTRIES } from "../lib/countries";
 
 function ResetPasswordInner() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [emailOrPhone, setEmailOrPhone] = useState(
-    searchParams.get("emailOrPhone") ?? "",
+
+  // Si viene de un enlace de correo, trae emailOrPhone + code en la URL.
+  const prefill = searchParams.get("emailOrPhone") ?? "";
+  const fromLink = prefill.length > 0;
+
+  // Si el prefill parece teléfono (empieza con +), arrancamos en modo phone.
+  const [method, setMethod] = useState<"email" | "phone">(
+    prefill.startsWith("+") ? "phone" : "email",
   );
+  const [email, setEmail] = useState(prefill.startsWith("+") ? "" : prefill);
+  const [phoneCountry, setPhoneCountry] = useState("MX");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState(searchParams.get("code") ?? "");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,6 +38,14 @@ function ResetPasswordInner() {
     setError("");
     setLoading(true);
     try {
+      let emailOrPhone: string;
+      if (method === "email") {
+        emailOrPhone = email;
+      } else {
+        const dialCode =
+          COUNTRIES.find((c) => c.code === phoneCountry)?.dialCode ?? "";
+        emailOrPhone = `${dialCode}${phoneNumber.replace(/\s/g, "")}`;
+      }
       const res = await fetch(API_URL + "/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,16 +93,74 @@ function ResetPasswordInner() {
   return (
     <AuthPageLayout title={t("resetPassword.title")}>
       <form onSubmit={handleSubmit} className={styles.form}>
+        {/* Si viene de un enlace de correo, no mostramos el toggle: ya sabemos el destino */}
+        {!fromLink && (
+          <>
+            <div className={styles.methodTabs}>
+              <button
+                type="button"
+                onClick={() => setMethod("email")}
+                className={`${styles.methodTab} ${method === "email" ? styles.methodTabActive : ""}`}
+              >
+                {t("auth.email")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMethod("phone")}
+                className={`${styles.methodTab} ${method === "phone" ? styles.methodTabActive : ""}`}
+              >
+                {t("auth.phone")}
+              </button>
+            </div>
+
+            {method === "email" ? (
+              <input
+                type="email"
+                placeholder={t("auth.emailPlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={styles.input}
+              />
+            ) : (
+              <div className={styles.phoneRow}>
+                <PhoneCountrySelect
+                  value={phoneCountry}
+                  onChange={setPhoneCountry}
+                />
+                <input
+                  type="tel"
+                  placeholder="476 124 5532"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                  className={styles.input}
+                  style={{ flex: 1 }}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Si viene del enlace de correo, mostramos a quién va (solo lectura) */}
+        {fromLink && (
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              margin: 0,
+            }}
+          >
+            {t("resetPassword.forAccount", {
+              defaultValue: "Restableciendo la contraseña de {{account}}",
+              account: prefill,
+            })}
+          </p>
+        )}
+
         <input
           type="text"
-          placeholder={t("resetPassword.emailOrPhone")}
-          value={emailOrPhone}
-          onChange={(e) => setEmailOrPhone(e.target.value)}
-          required
-          className={styles.input}
-        />
-        <input
-          type="text"
+          inputMode="numeric"
           placeholder={t("resetPassword.code")}
           value={code}
           onChange={(e) => setCode(e.target.value)}
