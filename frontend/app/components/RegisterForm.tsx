@@ -115,7 +115,7 @@ export default function RegisterForm({
           <PhoneCountrySelect value={phoneCountry} onChange={setPhoneCountry} />
           <input
             type="tel"
-            placeholder="476 124 5532"
+            placeholder="111 111 1111"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             required
