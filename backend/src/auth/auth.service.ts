@@ -13,6 +13,7 @@ import * as crypto from 'crypto';
 import { StripeService } from '../stripe/stripe.service';
 
 const MAX_CODE_ATTEMPTS = 5;
+const REFRESH_TOKEN_DAYS = 30;
 
 @Injectable()
 export class AuthService {
@@ -75,6 +76,7 @@ export class AuthService {
     nickname: string;
     password: string;
     country?: string;
+    userAgent?: string;
   }) {
     if (!data.password || data.password.length < 6)
       throw new BadRequestException({
@@ -126,14 +128,19 @@ export class AuthService {
       await this.sendPhoneVerification(data.phone);
     }
 
-    const token = this.jwtService.sign({
+    const accessToken = this.jwtService.sign({
       sub: user.id,
       nickname: user.nickname,
     });
-    return { token, nickname: user.nickname };
+    const refreshToken = await this.issueRefreshToken(user.id, data.userAgent);
+    return { token: accessToken, refreshToken, nickname: user.nickname };
   }
 
-  async login(data: { emailOrPhone: string; password: string }) {
+  async login(data: {
+    emailOrPhone: string;
+    password: string;
+    userAgent?: string;
+  }) {
     const user =
       (await this.usersService.findByEmail(data.emailOrPhone)) ??
       (await this.usersService.findByPhone(data.emailOrPhone));
@@ -166,11 +173,12 @@ export class AuthService {
       });
     }
 
-    const token = this.jwtService.sign({
+    const accessToken = this.jwtService.sign({
       sub: user.id,
       nickname: user.nickname,
     });
-    return { token, nickname: user.nickname };
+    const refreshToken = await this.issueRefreshToken(user.id, data.userAgent);
+    return { token: accessToken, refreshToken, nickname: user.nickname };
   }
 
   // ---- Verificación ----
@@ -371,5 +379,60 @@ export class AuthService {
       });
     }
     return { success: true };
+  }
+
+  // ---- Refresh tokens ----
+
+  // Hashea el token con SHA-256. El token es aleatorio y largo, así que no
+  // necesita bcrypt: basta un hash rápido para no guardar el valor en crudo.
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  // Genera un refresh token nuevo, guarda su hash en la DB y devuelve el token
+  // EN CRUDO (que es lo único que ve el cliente, vía cookie httpOnly).
+  async issueRefreshToken(userId: number, userAgent?: string): Promise<string> {
+    const token = crypto.randomBytes(48).toString('hex');
+    const expiresAt = new Date(
+      Date.now() + REFRESH_TOKEN_DAYS * 24 * 60 * 60 * 1000,
+    );
+    await this.prisma.refreshToken.create({
+      data: {
+        userId,
+        tokenHash: this.hashToken(token),
+        expiresAt,
+        userAgent: userAgent?.slice(0, 255),
+      },
+    });
+    return token;
+  }
+
+  // Valida un refresh token (crudo). Si es válido, devuelve el userId; si no, null.
+  // Válido = existe, no revocado, no expirado.
+  async validateRefreshToken(token: string): Promise<number | null> {
+    const record = await this.prisma.refreshToken.findUnique({
+      where: { tokenHash: this.hashToken(token) },
+    });
+    if (!record) return null;
+    if (record.revokedAt) return null;
+    if (record.expiresAt < new Date()) return null;
+    return record.userId;
+  }
+
+  // Revoca un refresh token (para el logout). Idempotente.
+  async revokeRefreshToken(token: string): Promise<void> {
+    await this.prisma.refreshToken
+      .updateMany({
+        where: { tokenHash: this.hashToken(token), revokedAt: null },
+        data: { revokedAt: new Date() },
+      })
+      .catch(() => {}); // si no existe, no pasa nada
+  }
+
+  // Emite un access token nuevo (el JWT corto) para un userId dado.
+  async issueAccessToken(userId: number): Promise<string> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException({ code: 'INVALID_REFRESH' });
+    return this.jwtService.sign({ sub: user.id, nickname: user.nickname });
   }
 }

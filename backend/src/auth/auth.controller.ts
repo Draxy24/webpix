@@ -6,7 +6,10 @@ import {
   Body,
   UseGuards,
   Request,
+  Res,
+  Req,
 } from '@nestjs/common';
+import type { Response, Request as ExpressRequest } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,6 +29,20 @@ const TIER_LIMITS = {
   PREMIUM: { pixels: Infinity, cooldownHours: 0 },
 };
 
+const REFRESH_COOKIE = 'webpix_rt';
+
+function setRefreshCookie(res: Response, token: string) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.cookie(REFRESH_COOKIE, token, {
+    httpOnly: true,
+    secure: isProd, // en local (http) no forzamos secure
+    sameSite: isProd ? 'none' : 'lax', // cross-subdominio en prod
+    domain: isProd ? '.webpix.art' : undefined, // compartida por *.webpix.art
+    path: '/',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+  });
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -35,17 +52,32 @@ export class AuthController {
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
-  register(
-    @Body()
-    body: RegisterDto,
+  async register(
+    @Body() body: RegisterDto,
+    @Req() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.register(body);
+    const result = await this.authService.register({
+      ...body,
+      userAgent: req.headers['user-agent'],
+    });
+    setRefreshCookie(res, result.refreshToken);
+    return { token: result.token, nickname: result.nickname };
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
-  login(@Body() body: LoginDto) {
-    return this.authService.login(body);
+  async login(
+    @Body() body: LoginDto,
+    @Req() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login({
+      ...body,
+      userAgent: req.headers['user-agent'],
+    });
+    setRefreshCookie(res, result.refreshToken);
+    return { token: result.token, nickname: result.nickname };
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })

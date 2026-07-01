@@ -6,6 +6,7 @@ import { join } from 'path';
 import helmet from 'helmet';
 import compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -26,6 +27,8 @@ async function bootstrap() {
   // Compresión de respuestas: gran ahorro en GET /pixels (JSON grande). Solo toca el cuerpo
   // de las RESPUESTAS, así que no interfiere con el rawBody del webhook de Stripe.
   app.use(compression());
+
+  app.use(cookieParser());
 
   app.useStaticAssets(join(process.cwd(), 'public'));
 
