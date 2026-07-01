@@ -44,17 +44,13 @@ export default function ForgotPasswordPage() {
 
   // Llevamos el destino al reset para prefill (y para que arranque en el modo correcto)
   const goToReset = () => {
-    let emailOrPhone: string;
     if (method === "email") {
-      emailOrPhone = email;
+      router.push(
+        `/reset-password?emailOrPhone=${encodeURIComponent(email.trim())}`,
+      );
     } else {
-      const dialCode =
-        COUNTRIES.find((c) => c.code === phoneCountry)?.dialCode ?? "";
-      emailOrPhone = `${dialCode}${phoneNumber.replace(/\s/g, "")}`;
+      router.push("/reset-password"); // el teléfono se re-arma en reset, sin URL
     }
-    router.push(
-      `/reset-password?emailOrPhone=${encodeURIComponent(emailOrPhone)}`,
-    );
   };
 
   return (

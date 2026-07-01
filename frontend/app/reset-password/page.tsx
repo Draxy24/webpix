@@ -16,15 +16,15 @@ function ResetPasswordInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Si viene de un enlace de correo, trae emailOrPhone + code en la URL.
   const prefill = searchParams.get("emailOrPhone") ?? "";
-  const fromLink = prefill.length > 0;
+  // El prefill solo lo confiamos para email. Si parece teléfono (trae + o %2B
+  // decodificado), NO lo usamos como valor: mostramos el selector y lo rearmamos.
+  const prefillIsPhone = prefill.startsWith("+") || prefill.includes(" ");
 
-  // Si el prefill parece teléfono (empieza con +), arrancamos en modo phone.
   const [method, setMethod] = useState<"email" | "phone">(
-    prefill.startsWith("+") ? "phone" : "email",
+    prefillIsPhone ? "phone" : "email",
   );
-  const [email, setEmail] = useState(prefill.startsWith("+") ? "" : prefill);
+  const [email, setEmail] = useState(prefillIsPhone ? "" : prefill);
   const [phoneCountry, setPhoneCountry] = useState("MX");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState(searchParams.get("code") ?? "");
@@ -40,11 +40,11 @@ function ResetPasswordInner() {
     try {
       let emailOrPhone: string;
       if (method === "email") {
-        emailOrPhone = email;
+        emailOrPhone = email.trim();
       } else {
         const dialCode =
           COUNTRIES.find((c) => c.code === phoneCountry)?.dialCode ?? "";
-        emailOrPhone = `${dialCode}${phoneNumber.replace(/\s/g, "")}`;
+        emailOrPhone = `${dialCode}${phoneNumber.replace(/\D/g, "")}`;
       }
       const res = await fetch(API_URL + "/auth/reset-password", {
         method: "POST",
@@ -93,8 +93,22 @@ function ResetPasswordInner() {
   return (
     <AuthPageLayout title={t("resetPassword.title")}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        {/* Si viene de un enlace de correo, no mostramos el toggle: ya sabemos el destino */}
-        {!fromLink && (
+        {/* Para email que vino por enlace, mostramos a quién va (solo lectura).
+            Para teléfono SIEMPRE mostramos el selector: el + no sobrevive la URL. */}
+        {method === "email" && !prefillIsPhone && prefill ? (
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-secondary)",
+              margin: 0,
+            }}
+          >
+            {t("resetPassword.forAccount", {
+              defaultValue: "Restableciendo la contraseña de {{account}}",
+              account: prefill,
+            })}
+          </p>
+        ) : (
           <>
             <div className={styles.methodTabs}>
               <button
@@ -130,7 +144,7 @@ function ResetPasswordInner() {
                 />
                 <input
                   type="tel"
-                  placeholder="476 124 5532"
+                  placeholder="55 1234 5678"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   required
@@ -140,22 +154,6 @@ function ResetPasswordInner() {
               </div>
             )}
           </>
-        )}
-
-        {/* Si viene del enlace de correo, mostramos a quién va (solo lectura) */}
-        {fromLink && (
-          <p
-            style={{
-              fontSize: "var(--text-sm)",
-              color: "var(--color-text-secondary)",
-              margin: 0,
-            }}
-          >
-            {t("resetPassword.forAccount", {
-              defaultValue: "Restableciendo la contraseña de {{account}}",
-              account: prefill,
-            })}
-          </p>
         )}
 
         <input
