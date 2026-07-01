@@ -8,6 +8,7 @@ import {
   Request,
   Res,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Response, Request as ExpressRequest } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -30,6 +31,17 @@ const TIER_LIMITS = {
 };
 
 const REFRESH_COOKIE = 'webpix_rt';
+
+function clearRefreshCookie(res: Response) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie(REFRESH_COOKIE, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    domain: isProd ? '.webpix.art' : undefined,
+    path: '/',
+  });
+}
 
 function setRefreshCookie(res: Response, token: string) {
   const isProd = process.env.NODE_ENV === 'production';
@@ -78,6 +90,39 @@ export class AuthController {
     });
     setRefreshCookie(res, result.refreshToken);
     return { token: result.token, nickname: result.nickname };
+  }
+
+  @SkipThrottle()
+  @Post('refresh')
+  async refresh(
+    @Req() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = req.cookies?.[REFRESH_COOKIE];
+    if (!token) {
+      throw new UnauthorizedException({ code: 'NO_REFRESH_TOKEN' });
+    }
+    const userId = await this.authService.validateRefreshToken(token);
+    if (userId === null) {
+      // Refresh inválido/expirado/revocado: limpiamos la cookie muerta.
+      clearRefreshCookie(res);
+      throw new UnauthorizedException({ code: 'INVALID_REFRESH' });
+    }
+    const accessToken = await this.authService.issueAccessToken(userId);
+    return { token: accessToken };
+  }
+
+  @Post('logout')
+  async logout(
+    @Req() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = req.cookies?.[REFRESH_COOKIE];
+    if (token) {
+      await this.authService.revokeRefreshToken(token);
+    }
+    clearRefreshCookie(res);
+    return { success: true };
   }
 
   @Throttle({ default: { limit: 10, ttl: 60000 } })
