@@ -17,7 +17,7 @@ import { StorageModule } from '../storage/storage.module';
         const secret = process.env.JWT_SECRET;
         if (!secret)
           throw new Error('JWT_SECRET no está definido en el entorno');
-        return { secret, signOptions: { expiresIn: '30d' } };
+        return { secret, signOptions: { expiresIn: '15m' } };
       },
     }),
   ],
