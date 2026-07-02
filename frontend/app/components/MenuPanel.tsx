@@ -16,6 +16,7 @@ import RewardsView from "./RewardsView";
 import { useProfileModal } from "./ProfileModalContext";
 import { API_URL } from "@/app/lib/api";
 import { apiErrorText } from "@/app/lib/apiError";
+import ContactManager from "./ContactManager";
 
 export default function MenuPanel({
   nickname,
@@ -258,6 +259,8 @@ export default function MenuPanel({
                     </option>
                   ))}
               </select>
+
+              <ContactManager />
 
               {editError && <p className={styles.error}>{editError}</p>}
 

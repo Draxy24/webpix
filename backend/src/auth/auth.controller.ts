@@ -218,6 +218,10 @@ export class AuthController {
           ? null
           : Math.max(limit.pixels - pixelsUsed, 0),
       cooldownSeconds,
+      email: user.email,
+      phone: user.phone,
+      emailVerified: user.emailVerified,
+      phoneVerified: user.phoneVerified,
     };
   }
 

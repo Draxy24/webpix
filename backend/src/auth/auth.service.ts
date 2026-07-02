@@ -312,6 +312,20 @@ export class AuthService {
       });
 
     const isPhone = user.phone != null && user.phone === emailOrPhone;
+
+    if (isPhone && !user.phoneVerified) {
+      throw new BadRequestException({
+        message: 'Este teléfono no está verificado',
+        code: 'CHANNEL_NOT_VERIFIED',
+      });
+    }
+    if (!isPhone && !user.emailVerified) {
+      throw new BadRequestException({
+        message: 'Este correo no está verificado',
+        code: 'CHANNEL_NOT_VERIFIED',
+      });
+    }
+
     let resetRecordId: number | null = null;
 
     if (isPhone) {
