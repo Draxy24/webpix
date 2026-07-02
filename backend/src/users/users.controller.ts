@@ -12,7 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { levelInfo } from '../rewards/rewards.config';
-import { UpdateMeDto } from './dto/users.dto';
+import { AddEmailDto, AddPhoneDto, UpdateMeDto } from './dto/users.dto';
 import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PixelCacheService } from '../pixel/pixel-cache.service';
@@ -119,6 +119,24 @@ export class UsersController {
       country: updated.country,
       token, // solo viene cuando cambió el nickname
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/email')
+  async addEmail(
+    @Request() req: { user: { id: number } },
+    @Body() body: AddEmailDto,
+  ) {
+    return this.usersService.addEmail(req.user.id, body.email);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/phone')
+  async addPhone(
+    @Request() req: { user: { id: number } },
+    @Body() body: AddPhoneDto,
+  ) {
+    return this.usersService.addPhone(req.user.id, body.phone);
   }
 
   @UseGuards(AuthGuard('jwt'))

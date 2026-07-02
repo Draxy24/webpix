@@ -4,6 +4,8 @@ import {
   MaxLength,
   MinLength,
   Matches,
+  IsNotEmpty,
+  IsEmail,
 } from 'class-validator';
 
 export class UpdateMeDto {
@@ -25,4 +27,16 @@ export class UpdateMeDto {
     message: 'El nickname solo puede tener letras, números y guion bajo',
   })
   nickname?: string;
+}
+
+export class AddEmailDto {
+  @IsEmail()
+  email!: string;
+}
+
+export class AddPhoneDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(20)
+  phone!: string;
 }
