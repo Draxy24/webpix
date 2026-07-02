@@ -70,7 +70,14 @@
     "INVALID_RESET_DATA": "数据无效",
     "PASSWORD_TOO_SHORT": "密码至少需 {{min}} 个字符",
     "SPACE_CAP_REACHED": "私人空间暂时已满，请稍后再试。",
-    "CLAIM_TOO_BIG": "该区域超过了你在等候名单中预留的大小。"
+    "CLAIM_TOO_BIG": "该区域超过了你在等候名单中预留的大小。",
+    "CHANNEL_NOT_VERIFIED": "此方式尚未验证。",
+    "EMAIL_ALREADY_SET": "你已注册了邮箱。",
+    "PHONE_ALREADY_SET": "你已注册了手机号。",
+    "EMAIL_ALREADY_VERIFIED": "你的邮箱已验证。",
+    "PHONE_ALREADY_VERIFIED": "你的手机号已验证。",
+    "NO_EMAIL": "你没有注册邮箱。",
+    "NO_PHONE": "你没有注册手机号。"
   },
   "resetPassword": {
     "title": "重置密码",
@@ -82,7 +89,8 @@
     "newPassword": "新密码",
     "saving": "保存中…",
     "submit": "重置密码",
-    "error": "重置密码失败"
+    "error": "重置密码失败",
+    "forAccount": "正在重置 {{account}} 的密码"
   },
   "forgotPassword": {
     "title": "重置密码",
@@ -917,7 +925,24 @@
       "modPanel": "管理面板",
       "logout": "退出登录"
     },
-    "friends": { "loginPrompt": "登录后即可添加好友。" }
+    "friends": { "loginPrompt": "登录后即可添加好友。" },
+    "contact": {
+      "title": "联系方式",
+      "verify": "验证",
+      "verifiedTag": "已验证",
+      "addEmail": "添加邮箱",
+      "addPhone": "添加手机号",
+      "addError": "无法添加。",
+      "addedEmail": "邮箱已添加，现在可以验证了。",
+      "addedPhone": "手机号已添加，现在可以验证了。",
+      "verifyError": "无法发送验证码。",
+      "codeSentEmail": "我们已向你的邮箱发送了链接/验证码。",
+      "codeSentPhone": "我们已通过短信发送了验证码。",
+      "confirmError": "验证码无效。",
+      "verified": "验证成功！",
+      "enterCode": "输入验证码",
+      "confirm": "确认"
+    }
   },
   "panel": {
     "titles": {

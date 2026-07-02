@@ -70,7 +70,14 @@
     "INVALID_RESET_DATA": "Ungültige Daten",
     "PASSWORD_TOO_SHORT": "Das Passwort muss mindestens {{min}} Zeichen lang sein",
     "SPACE_CAP_REACHED": "Privater Bereich ist gerade voll. Bitte versuche es später erneut.",
-    "CLAIM_TOO_BIG": "Der Bereich überschreitet deine Reservierung auf der Warteliste."
+    "CLAIM_TOO_BIG": "Der Bereich überschreitet deine Reservierung auf der Warteliste.",
+    "CHANNEL_NOT_VERIFIED": "Diese Methode ist nicht verifiziert.",
+    "EMAIL_ALREADY_SET": "Du hast bereits eine E-Mail registriert.",
+    "PHONE_ALREADY_SET": "Du hast bereits eine Telefonnummer registriert.",
+    "EMAIL_ALREADY_VERIFIED": "Deine E-Mail ist bereits verifiziert.",
+    "PHONE_ALREADY_VERIFIED": "Dein Telefon ist bereits verifiziert.",
+    "NO_EMAIL": "Du hast keine E-Mail registriert.",
+    "NO_PHONE": "Du hast keine Telefonnummer registriert."
   },
   "resetPassword": {
     "title": "Passwort zurücksetzen",
@@ -82,7 +89,8 @@
     "newPassword": "Neues Passwort",
     "saving": "Wird gespeichert...",
     "submit": "Passwort zurücksetzen",
-    "error": "Passwort konnte nicht zurückgesetzt werden"
+    "error": "Passwort konnte nicht zurückgesetzt werden",
+    "forAccount": "Passwort für {{account}} zurücksetzen"
   },
   "forgotPassword": {
     "title": "Passwort zurücksetzen",
@@ -1084,7 +1092,24 @@
       "modPanel": "Moderationsbereich",
       "logout": "Abmelden"
     },
-    "friends": { "loginPrompt": "Melde dich an, um Freunde zu haben." }
+    "friends": { "loginPrompt": "Melde dich an, um Freunde zu haben." },
+    "contact": {
+      "title": "Kontaktmethoden",
+      "verify": "Verifizieren",
+      "verifiedTag": "Verifiziert",
+      "addEmail": "E-Mail hinzufügen",
+      "addPhone": "Telefon hinzufügen",
+      "addError": "Konnte nicht hinzugefügt werden.",
+      "addedEmail": "E-Mail hinzugefügt. Du kannst sie jetzt verifizieren.",
+      "addedPhone": "Telefon hinzugefügt. Du kannst es jetzt verifizieren.",
+      "verifyError": "Code konnte nicht gesendet werden.",
+      "codeSentEmail": "Wir haben einen Link/Code an deine E-Mail gesendet.",
+      "codeSentPhone": "Wir haben einen Code per SMS gesendet.",
+      "confirmError": "Ungültiger Code.",
+      "verified": "Erfolgreich verifiziert!",
+      "enterCode": "Code eingeben",
+      "confirm": "Bestätigen"
+    }
   },
   "panel": {
     "titles": {

@@ -70,7 +70,14 @@
     "INVALID_RESET_DATA": "Données invalides",
     "PASSWORD_TOO_SHORT": "Le mot de passe doit faire au moins {{min}} caractères",
     "SPACE_CAP_REACHED": "L'espace privé est plein pour le moment. Réessaie plus tard.",
-    "CLAIM_TOO_BIG": "La zone dépasse ce que tu as réservé sur la liste d'attente."
+    "CLAIM_TOO_BIG": "La zone dépasse ce que tu as réservé sur la liste d'attente.",
+    "CHANNEL_NOT_VERIFIED": "Cette méthode n'est pas vérifiée.",
+    "EMAIL_ALREADY_SET": "Tu as déjà un e-mail enregistré.",
+    "PHONE_ALREADY_SET": "Tu as déjà un téléphone enregistré.",
+    "EMAIL_ALREADY_VERIFIED": "Ton e-mail est déjà vérifié.",
+    "PHONE_ALREADY_VERIFIED": "Ton téléphone est déjà vérifié.",
+    "NO_EMAIL": "Tu n'as pas d'e-mail enregistré.",
+    "NO_PHONE": "Tu n'as pas de téléphone enregistré."
   },
   "resetPassword": {
     "title": "Réinitialiser le mot de passe",
@@ -82,7 +89,8 @@
     "newPassword": "Nouveau mot de passe",
     "saving": "Enregistrement...",
     "submit": "Réinitialiser le mot de passe",
-    "error": "Impossible de réinitialiser le mot de passe"
+    "error": "Impossible de réinitialiser le mot de passe",
+    "forAccount": "Réinitialisation du mot de passe de {{account}}"
   },
   "forgotPassword": {
     "title": "Réinitialiser le mot de passe",
@@ -1093,7 +1101,24 @@
       "modPanel": "Panneau de modération",
       "logout": "Se déconnecter"
     },
-    "friends": { "loginPrompt": "Connecte-toi pour avoir des amis." }
+    "friends": { "loginPrompt": "Connecte-toi pour avoir des amis." },
+    "contact": {
+      "title": "Méthodes de contact",
+      "verify": "Vérifier",
+      "verifiedTag": "Vérifié",
+      "addEmail": "Ajouter un e-mail",
+      "addPhone": "Ajouter un téléphone",
+      "addError": "Impossible d'ajouter.",
+      "addedEmail": "E-mail ajouté. Tu peux le vérifier maintenant.",
+      "addedPhone": "Téléphone ajouté. Tu peux le vérifier maintenant.",
+      "verifyError": "Impossible d'envoyer le code.",
+      "codeSentEmail": "Nous avons envoyé un lien/code à ton e-mail.",
+      "codeSentPhone": "Nous avons envoyé un code par SMS.",
+      "confirmError": "Code invalide.",
+      "verified": "Vérifié avec succès !",
+      "enterCode": "Saisis le code",
+      "confirm": "Confirmer"
+    }
   },
   "panel": {
     "titles": {

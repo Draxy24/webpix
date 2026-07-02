@@ -70,7 +70,14 @@
     "INVALID_RESET_DATA": "Invalid data",
     "PASSWORD_TOO_SHORT": "The password must be at least {{min}} characters",
     "SPACE_CAP_REACHED": "Private space is at capacity right now. Please try again later.",
-    "CLAIM_TOO_BIG": "The area exceeds what you reserved on the waitlist."
+    "CLAIM_TOO_BIG": "The area exceeds what you reserved on the waitlist.",
+    "CHANNEL_NOT_VERIFIED": "This method isn't verified.",
+    "EMAIL_ALREADY_SET": "You already have an email registered.",
+    "PHONE_ALREADY_SET": "You already have a phone registered.",
+    "EMAIL_ALREADY_VERIFIED": "Your email is already verified.",
+    "PHONE_ALREADY_VERIFIED": "Your phone is already verified.",
+    "NO_EMAIL": "You don't have an email registered.",
+    "NO_PHONE": "You don't have a phone registered."
   },
   "resetPassword": {
     "title": "Reset password",
@@ -82,7 +89,8 @@
     "newPassword": "New password",
     "saving": "Saving...",
     "submit": "Reset password",
-    "error": "Couldn't reset the password"
+    "error": "Couldn't reset the password",
+    "forAccount": "Resetting the password for {{account}}"
   },
   "forgotPassword": {
     "title": "Reset password",
@@ -1057,7 +1065,24 @@
       "modPanel": "Moderation panel",
       "logout": "Log out"
     },
-    "friends": { "loginPrompt": "Log in to have friends." }
+    "friends": { "loginPrompt": "Log in to have friends." },
+    "contact": {
+      "title": "Contact methods",
+      "verify": "Verify",
+      "verifiedTag": "Verified",
+      "addEmail": "Add email",
+      "addPhone": "Add phone",
+      "addError": "Couldn't add it.",
+      "addedEmail": "Email added. You can verify it now.",
+      "addedPhone": "Phone added. You can verify it now.",
+      "verifyError": "Couldn't send the code.",
+      "codeSentEmail": "We sent a link/code to your email.",
+      "codeSentPhone": "We sent a code by SMS.",
+      "confirmError": "Invalid code.",
+      "verified": "Verified successfully!",
+      "enterCode": "Enter the code",
+      "confirm": "Confirm"
+    }
   },
   "panel": {
     "titles": {
