@@ -12,7 +12,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { levelInfo } from '../rewards/rewards.config';
-import { AddEmailDto, AddPhoneDto, UpdateMeDto } from './dto/users.dto';
+import {
+  AddEmailDto,
+  AddPhoneDto,
+  UpdateMeDto,
+  VerifyContactDto,
+} from './dto/users.dto';
 import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PixelCacheService } from '../pixel/pixel-cache.service';
@@ -137,6 +142,36 @@ export class UsersController {
     @Body() body: AddPhoneDto,
   ) {
     return this.usersService.addPhone(req.user.id, body.phone);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/email/verify/start')
+  startEmailVerify(@Request() req: { user: { id: number } }) {
+    return this.usersService.startEmailVerification(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/email/verify/confirm')
+  confirmEmailVerify(
+    @Request() req: { user: { id: number } },
+    @Body() body: VerifyContactDto,
+  ) {
+    return this.usersService.confirmEmailVerification(req.user.id, body.code);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/phone/verify/start')
+  startPhoneVerify(@Request() req: { user: { id: number } }) {
+    return this.usersService.startPhoneVerification(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('me/phone/verify/confirm')
+  confirmPhoneVerify(
+    @Request() req: { user: { id: number } },
+    @Body() body: VerifyContactDto,
+  ) {
+    return this.usersService.confirmPhoneVerification(req.user.id, body.code);
   }
 
   @UseGuards(AuthGuard('jwt'))

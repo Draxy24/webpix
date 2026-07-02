@@ -40,3 +40,10 @@ export class AddPhoneDto {
   @MaxLength(20)
   phone!: string;
 }
+
+export class VerifyContactDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  code!: string;
+}

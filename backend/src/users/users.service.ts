@@ -4,10 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import * as crypto from 'crypto';
+import { NotificationService } from 'src/notifications/notification.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
@@ -91,6 +96,107 @@ export class UsersService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { phone, phoneVerified: false },
+    });
+    return { success: true };
+  }
+
+  // ---- Verificación del segundo método (no bloqueante) ----
+
+  // Inicia la verificación del email de la cuenta (debe existir y no estar verificado).
+  async startEmailVerification(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.email) {
+      throw new BadRequestException({
+        message: 'No tienes un correo registrado',
+        code: 'NO_EMAIL',
+      });
+    }
+    if (user.emailVerified) {
+      throw new BadRequestException({
+        message: 'Tu correo ya está verificado',
+        code: 'EMAIL_ALREADY_VERIFIED',
+      });
+    }
+    // Limpiamos códigos previos de este tipo y generamos uno nuevo.
+    await this.prisma.verificationCode.deleteMany({
+      where: { userId, type: 'EMAIL' },
+    });
+    const code = crypto.randomBytes(16).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await this.prisma.verificationCode.create({
+      data: { userId, code, type: 'EMAIL', expiresAt },
+    });
+    await this.notificationService.sendEmailVerification(user.email, code);
+    return { success: true };
+  }
+
+  // Confirma el email con el código recibido → marca emailVerified.
+  async confirmEmailVerification(userId: number, code: string) {
+    const record = await this.prisma.verificationCode.findFirst({
+      where: { userId, code, type: 'EMAIL' },
+    });
+    if (!record) {
+      throw new BadRequestException({
+        message: 'Código inválido',
+        code: 'INVALID_CODE',
+      });
+    }
+    if (record.expiresAt < new Date()) {
+      await this.prisma.verificationCode.delete({ where: { id: record.id } });
+      throw new BadRequestException({
+        message: 'El código ha expirado',
+        code: 'CODE_EXPIRED',
+      });
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+    });
+    await this.prisma.verificationCode.delete({ where: { id: record.id } });
+    return { success: true };
+  }
+
+  // Inicia la verificación del teléfono (Twilio Verify).
+  async startPhoneVerification(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.phone) {
+      throw new BadRequestException({
+        message: 'No tienes un teléfono registrado',
+        code: 'NO_PHONE',
+      });
+    }
+    if (user.phoneVerified) {
+      throw new BadRequestException({
+        message: 'Tu teléfono ya está verificado',
+        code: 'PHONE_ALREADY_VERIFIED',
+      });
+    }
+    await this.notificationService.startPhoneVerification(user.phone);
+    return { success: true };
+  }
+
+  // Confirma el teléfono con el código del SMS → marca phoneVerified.
+  async confirmPhoneVerification(userId: number, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.phone) {
+      throw new BadRequestException({
+        message: 'No tienes un teléfono registrado',
+        code: 'NO_PHONE',
+      });
+    }
+    const ok = await this.notificationService.checkPhoneVerification(
+      user.phone,
+      code,
+    );
+    if (!ok) {
+      throw new BadRequestException({
+        message: 'Código inválido',
+        code: 'INVALID_CODE',
+      });
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { phoneVerified: true },
     });
     return { success: true };
   }
