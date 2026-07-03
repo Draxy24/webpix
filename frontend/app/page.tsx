@@ -175,15 +175,7 @@ export default function Home() {
   const [selectedColor, setSelectedColor] = useState("#000000");
   const colorRef = useRef(selectedColor);
   const [panelSection, setPanelSection] = useState<PanelSection | null>(null);
-  const [pixels, setPixels] = useState<Record<string, string>>(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      const saved = localStorage.getItem("pixels");
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [pixels, setPixels] = useState<Record<string, string>>({});
   const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTool, setActiveTool] = useState<Tool>("brush");
@@ -771,10 +763,6 @@ export default function Home() {
       if (flushTimer) clearInterval(flushTimer);
     };
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("pixels", JSON.stringify(pixels));
-  }, [pixels]);
 
   useEffect(() => {
     const loadPixels = async () => {
