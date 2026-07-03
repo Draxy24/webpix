@@ -245,6 +245,9 @@ export default function Home() {
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const activeToolRef = useRef(activeTool);
   const pixelsRef = useRef(pixels);
+  // Fuente de verdad de los píxeles (mutable, sin pasar por React).
+  // key "x,y" → color. Se muta directo; NO se clona.
+  const pixelsMapRef = useRef<Map<string, string>>(new Map());
   const nicknameRef = useRef(nickname);
   const isAdminRef = useRef(isAdmin);
   const [highlightZone, setHighlightZone] = useState<{
@@ -1430,6 +1433,62 @@ export default function Home() {
       ty: fit(ty, 1000 * scale, window.innerHeight),
     };
   };
+
+  // Redibuja TODO el canvas desde el Map. Solo se llama cuando de verdad hace
+  // falta: carga inicial, o cambios masivos del WebSocket. NUNCA por pincelada.
+  const redrawAll = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (const [key, color] of pixelsMapRef.current) {
+      const [x, y] = key.split(",").map(Number);
+      ctx.fillStyle = resolveColor(color, x, y);
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }, []);
+  const redrawAllRef = useRef(redrawAll);
+  useEffect(() => {
+    redrawAllRef.current = redrawAll;
+  }, [redrawAll]);
+
+  // Dibuja y registra un conjunto de celdas de un color. Muta el Map + pinta.
+  const drawCells = useCallback(
+    (cells: { x: number; y: number }[], color: string) => {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (!ctx) return;
+      for (const c of cells) {
+        if (c.x < 0 || c.x > 999 || c.y < 0 || c.y > 999) continue;
+        pixelsMapRef.current.set(`${c.x},${c.y}`, color);
+        ctx.fillStyle = resolveColor(color, c.x, c.y);
+        ctx.fillRect(c.x, c.y, 1, 1);
+      }
+    },
+    [],
+  );
+  const drawCellsRef = useRef(drawCells);
+  useEffect(() => {
+    drawCellsRef.current = drawCells;
+  }, [drawCells]);
+
+  // Borra un conjunto de celdas: las quita del Map y pinta blanco encima.
+  const clearCells = useCallback((cells: { x: number; y: number }[]) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx) return;
+    for (const c of cells) {
+      pixelsMapRef.current.delete(`${c.x},${c.y}`);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(c.x, c.y, 1, 1);
+    }
+  }, []);
+  const clearCellsRef = useRef(clearCells);
+  useEffect(() => {
+    clearCellsRef.current = clearCells;
+  }, [clearCells]);
 
   // Aplica la cámara YA, imperativamente (sin ciclo de React = sin teletransporte).
   const applyView = useCallback(() => {
