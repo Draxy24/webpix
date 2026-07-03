@@ -380,12 +380,8 @@ export default function Home() {
       const prevColor = pixelsRef.current[key];
       if (!prevColor) return; // nada que borrar localmente
 
-      // Optimista: quita el píxel y su dueño
-      setPixels((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
+      // Optimista: quita el píxel del Map + pinta blanco, y quita su dueño.
+      clearCellsRef.current([{ x, y }]);
       setPixelOwners((prev) => {
         const next = { ...prev };
         delete next[key];
@@ -404,7 +400,7 @@ export default function Home() {
         .then(async (res) => {
           const data = await res.json();
           if (!data.success) {
-            setPixels((prev) => ({ ...prev, [key]: prevColor }));
+            drawCellsRef.current([{ x, y }], prevColor);
             if (owner) setPixelOwners((prev) => ({ ...prev, [key]: owner }));
             return;
           }
@@ -419,7 +415,7 @@ export default function Home() {
           }
         })
         .catch(() => {
-          setPixels((prev) => ({ ...prev, [key]: prevColor }));
+          drawCellsRef.current([{ x, y }], prevColor);
           if (owner) setPixelOwners((prev) => ({ ...prev, [key]: owner }));
         });
     };
@@ -908,11 +904,15 @@ export default function Home() {
           nickname: string | null;
         }[];
       }) => {
-        setPixels((prev) => {
-          const next = { ...prev };
-          for (const p of data.pixels) next[`${p.x},${p.y}`] = p.color;
-          return next;
-        });
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext("2d");
+        for (const p of data.pixels) {
+          pixelsMapRef.current.set(`${p.x},${p.y}`, p.color);
+          if (ctx) {
+            ctx.fillStyle = resolveColor(p.color, p.x, p.y);
+            ctx.fillRect(p.x, p.y, 1, 1);
+          }
+        }
         setPixelOwners((prev) => {
           const next = { ...prev };
           for (const p of data.pixels) {
@@ -923,11 +923,7 @@ export default function Home() {
       },
     );
     socket.on("erase", (data: { cells: { x: number; y: number }[] }) => {
-      setPixels((prev) => {
-        const next = { ...prev };
-        for (const c of data.cells) delete next[`${c.x},${c.y}`];
-        return next;
-      });
+      clearCellsRef.current(data.cells);
       setPixelOwners((prev) => {
         const next = { ...prev };
         for (const c of data.cells) delete next[`${c.x},${c.y}`];
