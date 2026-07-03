@@ -515,19 +515,32 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
+  // Redibuja TODO el canvas desde el Map. Solo se llama cuando de verdad hace
+  // falta: carga inicial, o cambios masivos del WebSocket. NUNCA por pincelada.
+  const redrawAll = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    for (const key in pixels) {
+    for (const [key, color] of pixelsMapRef.current) {
       const [x, y] = key.split(",").map(Number);
-      ctx.fillStyle = resolveColor(pixels[key], x, y);
+      ctx.fillStyle = resolveColor(color, x, y);
       ctx.fillRect(x, y, 1, 1);
     }
+  }, []);
+  const redrawAllRef = useRef(redrawAll);
+  useEffect(() => {
+    redrawAllRef.current = redrawAll;
+  }, [redrawAll]);
+
+  useEffect(() => {
+    redrawAll();
     if (highlightZone) {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (!ctx) return;
       const { x1, y1, x2, y2 } = highlightZone;
       const w = x2 - x1 + 1;
       const h = y2 - y1 + 1;
@@ -537,7 +550,7 @@ export default function Home() {
       ctx.lineWidth = 1;
       ctx.strokeRect(x1 + 0.5, y1 + 0.5, w - 1, h - 1);
     }
-  }, [pixels, highlightZone]);
+  }, [redrawAll, highlightZone]);
 
   // Pintar con brocha arrastrando: junta celdas mientras mantienes el clic
   // izquierdo y las manda en tandas a /pixel-batch. Un clic suelto = tanda de 1.
@@ -612,6 +625,8 @@ export default function Home() {
         localBudget -= 1;
         paintedThisDrag.add(key);
         accepted.push(c);
+        // Muta el Map + dibuja, sin pasar por React.
+        pixelsMapRef.current.set(key, dragColor);
         ctx.fillStyle = resolveColor(dragColor, c.x, c.y);
         ctx.fillRect(c.x, c.y, 1, 1);
       }
@@ -622,12 +637,6 @@ export default function Home() {
         lastSoundAt = now;
       }
       for (const c of accepted) buffer.push(c);
-      // Mergeamos al estado para que sobrevivan a redibujos (socket, zoom).
-      setPixels((prev) => {
-        const next = { ...prev };
-        for (const c of accepted) next[`${c.x},${c.y}`] = dragColor;
-        return next;
-      });
     };
 
     const sendChunk = (cells: { x: number; y: number }[]) => {
@@ -645,11 +654,7 @@ export default function Home() {
         .then(async (res) => {
           const data = await res.json();
           if (!data.success) {
-            setPixels((prev) => {
-              const next = { ...prev };
-              for (const c of cells) delete next[`${c.x},${c.y}`];
-              return next;
-            });
+            clearCellsRef.current(cells);
             if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
             else if (data.message || data.code)
               setNotice(apiErrorText(data, tRef.current));
@@ -657,11 +662,7 @@ export default function Home() {
           }
           // Revertir solo lo que el server NO pintó (cuota o espacio privado).
           if (Array.isArray(data.skipped) && data.skipped.length > 0) {
-            setPixels((prev) => {
-              const next = { ...prev };
-              for (const c of data.skipped) delete next[`${c.x},${c.y}`];
-              return next;
-            });
+            clearCellsRef.current(data.skipped);
           }
           if (data.state) {
             if (data.state.isAdmin || data.state.pixelsLeft === null) {
@@ -678,11 +679,7 @@ export default function Home() {
           }
         })
         .catch(() => {
-          setPixels((prev) => {
-            const next = { ...prev };
-            for (const c of cells) delete next[`${c.x},${c.y}`];
-            return next;
-          });
+          clearCellsRef.current(cells);
         });
     };
 
@@ -771,7 +768,11 @@ export default function Home() {
     const loadPixels = async () => {
       const res = await fetch(API_URL + "/pixels");
       const data = await res.json();
-      setPixels(data.colors);
+      // Llena el Map (fuente de verdad) y redibuja una vez.
+      const map = new Map<string, string>();
+      for (const key in data.colors) map.set(key, data.colors[key]);
+      pixelsMapRef.current = map;
+      redrawAllRef.current();
       setPixelOwners(data.owners);
     };
     loadPixels();
@@ -1086,6 +1087,8 @@ export default function Home() {
         localBudget -= 1;
         paintedThisDrag.add(key);
         accepted.push(c);
+        // Muta el Map + dibuja, sin pasar por React.
+        pixelsMapRef.current.set(key, dragColor);
         ctx.fillStyle = resolveColor(dragColor, c.x, c.y);
         ctx.fillRect(c.x, c.y, 1, 1);
       }
@@ -1096,11 +1099,6 @@ export default function Home() {
         lastSoundAt = now;
       }
       for (const c of accepted) buffer.push(c);
-      setPixels((prev) => {
-        const next = { ...prev };
-        for (const c of accepted) next[`${c.x},${c.y}`] = dragColor;
-        return next;
-      });
     };
 
     const sendChunk = (cells: { x: number; y: number }[]) => {
@@ -1117,22 +1115,15 @@ export default function Home() {
         .then(async (res) => {
           const data = await res.json();
           if (!data.success) {
-            setPixels((prev) => {
-              const next = { ...prev };
-              for (const c of cells) delete next[`${c.x},${c.y}`];
-              return next;
-            });
+            clearCellsRef.current(cells);
+
             if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
             else if (data.message || data.code)
               setNotice(apiErrorText(data, tRef.current));
             return;
           }
           if (Array.isArray(data.skipped) && data.skipped.length > 0) {
-            setPixels((prev) => {
-              const next = { ...prev };
-              for (const c of data.skipped) delete next[`${c.x},${c.y}`];
-              return next;
-            });
+            clearCellsRef.current(data.skipped);
           }
           if (data.state) {
             if (data.state.isAdmin || data.state.pixelsLeft === null)
@@ -1148,11 +1139,7 @@ export default function Home() {
               eventToast(ev, tRef.current, rewardRef.current);
         })
         .catch(() => {
-          setPixels((prev) => {
-            const next = { ...prev };
-            for (const c of cells) delete next[`${c.x},${c.y}`];
-            return next;
-          });
+          clearCellsRef.current(cells);
         });
     };
 
@@ -1433,26 +1420,6 @@ export default function Home() {
       ty: fit(ty, 1000 * scale, window.innerHeight),
     };
   };
-
-  // Redibuja TODO el canvas desde el Map. Solo se llama cuando de verdad hace
-  // falta: carga inicial, o cambios masivos del WebSocket. NUNCA por pincelada.
-  const redrawAll = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    for (const [key, color] of pixelsMapRef.current) {
-      const [x, y] = key.split(",").map(Number);
-      ctx.fillStyle = resolveColor(color, x, y);
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }, []);
-  const redrawAllRef = useRef(redrawAll);
-  useEffect(() => {
-    redrawAllRef.current = redrawAll;
-  }, [redrawAll]);
 
   // Dibuja y registra un conjunto de celdas de un color. Muta el Map + pinta.
   const drawCells = useCallback(
