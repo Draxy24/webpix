@@ -377,7 +377,7 @@ export default function Home() {
       // Solo borras lo tuyo (los admins pueden borrar cualquiera)
       if (!isAdminRef.current && owner !== nicknameRef.current) return;
 
-      const prevColor = pixelsRef.current[key];
+      const prevColor = pixelsMapRef.current.get(key);
       if (!prevColor) return; // nada que borrar localmente
 
       // Optimista: quita el píxel del Map + pinta blanco, y quita su dueño.
