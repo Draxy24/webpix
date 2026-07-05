@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import i18n, { LANGS, setLanguage } from "../lib/i18n";
 import styles from "./WelcomeModal.module.css";
 
 type Step = {
@@ -194,6 +195,20 @@ export default function WelcomeModal({
       <div className={styles.modal}>
         {view === "welcome" ? (
           <div className={styles.welcome}>
+            <div className={styles.langBar}>
+              <select
+                value={i18n.language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className={styles.langSelect}
+                aria-label="Language"
+              >
+                {LANGS.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <h1 className={styles.brandTitle}>WebPix</h1>
             <p className={styles.lead}>
               {t("welcome.lead", {

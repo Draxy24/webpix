@@ -908,7 +908,8 @@
   "menu": {
     "tabs": { "profile": "个人资料", "rankings": "排行榜", "friends": "好友" },
     "edit": {
-      "picUrl": "头像图片网址",
+      "photo": "头像",
+      "changePhoto": "更换头像",
       "country": "国家",
       "noCountry": "无国家",
       "nickname": "用户名",

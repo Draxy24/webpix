@@ -175,7 +175,6 @@ export default function Home() {
   const [selectedColor, setSelectedColor] = useState("#000000");
   const colorRef = useRef(selectedColor);
   const [panelSection, setPanelSection] = useState<PanelSection | null>(null);
-  const [pixels, setPixels] = useState<Record<string, string>>({});
   const [userTier, setUserTier] = useState<"FREE" | "PLUS" | "PREMIUM">("FREE");
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTool, setActiveTool] = useState<Tool>("brush");
@@ -244,7 +243,6 @@ export default function Home() {
   const selectionModeRef = useRef(false);
   const selectionStartRef = useRef<{ x: number; y: number } | null>(null);
   const activeToolRef = useRef(activeTool);
-  const pixelsRef = useRef(pixels);
   // Fuente de verdad de los píxeles (mutable, sin pasar por React).
   // key "x,y" → color. Se muta directo; NO se clona.
   const pixelsMapRef = useRef<Map<string, string>>(new Map());
@@ -982,9 +980,6 @@ export default function Home() {
   useEffect(() => {
     activeToolRef.current = activeTool;
   }, [activeTool]);
-  useEffect(() => {
-    pixelsRef.current = pixels;
-  }, [pixels]);
   useEffect(() => {
     nicknameRef.current = nickname;
   }, [nickname]);

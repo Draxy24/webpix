@@ -1084,7 +1084,8 @@
       "friends": "Amis"
     },
     "edit": {
-      "picUrl": "URL de la photo de profil",
+      "photo": "Photo de profil",
+      "changePhoto": "Changer la photo",
       "country": "Pays",
       "noCountry": "Aucun pays",
       "nickname": "Nom d'utilisateur",
