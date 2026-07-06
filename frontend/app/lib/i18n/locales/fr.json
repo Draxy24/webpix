@@ -606,6 +606,12 @@
     "title_lore": {
       "name": "Trop de Lore",
       "desc": "Ton histoire pourrait remplir une saga."
+    },
+    "medal": {
+      "name": "Médaille de {{tier}} · {{metric}} · {{period}}",
+      "desc": "Top {{pos}} en {{metric}} pour {{period}}",
+      "tier": { "gold": "Or", "silver": "Argent", "bronze": "Bronze" },
+      "metric": { "pixels": "Pixels", "creators": "Créateurs" }
     }
   },
   "spaces": {

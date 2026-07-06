@@ -455,6 +455,14 @@
     "back": "Volver",
     "confirm": "Confirmar"
   },
+  "cosmetics": {
+    "medal": {
+      "name": "Medalla de {{tier}} · {{metric}} · {{period}}",
+      "desc": "Top {{pos}} de {{metric}} en {{period}}",
+      "tier": { "gold": "Oro", "silver": "Plata", "bronze": "Bronce" },
+      "metric": { "pixels": "Píxeles", "creators": "Creadores" }
+    }
+  },
   "canvas": {
     "overlay": {
       "publishSize": "Publicar {{w}} × {{h}}",

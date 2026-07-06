@@ -594,6 +594,12 @@
     "title_lore": {
       "name": "Zu viel Lore",
       "desc": "Deine Geschichte füllt eine Saga."
+    },
+    "medal": {
+      "name": "{{tier}}-Medaille · {{metric}} · {{period}}",
+      "desc": "Top {{pos}} bei {{metric}} im {{period}}",
+      "tier": { "gold": "Gold", "silver": "Silber", "bronze": "Bronze" },
+      "metric": { "pixels": "Pixel", "creators": "Ersteller" }
     }
   },
   "spaces": {

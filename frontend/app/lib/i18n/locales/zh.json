@@ -501,6 +501,12 @@
     "title_lore": {
       "name": "故事太多",
       "desc": "你的经历足以写成传奇。"
+    },
+    "medal": {
+      "name": "{{tier}} · {{metric}} · {{period}}",
+      "desc": "{{period}} {{metric}}前 {{pos}} 名",
+      "tier": { "gold": "金牌", "silver": "银牌", "bronze": "铜牌" },
+      "metric": { "pixels": "像素", "creators": "创作者" }
     }
   },
   "spaces": {

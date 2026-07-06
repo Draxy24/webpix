@@ -576,6 +576,12 @@
     "title_lore": {
       "name": "Too Much Lore",
       "desc": "Your story could fill a saga."
+    },
+    "medal": {
+      "name": "{{tier}} Medal · {{metric}} · {{period}}",
+      "desc": "Top {{pos}} in {{metric}} for {{period}}",
+      "tier": { "gold": "Gold", "silver": "Silver", "bronze": "Bronze" },
+      "metric": { "pixels": "Pixels", "creators": "Creators" }
     }
   },
   "spaces": {
