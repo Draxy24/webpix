@@ -323,11 +323,11 @@ export class PixelService {
     }
 
     if (state.pixelsUsed >= 60) {
-      state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
       anonymousCooldowns.set(ip, state);
       return {
         success: false,
-        cooldownSeconds: 3 * 60 * 60,
+        cooldownSeconds: 2 * 60 * 60,
         message: 'Límite alcanzado',
         code: 'LIMIT_REACHED',
       };
@@ -348,8 +348,8 @@ export class PixelService {
     // intentar (y fallar) un píxel de más.
     let cooldownSeconds = 0;
     if (state.pixelsUsed >= 60) {
-      state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
-      cooldownSeconds = 3 * 60 * 60;
+      state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
+      cooldownSeconds = 2 * 60 * 60;
     }
 
     anonymousCooldowns.set(ip, state);
@@ -907,11 +907,11 @@ export class PixelService {
 
     if (toPaint.length === 0) {
       if (available === 0) {
-        state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
+        state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
         anonymousCooldowns.set(ip, state);
         return {
           success: false,
-          cooldownSeconds: 3 * 60 * 60,
+          cooldownSeconds: 2 * 60 * 60,
           message: 'Límite alcanzado',
           code: 'LIMIT_REACHED',
         };
@@ -942,8 +942,8 @@ export class PixelService {
     // misma respuesta exitosa (mismo criterio que el pintado de un solo píxel).
     let cooldownSeconds = 0;
     if (state.pixelsUsed >= 60) {
-      state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
-      cooldownSeconds = 3 * 60 * 60;
+      state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
+      cooldownSeconds = 2 * 60 * 60;
     }
 
     anonymousCooldowns.set(ip, state);
