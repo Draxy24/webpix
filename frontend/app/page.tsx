@@ -652,55 +652,68 @@ export default function Home() {
       for (const c of accepted) buffer.push(c);
     };
 
-    const sendChunk = (cells: { x: number; y: number }[]) => {
+    // Cola de envíos serializada: nunca dos batches en vuelo a la vez.
+    let sendQueue: { x: number; y: number }[][] = [];
+    let sending = false;
+
+    const processQueue = async () => {
+      if (sending) return;
+      sending = true;
+      while (sendQueue.length > 0) {
+        const cells = sendQueue.shift()!;
+        await sendChunkAwait(cells); // espera a que termine antes del siguiente
+      }
+      sending = false;
+    };
+
+    // Versión de sendChunk que devuelve una promesa (para poder esperarla).
+    const sendChunkAwait = async (cells: { x: number; y: number }[]) => {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
       if (tokenRef.current)
         headers["Authorization"] = `Bearer ${tokenRef.current}`;
-
-      fetch(API_URL + "/pixel-batch", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ color: dragColor, cells }),
-      })
-        .then(async (res) => {
-          const data = await res.json();
-          if (!data.success) {
-            clearCellsRef.current(cells);
-            if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
-            else if (data.message || data.code)
-              setNotice(apiErrorText(data, tRef.current));
-            return;
-          }
-          // Revertir solo lo que el server NO pintó (cuota o espacio privado).
-          if (Array.isArray(data.skipped) && data.skipped.length > 0) {
-            clearCellsRef.current(data.skipped);
-          }
-          if (data.state) {
-            if (data.state.isAdmin || data.state.pixelsLeft === null) {
-              setClicksLeft(Infinity);
-            } else {
-              setClicksLeft(data.state.pixelsLeft);
-              if (data.state.cooldownSeconds > 0)
-                setCooldown(data.state.cooldownSeconds);
-            }
-          }
-          if (Array.isArray(data.events)) {
-            for (const ev of data.events)
-              eventToast(ev, tRef.current, rewardRef.current);
-          }
-        })
-        .catch(() => {
-          clearCellsRef.current(cells);
+      try {
+        const res = await fetch(API_URL + "/pixel-batch", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ color: dragColor, cells }),
         });
+        const data = await res.json();
+        if (!data.success) {
+          clearCellsRef.current(cells);
+          if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
+          else if (data.message || data.code)
+            setNotice(apiErrorText(data, tRef.current));
+          return;
+        }
+        if (Array.isArray(data.skipped) && data.skipped.length > 0) {
+          clearCellsRef.current(data.skipped);
+        }
+        if (data.state) {
+          if (data.state.isAdmin || data.state.pixelsLeft === null) {
+            setClicksLeft(Infinity);
+          } else {
+            setClicksLeft(data.state.pixelsLeft);
+            if (data.state.cooldownSeconds > 0)
+              setCooldown(data.state.cooldownSeconds);
+          }
+        }
+        if (Array.isArray(data.events)) {
+          for (const ev of data.events)
+            eventToast(ev, tRef.current, rewardRef.current);
+        }
+      } catch {
+        clearCellsRef.current(cells);
+      }
     };
 
     const flush = (isFinal = false) => {
       if (buffer.length === 0) return;
       do {
-        sendChunk(buffer.splice(0, MAX_PER_REQUEST));
-      } while (isFinal && buffer.length > 0); // en el final, drena todo
+        sendQueue.push(buffer.splice(0, MAX_PER_REQUEST));
+      } while (isFinal && buffer.length > 0);
+      void processQueue(); // arranca el worker si no está corriendo
     };
 
     const onMouseDown = (event: MouseEvent) => {
@@ -1111,53 +1124,68 @@ export default function Home() {
       for (const c of accepted) buffer.push(c);
     };
 
-    const sendChunk = (cells: { x: number; y: number }[]) => {
+    // Cola de envíos serializada: nunca dos batches en vuelo a la vez.
+    let sendQueue: { x: number; y: number }[][] = [];
+    let sending = false;
+
+    const processQueue = async () => {
+      if (sending) return;
+      sending = true;
+      while (sendQueue.length > 0) {
+        const cells = sendQueue.shift()!;
+        await sendChunkAwait(cells); // espera a que termine antes del siguiente
+      }
+      sending = false;
+    };
+
+    // Versión de sendChunk que devuelve una promesa (para poder esperarla).
+    const sendChunkAwait = async (cells: { x: number; y: number }[]) => {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
       if (tokenRef.current)
         headers["Authorization"] = `Bearer ${tokenRef.current}`;
-      fetch(API_URL + "/pixel-batch", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ color: dragColor, cells }),
-      })
-        .then(async (res) => {
-          const data = await res.json();
-          if (!data.success) {
-            clearCellsRef.current(cells);
-
-            if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
-            else if (data.message || data.code)
-              setNotice(apiErrorText(data, tRef.current));
-            return;
-          }
-          if (Array.isArray(data.skipped) && data.skipped.length > 0) {
-            clearCellsRef.current(data.skipped);
-          }
-          if (data.state) {
-            if (data.state.isAdmin || data.state.pixelsLeft === null)
-              setClicksLeft(Infinity);
-            else {
-              setClicksLeft(data.state.pixelsLeft);
-              if (data.state.cooldownSeconds > 0)
-                setCooldown(data.state.cooldownSeconds);
-            }
-          }
-          if (Array.isArray(data.events))
-            for (const ev of data.events)
-              eventToast(ev, tRef.current, rewardRef.current);
-        })
-        .catch(() => {
-          clearCellsRef.current(cells);
+      try {
+        const res = await fetch(API_URL + "/pixel-batch", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ color: dragColor, cells }),
         });
+        const data = await res.json();
+        if (!data.success) {
+          clearCellsRef.current(cells);
+          if (data.cooldownSeconds > 0) setCooldown(data.cooldownSeconds);
+          else if (data.message || data.code)
+            setNotice(apiErrorText(data, tRef.current));
+          return;
+        }
+        if (Array.isArray(data.skipped) && data.skipped.length > 0) {
+          clearCellsRef.current(data.skipped);
+        }
+        if (data.state) {
+          if (data.state.isAdmin || data.state.pixelsLeft === null) {
+            setClicksLeft(Infinity);
+          } else {
+            setClicksLeft(data.state.pixelsLeft);
+            if (data.state.cooldownSeconds > 0)
+              setCooldown(data.state.cooldownSeconds);
+          }
+        }
+        if (Array.isArray(data.events)) {
+          for (const ev of data.events)
+            eventToast(ev, tRef.current, rewardRef.current);
+        }
+      } catch {
+        clearCellsRef.current(cells);
+      }
     };
 
     const flush = (isFinal = false) => {
       if (buffer.length === 0) return;
       do {
-        sendChunk(buffer.splice(0, MAX_PER_REQUEST));
+        sendQueue.push(buffer.splice(0, MAX_PER_REQUEST));
       } while (isFinal && buffer.length > 0);
+      void processQueue(); // arranca el worker si no está corriendo
     };
 
     // --- touchstart ---
