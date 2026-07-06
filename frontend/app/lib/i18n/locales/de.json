@@ -8,12 +8,12 @@
     "FREE": {
       "bits": "Keine monatlichen Bits",
       "palette": "16-Farben-Palette, zum Malen und fürs Menü",
-      "limits": "30 Pixel · 3 h Cooldown"
+      "limits": "60 Pixel · 2 Std. Abklingzeit"
     },
     "PLUS": {
       "bits": "+200 Bits/Monat",
       "palette": "32-Farben-Palette, zum Malen und fürs Menü",
-      "limits": "60 Pixel · 1 h Cooldown"
+      "limits": "120 Pixel · 30 Min. Abklingzeit"
     },
     "PREMIUM": {
       "bits": "+500 Bits/Monat",

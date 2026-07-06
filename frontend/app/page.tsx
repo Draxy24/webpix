@@ -41,6 +41,7 @@ import {
   handleSocketNotification,
   type SocketNotification,
 } from "./lib/rewardToast";
+import { TFunction } from "i18next";
 const SidePanel = dynamic(() => import("./components/SidePanel"), {
   ssr: false,
 });
@@ -81,6 +82,24 @@ function formatPeriod(period: string, lang: string) {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+// Formatea segundos de cooldown a un texto compacto: "2h 30m", "45m 12s", "32s".
+// Los segundos solo se muestran si el cooldown es menor a 1 hora (evita ruido
+// en cooldowns largos donde ver los segundos correr no aporta).
+function formatCooldown(totalSeconds: number, t: TFunction): string {
+  if (totalSeconds <= 0) return "";
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const parts: string[] = [];
+  if (h > 0)
+    parts.push(`${h}${t("canvas.cooldownUnits.h", { defaultValue: "h" })}`);
+  if (m > 0)
+    parts.push(`${m}${t("canvas.cooldownUnits.m", { defaultValue: "m" })}`);
+  if (s > 0 && h === 0)
+    parts.push(`${s}${t("canvas.cooldownUnits.s", { defaultValue: "s" })}`);
+  return parts.join(" ");
 }
 
 function LockIcon({ locked }: { locked: boolean }) {
@@ -2085,7 +2104,7 @@ export default function Home() {
               marginTop: "4px",
             }}
           >
-            {t("canvas.cooldown")} {Math.floor(cooldown / 60)}m {cooldown % 60}s
+            {t("canvas.cooldown")} {formatCooldown(cooldown, t)}
           </div>
         )}
       </div>

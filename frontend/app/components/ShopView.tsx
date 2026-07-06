@@ -555,8 +555,8 @@ export default function ShopView() {
                           tier === "PREMIUM"
                             ? "Sin límite de píxeles ni cooldown"
                             : tier === "PLUS"
-                              ? "60 píxeles · cooldown de 1 h"
-                              : "30 píxeles · cooldown de 3 h",
+                              ? "120 píxeles · cooldown de 30 min"
+                              : "60 píxeles · cooldown de 2 h",
                       })}
                     </li>
                   </ul>

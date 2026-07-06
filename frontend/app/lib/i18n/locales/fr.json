@@ -8,12 +8,12 @@
     "FREE": {
       "bits": "Pas de Bits mensuels",
       "palette": "Palette de 16 couleurs, pour peindre et le menu",
-      "limits": "30 pixels · cooldown de 3 h"
+      "limits": "60 pixels · recharge de 2 h"
     },
     "PLUS": {
       "bits": "+200 Bits/mois",
       "palette": "Palette de 32 couleurs, pour peindre et le menu",
-      "limits": "60 pixels · cooldown de 1 h"
+      "limits": "120 pixels · recharge de 30 min"
     },
     "PREMIUM": {
       "bits": "+500 Bits/mois",

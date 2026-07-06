@@ -25,8 +25,8 @@ import {
 } from './dto/auth.dto';
 
 const TIER_LIMITS = {
-  FREE: { pixels: 30, cooldownHours: 3 },
-  PLUS: { pixels: 60, cooldownHours: 1 },
+  FREE: { pixels: 60, cooldownHours: 2 },
+  PLUS: { pixels: 120, cooldownHours: 0.5 },
   PREMIUM: { pixels: Infinity, cooldownHours: 0 },
 };
 

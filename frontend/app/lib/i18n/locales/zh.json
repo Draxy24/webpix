@@ -8,12 +8,12 @@
     "FREE": {
       "bits": "无每月 Bits",
       "palette": "16 色调色板，用于绘画和菜单",
-      "limits": "30 像素 · 冷却 3 小时"
+      "limits": "60 像素 · 冷却 2 小时"
     },
     "PLUS": {
       "bits": "每月 +200 Bits",
       "palette": "32 色调色板，用于绘画和菜单",
-      "limits": "60 像素 · 冷却 1 小时"
+      "limits": "120 像素 · 冷却 30 分钟"
     },
     "PREMIUM": {
       "bits": "每月 +500 Bits",
