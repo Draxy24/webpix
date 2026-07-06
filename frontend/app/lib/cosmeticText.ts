@@ -10,7 +10,7 @@ const MEDAL_TIERS: Record<string, string> = {
 
 const MEDAL_METRICS: Record<string, string> = {
   pixels: "pixels",
-  creators: "creations",
+  creations: "creations",
 };
 
 // Parsea un key de medalla. Devuelve null si no es una medalla.
