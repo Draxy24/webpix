@@ -154,7 +154,7 @@ export default function Home() {
   const tokenRef = useRef(token);
   const openProfileRef = useRef(openProfile);
 
-  const [clicksLeft, setClicksLeft] = useState(30);
+  const [clicksLeft, setClicksLeft] = useState(60);
   const [cooldown, setCooldown] = useState(0);
   const clicksRef = useRef(clicksLeft);
   const cooldownRef = useRef(cooldown);
@@ -869,7 +869,7 @@ export default function Home() {
                 }
               });
           } else {
-            setClicksLeft(30);
+            setClicksLeft(60);
           }
           return 0;
         }

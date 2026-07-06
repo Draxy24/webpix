@@ -322,7 +322,7 @@ export class PixelService {
       state.cooldownUntil = null;
     }
 
-    if (state.pixelsUsed >= 30) {
+    if (state.pixelsUsed >= 60) {
       state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
       anonymousCooldowns.set(ip, state);
       return {
@@ -347,7 +347,7 @@ export class PixelService {
     // misma respuesta exitosa, para que el anónimo vea el reloj sin tener que
     // intentar (y fallar) un píxel de más.
     let cooldownSeconds = 0;
-    if (state.pixelsUsed >= 30) {
+    if (state.pixelsUsed >= 60) {
       state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
       cooldownSeconds = 3 * 60 * 60;
     }
@@ -358,7 +358,7 @@ export class PixelService {
       success: true,
       state: {
         isAdmin: false,
-        pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
+        pixelsLeft: Math.max(60 - state.pixelsUsed, 0),
         cooldownSeconds,
       },
       events: [],
@@ -373,7 +373,7 @@ export class PixelService {
     const state = anonymousCooldowns.get(ip);
 
     if (!state) {
-      return { pixelsLeft: 30, cooldownSeconds: 0 };
+      return { pixelsLeft: 60, cooldownSeconds: 0 };
     }
 
     if (state.cooldownUntil && state.cooldownUntil <= now) {
@@ -388,7 +388,7 @@ export class PixelService {
       : 0;
 
     return {
-      pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
+      pixelsLeft: Math.max(60 - state.pixelsUsed, 0),
       cooldownSeconds,
     };
   }
@@ -902,7 +902,7 @@ export class PixelService {
       paintable = ok;
     }
 
-    const available = Math.max(30 - state.pixelsUsed, 0);
+    const available = Math.max(60 - state.pixelsUsed, 0);
     const toPaint = paintable.slice(0, available);
 
     if (toPaint.length === 0) {
@@ -941,7 +941,7 @@ export class PixelService {
     // Si esta tanda agotó la cuota, arma el cooldown YA y devuélvelo en esta
     // misma respuesta exitosa (mismo criterio que el pintado de un solo píxel).
     let cooldownSeconds = 0;
-    if (state.pixelsUsed >= 30) {
+    if (state.pixelsUsed >= 60) {
       state.cooldownUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
       cooldownSeconds = 3 * 60 * 60;
     }
@@ -958,7 +958,7 @@ export class PixelService {
       skipped,
       state: {
         isAdmin: false,
-        pixelsLeft: Math.max(30 - state.pixelsUsed, 0),
+        pixelsLeft: Math.max(60 - state.pixelsUsed, 0),
         cooldownSeconds,
       },
       events: [],
