@@ -611,7 +611,7 @@
       "name": "Médaille de {{tier}} · {{metric}} · {{period}}",
       "desc": "Top {{pos}} en {{metric}} pour {{period}}",
       "tier": { "gold": "Or", "silver": "Argent", "bronze": "Bronze" },
-      "metric": { "pixels": "Pixels", "creators": "Créateurs" }
+      "metric": { "pixels": "Pixels", "creations": "Créateurs" }
     }
   },
   "spaces": {

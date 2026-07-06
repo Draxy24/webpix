@@ -460,7 +460,7 @@
       "name": "Medalla de {{tier}} · {{metric}} · {{period}}",
       "desc": "Top {{pos}} de {{metric}} en {{period}}",
       "tier": { "gold": "Oro", "silver": "Plata", "bronze": "Bronce" },
-      "metric": { "pixels": "Píxeles", "creators": "Creadores" }
+      "metric": { "pixels": "Píxeles", "creations": "Creadores" }
     }
   },
   "canvas": {

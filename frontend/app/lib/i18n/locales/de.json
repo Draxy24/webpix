@@ -599,7 +599,7 @@
       "name": "{{tier}}-Medaille · {{metric}} · {{period}}",
       "desc": "Top {{pos}} bei {{metric}} im {{period}}",
       "tier": { "gold": "Gold", "silver": "Silber", "bronze": "Bronze" },
-      "metric": { "pixels": "Pixel", "creators": "Ersteller" }
+      "metric": { "pixels": "Pixel", "creations": "Ersteller" }
     }
   },
   "spaces": {

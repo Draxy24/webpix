@@ -506,7 +506,7 @@
       "name": "{{tier}} · {{metric}} · {{period}}",
       "desc": "{{period}} {{metric}}前 {{pos}} 名",
       "tier": { "gold": "金牌", "silver": "银牌", "bronze": "铜牌" },
-      "metric": { "pixels": "像素", "creators": "创作者" }
+      "metric": { "pixels": "像素", "creations": "创作者" }
     }
   },
   "spaces": {
