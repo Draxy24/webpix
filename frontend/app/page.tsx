@@ -577,10 +577,7 @@ export default function Home() {
     let dragColor = "#000000";
     let lastCell: { x: number; y: number } | null = null;
     const triedThisDrag = new Set<string>(); // todas las celdas que tocó el arrastre
-    const paintedThisDrag = new Set<string>(); // las que sí cupieron en la cuota
     let buffer: { x: number; y: number }[] = []; // pendientes de mandar al server
-    let localBudget = Infinity; // presupuesto optimista (clicksLeft)
-    let budgetHit = false;
     let flushTimer: ReturnType<typeof setInterval> | null = null;
     let lastSoundAt = 0;
 
@@ -631,12 +628,6 @@ export default function Home() {
         const key = `${c.x},${c.y}`;
         if (triedThisDrag.has(key)) continue;
         triedThisDrag.add(key);
-        if (localBudget <= 0) {
-          budgetHit = true;
-          continue; // contamos la celda como "intentada" pero ya no cabe
-        }
-        localBudget -= 1;
-        paintedThisDrag.add(key);
         accepted.push(c);
         // Muta el Map + dibuja, sin pasar por React.
         pixelsMapRef.current.set(key, dragColor);
@@ -666,6 +657,8 @@ export default function Home() {
       sending = false;
     };
 
+    let serverSkippedByQuota = 0; // celdas que el server no pintó por límite
+
     // Versión de sendChunk que devuelve una promesa (para poder esperarla).
     const sendChunkAwait = async (cells: { x: number; y: number }[]) => {
       const headers: Record<string, string> = {
@@ -689,6 +682,7 @@ export default function Home() {
         }
         if (Array.isArray(data.skipped) && data.skipped.length > 0) {
           clearCellsRef.current(data.skipped);
+          serverSkippedByQuota += data.skipped.length;
         }
         if (data.state) {
           if (data.state.isAdmin || data.state.pixelsLeft === null) {
@@ -734,13 +728,8 @@ export default function Home() {
       dragging = true;
       dragColor = colorRef.current;
       triedThisDrag.clear();
-      paintedThisDrag.clear();
+      serverSkippedByQuota = 0;
       buffer = [];
-      budgetHit = false;
-      localBudget =
-        isAdminRef.current || clicksRef.current === Infinity
-          ? Infinity
-          : clicksRef.current;
 
       const { x, y } = toCell(event);
       lastCell = { x, y };
@@ -767,15 +756,18 @@ export default function Home() {
         flushTimer = null;
       }
       flush(true);
-      if (budgetHit) {
-        setNotice(
-          tRef.current("canvas.drag.paintedXofY", {
-            defaultValue: "Pinté {{x}} de {{y}} píxeles (límite alcanzado).",
-            x: paintedThisDrag.size,
-            y: triedThisDrag.size,
-          }),
-        );
-      }
+      // Cuando la cola termine, evaluamos el veredicto del servidor.
+      void processQueue().then(() => {
+        if (serverSkippedByQuota > 0) {
+          setNotice(
+            tRef.current("canvas.drag.paintedXofY", {
+              defaultValue: "Pinté {{x}} de {{y}} píxeles (límite alcanzado).",
+              x: triedThisDrag.size - serverSkippedByQuota,
+              y: triedThisDrag.size,
+            }),
+          );
+        }
+      });
     };
 
     canvas.addEventListener("mousedown", onMouseDown);
@@ -1062,8 +1054,6 @@ export default function Home() {
     const triedThisDrag = new Set<string>();
     const paintedThisDrag = new Set<string>();
     let buffer: { x: number; y: number }[] = [];
-    let localBudget = Infinity;
-    let budgetHit = false;
     let flushTimer: ReturnType<typeof setInterval> | null = null;
     let lastSoundAt = 0;
     const FLUSH_MS = 120;
@@ -1096,19 +1086,12 @@ export default function Home() {
     };
 
     const commitCells = (cands: { x: number; y: number }[]) => {
-      if (!ctx) return;
       const accepted: { x: number; y: number }[] = [];
       for (const c of cands) {
         if (c.x < 0 || c.x > 999 || c.y < 0 || c.y > 999) continue;
         const key = `${c.x},${c.y}`;
         if (triedThisDrag.has(key)) continue;
         triedThisDrag.add(key);
-        if (localBudget <= 0) {
-          budgetHit = true;
-          continue;
-        }
-        localBudget -= 1;
-        paintedThisDrag.add(key);
         accepted.push(c);
         // Muta el Map + dibuja, sin pasar por React.
         pixelsMapRef.current.set(key, dragColor);
@@ -1138,6 +1121,8 @@ export default function Home() {
       sending = false;
     };
 
+    let serverSkippedByQuota = 0; // celdas que el server no pintó por límite
+
     // Versión de sendChunk que devuelve una promesa (para poder esperarla).
     const sendChunkAwait = async (cells: { x: number; y: number }[]) => {
       const headers: Record<string, string> = {
@@ -1161,6 +1146,7 @@ export default function Home() {
         }
         if (Array.isArray(data.skipped) && data.skipped.length > 0) {
           clearCellsRef.current(data.skipped);
+          serverSkippedByQuota += data.skipped.length;
         }
         if (data.state) {
           if (data.state.isAdmin || data.state.pixelsLeft === null) {
@@ -1213,12 +1199,8 @@ export default function Home() {
         dragColor = colorRef.current;
         triedThisDrag.clear();
         paintedThisDrag.clear();
+        serverSkippedByQuota = 0;
         buffer = [];
-        budgetHit = false;
-        localBudget =
-          isAdminRef.current || clicksRef.current === Infinity
-            ? Infinity
-            : clicksRef.current;
         lastCell = { x, y };
         commitCells([{ x, y }]);
         flushTimer = setInterval(() => flush(false), FLUSH_MS);
@@ -1269,15 +1251,19 @@ export default function Home() {
           flushTimer = null;
         }
         flush(true);
-        if (budgetHit) {
-          setNotice(
-            tRef.current("canvas.drag.paintedXofY", {
-              defaultValue: "Pinté {{x}} de {{y}} píxeles (límite alcanzado).",
-              x: paintedThisDrag.size,
-              y: triedThisDrag.size,
-            }),
-          );
-        }
+        // Esperamos a que la cola termine para saber el veredicto final del server.
+        void processQueue().then(() => {
+          if (serverSkippedByQuota > 0) {
+            setNotice(
+              tRef.current("canvas.drag.paintedXofY", {
+                defaultValue:
+                  "Pinté {{x}} de {{y}} píxeles (límite alcanzado).",
+                x: triedThisDrag.size - serverSkippedByQuota,
+                y: triedThisDrag.size,
+              }),
+            );
+          }
+        });
       }
     };
 
