@@ -1059,6 +1059,7 @@ export default function Home() {
     const FLUSH_MS = 120;
     const MAX_PER_REQUEST = 200;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
     const lineCells = (x0: number, y0: number, x1: number, y1: number) => {
       const cells: { x: number; y: number }[] = [];
