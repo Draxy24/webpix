@@ -666,10 +666,7 @@ export class PixelService {
     const now = new Date();
     const limit = TIER_LIMITS[user.subscriptionTier];
 
-    // ----- Clasificar celdas -----
-    // free = dentro de un privado con acceso (no consume cuota)
-    // normal = fuera de privados (consume cuota)
-    // denied = dentro de un privado sin acceso (se saltan en silencio)
+    // ----- Clasificar celdas (fuera del lock: no toca cuota) -----
     const freeCells: { x: number; y: number }[] = [];
     const normalCells: { x: number; y: number }[] = [];
 
@@ -683,7 +680,7 @@ export class PixelService {
     );
 
     if (!touchesPrivate) {
-      normalCells.push(...cells); // fast-path: nada toca privados
+      normalCells.push(...cells);
     } else {
       for (const c of cells) {
         const access = await this.privateSpaces.checkPaintAccess(
@@ -693,70 +690,147 @@ export class PixelService {
         );
         if (access.inSpace) {
           if (access.allowed || user.isAdmin) freeCells.push(c);
-          // si no, se queda fuera (denied) y se revertirá vía 'skipped'
         } else {
           normalCells.push(c);
         }
       }
     }
 
-    // ----- Cooldown (solo no-admin) -----
-    let pixelsUsed = user.pixelsUsed;
-    let cooldownActive = false;
-    if (!user.isAdmin) {
-      if (user.cooldownUntil && user.cooldownUntil > now) {
-        cooldownActive = true;
-      } else if (user.cooldownUntil && user.cooldownUntil <= now) {
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { pixelsUsed: 0, cooldownUntil: null },
-        });
-        pixelsUsed = 0;
-        user.cooldownUntil = null;
-      }
-    }
+    // ============================================================
+    // SECCIÓN CRÍTICA: reserva de cuota bajo lock de fila.
+    // Serializa batches concurrentes del MISMO usuario. El lock es
+    // corto: solo leemos cuota, decidimos cuánto cabe y reservamos.
+    // Los upserts de píxeles y los logros van DESPUÉS, fuera del lock.
+    // ============================================================
+    const reservation = await this.prisma.$transaction(async (tx) => {
+      // Lock de la fila del usuario. Otro batch del mismo user espera aquí.
+      const locked = await tx.$queryRaw<
+        Array<{
+          pixelsUsed: number;
+          cooldownUntil: Date | null;
+          isAdmin: boolean;
+        }>
+      >`SELECT "pixelsUsed", "cooldownUntil", "isAdmin"
+    FROM "User" WHERE id = ${userId} FOR UPDATE`;
 
-    // ----- Cuánto de lo "normal" se puede pintar -----
-    let normalToPaint: { x: number; y: number }[];
-    if (user.isAdmin || limit.pixels === Infinity) {
-      normalToPaint = normalCells; // sin tope
-    } else if (cooldownActive) {
-      normalToPaint = []; // en cooldown no se pintan celdas normales
-    } else {
-      const available = Math.max(limit.pixels - pixelsUsed, 0);
-      normalToPaint = normalCells.slice(0, available);
-    }
+      const row = locked[0];
+      if (!row) {
+        return {
+          normalToPaint: [] as { x: number; y: number }[],
+          cooldownActive: false,
+          pixelsUsed: 0,
+          cooldownUntil: null as Date | null,
+        };
+      }
+
+      let pixelsUsed = row.pixelsUsed;
+      let cooldownUntil = row.cooldownUntil;
+      let cooldownActive = false;
+
+      if (!row.isAdmin) {
+        if (cooldownUntil && cooldownUntil > now) {
+          cooldownActive = true;
+        } else if (cooldownUntil && cooldownUntil <= now) {
+          // Cooldown expirado: resetear cuota dentro del lock.
+          await tx.user.update({
+            where: { id: userId },
+            data: { pixelsUsed: 0, cooldownUntil: null },
+          });
+          pixelsUsed = 0;
+          cooldownUntil = null;
+        }
+      }
+
+      // Cuánto de lo "normal" cabe con la cuota ACTUAL (ya bloqueada).
+      let normalToPaint: { x: number; y: number }[];
+      if (row.isAdmin || limit.pixels === Infinity) {
+        normalToPaint = normalCells;
+      } else if (cooldownActive) {
+        normalToPaint = [];
+      } else {
+        const available = Math.max(limit.pixels - pixelsUsed, 0);
+        normalToPaint = normalCells.slice(0, available);
+      }
+
+      // Reservar la cuota AQUÍ (dentro del lock), antes de pintar.
+      const normalCount = normalToPaint.length;
+      if (!row.isAdmin && normalCount > 0) {
+        pixelsUsed += normalCount;
+        const data: {
+          pixelsUsed: { increment: number };
+          cooldownUntil?: Date;
+        } = { pixelsUsed: { increment: normalCount } };
+        // Si esta reserva agota el límite, armamos el cooldown ya mismo.
+        if (
+          limit.pixels !== Infinity &&
+          pixelsUsed >= limit.pixels &&
+          !cooldownUntil
+        ) {
+          cooldownUntil = new Date(
+            Date.now() + limit.cooldownHours * 60 * 60 * 1000,
+          );
+          data.cooldownUntil = cooldownUntil;
+        }
+        await tx.user.update({ where: { id: userId }, data });
+      } else if (
+        // Aunque no reservemos nada nuevo, si ya está en el límite, fijar cooldown.
+        !row.isAdmin &&
+        limit.pixels !== Infinity &&
+        pixelsUsed >= limit.pixels &&
+        !cooldownUntil
+      ) {
+        cooldownUntil = new Date(
+          Date.now() + limit.cooldownHours * 60 * 60 * 1000,
+        );
+        await tx.user.update({
+          where: { id: userId },
+          data: { cooldownUntil },
+        });
+      }
+
+      return {
+        normalToPaint,
+        cooldownActive,
+        pixelsUsed,
+        cooldownUntil,
+        isAdmin: row.isAdmin,
+      };
+    });
+
+    const {
+      normalToPaint,
+      cooldownActive,
+      pixelsUsed,
+      cooldownUntil,
+      isAdmin,
+    } = reservation as {
+      normalToPaint: { x: number; y: number }[];
+      cooldownActive: boolean;
+      pixelsUsed: number;
+      cooldownUntil: Date | null;
+      isAdmin: boolean;
+    };
 
     const toPaint = [...freeCells, ...normalToPaint];
 
+    // ----- Nada que pintar: devolver el motivo (ya con cuota consistente) -----
     if (toPaint.length === 0) {
-      if (cooldownActive) {
-        const cooldownSeconds = Math.ceil(
-          (user.cooldownUntil!.getTime() - now.getTime()) / 1000,
-        );
+      if (cooldownActive && cooldownUntil) {
         return {
           success: false,
-          cooldownSeconds,
+          cooldownSeconds: Math.ceil(
+            (cooldownUntil.getTime() - now.getTime()) / 1000,
+          ),
           message: 'En cooldown',
           code: 'COOLDOWN',
         };
       }
-      if (
-        !user.isAdmin &&
-        limit.pixels !== Infinity &&
-        pixelsUsed >= limit.pixels
-      ) {
-        let cd = user.cooldownUntil;
-        if (!cd) {
-          cd = new Date(Date.now() + limit.cooldownHours * 60 * 60 * 1000);
-          await this.prisma.user.update({
-            where: { id: userId },
-            data: { cooldownUntil: cd },
-          });
-        }
+      if (cooldownUntil && cooldownUntil > new Date()) {
         return {
           success: false,
-          cooldownSeconds: Math.ceil((cd.getTime() - Date.now()) / 1000),
+          cooldownSeconds: Math.ceil(
+            (cooldownUntil.getTime() - Date.now()) / 1000,
+          ),
           message: 'Límite alcanzado',
           code: 'LIMIT_REACHED',
         };
@@ -769,7 +843,7 @@ export class PixelService {
       };
     }
 
-    // ----- Persistir (atómico) y difundir -----
+    // ----- Persistir píxeles y difundir (FUERA del lock) -----
     const paintedAt = new Date();
     await this.prisma.$transaction(
       toPaint.map((c) =>
@@ -783,7 +857,7 @@ export class PixelService {
     for (const c of toPaint)
       this.gateway.broadcastPixel(c.x, c.y, color, nickname);
 
-    // ----- Logros/XP/mensual: solo celdas normales (igual que el single, admin incluido) -----
+    // ----- Logros/XP/mensual (FUERA del lock) -----
     let events: RewardEvent[] = [];
     const normalPainted = normalToPaint.length;
     if (normalPainted > 0) {
@@ -795,41 +869,19 @@ export class PixelService {
       await this.achievements.recordMonthly(userId, 'pixels', normalPainted);
     }
 
-    // ----- Cuota y cooldown (no-admin) -----
+    // ----- Armar respuesta con los valores ya calculados bajo lock -----
     let cooldownSeconds = 0;
     let pixelsLeft: number | null = null;
 
-    if (!user.isAdmin && normalPainted > 0) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { pixelsUsed: { increment: normalPainted } },
-      });
-    }
-
-    if (user.isAdmin || limit.pixels === Infinity) {
+    if (isAdmin || limit.pixels === Infinity) {
       pixelsLeft = null;
     } else {
-      const updated = await this.prisma.user.findUnique({
-        where: { id: userId },
-      });
-      if (updated!.pixelsUsed >= limit.pixels && !updated!.cooldownUntil) {
-        const cooldownUntil = new Date(
-          Date.now() + limit.cooldownHours * 60 * 60 * 1000,
-        );
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { cooldownUntil },
-        });
-        cooldownSeconds = limit.cooldownHours * 60 * 60;
-      } else if (
-        updated!.cooldownUntil &&
-        updated!.cooldownUntil > new Date()
-      ) {
+      pixelsLeft = Math.max(limit.pixels - pixelsUsed, 0);
+      if (cooldownUntil && cooldownUntil > new Date()) {
         cooldownSeconds = Math.ceil(
-          (updated!.cooldownUntil.getTime() - Date.now()) / 1000,
+          (cooldownUntil.getTime() - Date.now()) / 1000,
         );
       }
-      pixelsLeft = Math.max(limit.pixels - updated!.pixelsUsed, 0);
     }
 
     const paintedSet = new Set(toPaint.map((c) => `${c.x},${c.y}`));
@@ -840,7 +892,7 @@ export class PixelService {
       painted: toPaint.length,
       requested: cells.length,
       skipped,
-      state: { isAdmin: user.isAdmin, pixelsLeft, cooldownSeconds },
+      state: { isAdmin, pixelsLeft, cooldownSeconds },
       events,
     };
   }
