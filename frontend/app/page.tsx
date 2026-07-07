@@ -670,6 +670,7 @@ export default function Home() {
         const res = await fetch(API_URL + "/pixel-batch", {
           method: "POST",
           headers,
+          credentials: "include",
           body: JSON.stringify({ color: dragColor, cells }),
         });
         const data = await res.json();
@@ -800,12 +801,19 @@ export default function Home() {
     if (!token) {
       setUserTier("FREE");
       setIsAdmin(false);
-      fetch(API_URL + "/anonymous-state")
+
+      fetch(API_URL + "/anonymous-state", {
+        credentials: "include",
+      })
         .then((res) => res.json())
-        .then((data) => {
+        .then((data: { pixelsLeft: number; cooldownSeconds: number }) => {
           setClicksLeft(data.pixelsLeft);
           setCooldown(data.cooldownSeconds);
-        });
+        })
+        .catch((error) =>
+          console.error("Failed to fetch anonymous state:", error),
+        );
+
       try {
         if (!localStorage.getItem("webpix_seen_welcome")) setShowWelcome(true);
       } catch {}
@@ -854,7 +862,7 @@ export default function Home() {
     };
 
     fetchUserState();
-  }, [router, token]);
+  }, [token]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -1135,6 +1143,7 @@ export default function Home() {
         const res = await fetch(API_URL + "/pixel-batch", {
           method: "POST",
           headers,
+          credentials: "include",
           body: JSON.stringify({ color: dragColor, cells }),
         });
         const data = await res.json();
