@@ -431,3 +431,13 @@ model ProcessedStripeEvent {
   type      String
   createdAt DateTime @default(now())
 }
+
+model AnonymousQuota {
+  id            String    @id   // UUID de la cookie webpix_anon
+  ip            String?
+  pixelsUsed    Int       @default(0)
+  cooldownUntil DateTime?
+  updatedAt     DateTime  @updatedAt
+
+  @@index([ip])
+}

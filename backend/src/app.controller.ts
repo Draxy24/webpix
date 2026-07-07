@@ -5,8 +5,11 @@ import {
   Body,
   UseGuards,
   Request,
+  Res,
   ForbiddenException,
 } from '@nestjs/common';
+import type { Response } from 'express';
+import { randomUUID } from 'crypto';
 import { PixelService } from './pixel/pixel.service';
 import { PixelCacheService } from './pixel/pixel-cache.service';
 import { OptionalJwtGuard } from './auth/optional-jwt.guard';
@@ -15,6 +18,30 @@ import { NotBannedGuard } from './auth/not-banned.guard';
 import { SetPixelDto, EraseDto, EraseAreaDto } from './dto/app.dto';
 import { Throttle } from '@nestjs/throttler';
 import { PaintBatchDto } from './dto/app.dto';
+
+const ANON_COOKIE = 'webpix_anon';
+const ANON_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000; // 1 año
+
+// Lee la cookie del anónimo; si no existe, genera un UUID y la setea.
+// Devuelve el anonId a usar. Solo relevante para usuarios NO registrados.
+function ensureAnonId(
+  req: { cookies?: Record<string, string> },
+  res: Response,
+): string {
+  const existing = req.cookies?.[ANON_COOKIE];
+  if (existing) return existing;
+  const id = randomUUID();
+  const isProd = process.env.NODE_ENV === 'production';
+  res.cookie(ANON_COOKIE, id, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    domain: isProd ? '.webpix.art' : undefined,
+    path: '/',
+    maxAge: ANON_COOKIE_MAX_AGE,
+  });
+  return id;
+}
 
 @Controller()
 export class AppController {
@@ -29,9 +56,13 @@ export class AppController {
   }
 
   @Get('anonymous-state')
-  getAnonymousState(@Request() req: { ip?: string }) {
+  getAnonymousState(
+    @Request() req: { cookies?: Record<string, string>; ip?: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const anonId = ensureAnonId(req, res);
     const ip = req.ip ?? 'unknown';
-    return this.pixelService.getAnonymousState(ip);
+    return this.pixelService.getAnonymousState(anonId, ip);
   }
 
   @Throttle({ default: { limit: 600, ttl: 60000 } })
@@ -42,8 +73,10 @@ export class AppController {
     @Request()
     req: {
       user?: { id: number; nickname: string; banned?: boolean };
+      cookies?: Record<string, string>;
       ip?: string;
     },
+    @Res({ passthrough: true }) res: Response,
   ) {
     if (req.user?.banned) {
       throw new ForbiddenException('Tu cuenta está suspendida');
@@ -51,6 +84,8 @@ export class AppController {
     const userId = req.user?.id ?? null;
     const nickname = req.user?.nickname ?? null;
     const ip = req.ip ?? 'unknown';
+    // La cookie solo importa para anónimos; los registrados usan su userId.
+    const anonId = userId ? '' : ensureAnonId(req, res);
     return await this.pixelService.checkAndPaint(
       body.x,
       body.y,
@@ -58,6 +93,7 @@ export class AppController {
       userId,
       nickname,
       ip,
+      anonId,
     );
   }
 
@@ -94,18 +130,23 @@ export class AppController {
     @Request()
     req: {
       user?: { id: number; nickname: string; banned?: boolean };
+      cookies?: Record<string, string>;
       ip?: string;
     },
+    @Res({ passthrough: true }) res: Response,
   ) {
     if (req.user?.banned) {
       throw new ForbiddenException('Tu cuenta está suspendida');
     }
+    const userId = req.user?.id ?? null;
+    const anonId = userId ? '' : ensureAnonId(req, res);
     return this.pixelService.checkAndPaintBatch(
       body.cells,
       body.color,
-      req.user?.id ?? null,
+      userId,
       req.user?.nickname ?? null,
       req.ip ?? 'unknown',
+      anonId,
     );
   }
 }

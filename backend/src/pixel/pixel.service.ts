@@ -91,11 +91,12 @@ export class PixelService {
     userId: number | null,
     nickname: string | null,
     ip: string,
+    anonId: string = '',
   ): Promise<PaintResult> {
     if (userId) {
       return await this.paintAsUser(x, y, color, userId, nickname);
     } else {
-      return await this.paintAsAnonymous(x, y, color, ip);
+      return await this.paintAsAnonymous(x, y, color, ip, anonId);
     }
   }
 
@@ -278,6 +279,7 @@ export class PixelService {
     y: number,
     color: string,
     ip: string,
+    anonId: string = '',
   ): Promise<PaintResult> {
     // Los anónimos no pueden usar colores exóticos
     if (!isHexColor(color)) {
@@ -365,7 +367,10 @@ export class PixelService {
     };
   }
 
-  getAnonymousState(ip: string): {
+  getAnonymousState(
+    anonId: string,
+    ip: string,
+  ): {
     pixelsLeft: number;
     cooldownSeconds: number;
   } {
@@ -606,6 +611,7 @@ export class PixelService {
     userId: number | null,
     nickname: string | null,
     ip: string,
+    anonId: string = '',
   ): Promise<PaintBatchResult> {
     // Dedup: un arrastre puede repetir celdas; no deben consumir cuota doble.
     const seen = new Set<string>();
@@ -636,7 +642,7 @@ export class PixelService {
     if (userId) {
       return this.paintBatchAsUser(unique, color, userId, nickname);
     }
-    return this.paintBatchAsAnonymous(unique, color, ip);
+    return this.paintBatchAsAnonymous(unique, color, ip, anonId);
   }
 
   private async paintBatchAsUser(
@@ -901,6 +907,7 @@ export class PixelService {
     cells: { x: number; y: number }[],
     color: string,
     ip: string,
+    anonId: string = '',
   ): Promise<PaintBatchResult> {
     if (!isHexColor(color))
       return {
