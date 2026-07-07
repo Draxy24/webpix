@@ -15,6 +15,9 @@ const TIER_LIMITS: Record<
   PREMIUM: { pixels: Infinity, cooldownHours: 0 },
 };
 
+const ANON_PIXELS = 60;
+const ANON_COOLDOWN_SECONDS = 2 * 60 * 60; // 2 horas
+
 type PaintResult =
   | {
       success: true;
@@ -66,11 +69,6 @@ type PaintBatchResult =
       code: string;
     };
 
-const anonymousCooldowns = new Map<
-  string,
-  { pixelsUsed: number; cooldownUntil: Date | null }
->();
-
 function isHexColor(color: string): boolean {
   return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color);
 }
@@ -98,6 +96,15 @@ export class PixelService {
     } else {
       return await this.paintAsAnonymous(x, y, color, ip, anonId);
     }
+  }
+
+  // Asegura que exista la fila de cuota del anónimo. Idempotente.
+  private async ensureAnonRow(anonId: string, ip: string) {
+    await this.prisma.anonymousQuota.upsert({
+      where: { id: anonId },
+      update: { ip },
+      create: { id: anonId, ip, pixelsUsed: 0, cooldownUntil: null },
+    });
   }
 
   private async paintAsUser(
@@ -301,99 +308,126 @@ export class PixelService {
       };
     }
 
-    const now = new Date();
-    const state = anonymousCooldowns.get(ip) ?? {
-      pixelsUsed: 0,
-      cooldownUntil: null,
-    };
+    await this.ensureAnonRow(anonId, ip);
 
-    if (state.cooldownUntil && state.cooldownUntil > now) {
-      const cooldownSeconds = Math.ceil(
-        (state.cooldownUntil.getTime() - now.getTime()) / 1000,
-      );
+    // Reserva de cuota bajo lock (serializa batches/píxeles del mismo anónimo).
+    const reservation = await this.prisma.$transaction(async (tx) => {
+      const anonQuota = await tx.$queryRaw<
+        Array<{
+          pixelsUsed: number;
+          cooldownUntil: Date | null;
+        }>
+      >`SELECT "pixelsUsed", "cooldownUntil"
+  FROM "AnonymousQuota" WHERE id = ${anonId} FOR UPDATE`;
+      const row = anonQuota[0];
+      const now = new Date();
+
+      let pixelsUsed = row.pixelsUsed;
+      let cooldownUntil = row.cooldownUntil;
+
+      if (cooldownUntil && cooldownUntil > now) {
+        return { blocked: 'COOLDOWN' as const, cooldownUntil, pixelsUsed };
+      }
+      if (cooldownUntil && cooldownUntil <= now) {
+        pixelsUsed = 0;
+        cooldownUntil = null;
+      }
+      if (pixelsUsed >= ANON_PIXELS) {
+        cooldownUntil = new Date(Date.now() + ANON_COOLDOWN_SECONDS * 1000);
+        await tx.anonymousQuota.update({
+          where: { id: anonId },
+          data: { cooldownUntil },
+        });
+        return { blocked: 'LIMIT' as const, cooldownUntil, pixelsUsed };
+      }
+
+      // Reservar 1 píxel.
+      pixelsUsed += 1;
+      const data: { pixelsUsed: number; cooldownUntil?: Date } = { pixelsUsed };
+      if (pixelsUsed >= ANON_PIXELS) {
+        cooldownUntil = new Date(Date.now() + ANON_COOLDOWN_SECONDS * 1000);
+        data.cooldownUntil = cooldownUntil;
+      }
+      await tx.anonymousQuota.update({ where: { id: anonId }, data });
+      return { blocked: null, cooldownUntil, pixelsUsed };
+    });
+
+    if (reservation.blocked === 'COOLDOWN') {
       return {
         success: false,
-        cooldownSeconds,
+        cooldownSeconds: Math.ceil(
+          (reservation.cooldownUntil!.getTime() - Date.now()) / 1000,
+        ),
         message: 'En cooldown',
         code: 'COOLDOWN',
       };
     }
-
-    if (state.cooldownUntil && state.cooldownUntil <= now) {
-      state.pixelsUsed = 0;
-      state.cooldownUntil = null;
-    }
-
-    if (state.pixelsUsed >= 60) {
-      state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
-      anonymousCooldowns.set(ip, state);
+    if (reservation.blocked === 'LIMIT') {
       return {
         success: false,
-        cooldownSeconds: 2 * 60 * 60,
+        cooldownSeconds: ANON_COOLDOWN_SECONDS,
         message: 'Límite alcanzado',
         code: 'LIMIT_REACHED',
       };
     }
 
+    // Pintar (fuera del lock).
     await this.prisma.pixel.upsert({
       where: { x_y: { x, y } },
       update: { color, userId: null, paintedAt: new Date() },
       create: { x, y, color, userId: null },
     });
-
     this.gateway.broadcastPixel(x, y, color, null);
 
-    state.pixelsUsed += 1;
-
-    // Si este píxel agotó la cuota, arma el cooldown YA y devuélvelo en esta
-    // misma respuesta exitosa, para que el anónimo vea el reloj sin tener que
-    // intentar (y fallar) un píxel de más.
-    let cooldownSeconds = 0;
-    if (state.pixelsUsed >= 60) {
-      state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
-      cooldownSeconds = 2 * 60 * 60;
-    }
-
-    anonymousCooldowns.set(ip, state);
+    const cooldownSeconds =
+      reservation.cooldownUntil && reservation.cooldownUntil > new Date()
+        ? Math.ceil((reservation.cooldownUntil.getTime() - Date.now()) / 1000)
+        : 0;
 
     return {
       success: true,
       state: {
         isAdmin: false,
-        pixelsLeft: Math.max(60 - state.pixelsUsed, 0),
+        pixelsLeft: Math.max(ANON_PIXELS - reservation.pixelsUsed, 0),
         cooldownSeconds,
       },
       events: [],
     };
   }
 
-  getAnonymousState(
+  async getAnonymousState(
     anonId: string,
     ip: string,
-  ): {
-    pixelsLeft: number;
-    cooldownSeconds: number;
-  } {
+  ): Promise<{ pixelsLeft: number; cooldownSeconds: number }> {
     const now = new Date();
-    const state = anonymousCooldowns.get(ip);
+    const row = anonId
+      ? await this.prisma.anonymousQuota.findUnique({ where: { id: anonId } })
+      : null;
 
-    if (!state) {
-      return { pixelsLeft: 60, cooldownSeconds: 0 };
+    if (!row) {
+      return { pixelsLeft: ANON_PIXELS, cooldownSeconds: 0 };
     }
 
-    if (state.cooldownUntil && state.cooldownUntil <= now) {
-      state.pixelsUsed = 0;
-      state.cooldownUntil = null;
-      anonymousCooldowns.set(ip, state);
+    let pixelsUsed = row.pixelsUsed;
+    let cooldownUntil = row.cooldownUntil;
+
+    // Cooldown expirado: resetear (persistido).
+    if (cooldownUntil && cooldownUntil <= now) {
+      await this.prisma.anonymousQuota.update({
+        where: { id: anonId },
+        data: { pixelsUsed: 0, cooldownUntil: null },
+      });
+      pixelsUsed = 0;
+      cooldownUntil = null;
     }
 
-    const cooldownActive = state.cooldownUntil && state.cooldownUntil > now;
+    const cooldownActive = cooldownUntil && cooldownUntil > now;
     const cooldownSeconds = cooldownActive
-      ? Math.ceil((state.cooldownUntil!.getTime() - now.getTime()) / 1000)
+      ? Math.ceil((cooldownUntil!.getTime() - now.getTime()) / 1000)
       : 0;
 
     return {
-      pixelsLeft: Math.max(60 - state.pixelsUsed, 0),
+      pixelsLeft: Math.max(ANON_PIXELS - pixelsUsed, 0),
       cooldownSeconds,
     };
   }
@@ -917,27 +951,7 @@ export class PixelService {
         code: 'LOGIN_FOR_EXOTIC',
       };
 
-    const now = new Date();
-    const state = anonymousCooldowns.get(ip) ?? {
-      pixelsUsed: 0,
-      cooldownUntil: null,
-    };
-
-    if (state.cooldownUntil && state.cooldownUntil > now)
-      return {
-        success: false,
-        cooldownSeconds: Math.ceil(
-          (state.cooldownUntil.getTime() - now.getTime()) / 1000,
-        ),
-        message: 'En cooldown',
-        code: 'COOLDOWN',
-      };
-    if (state.cooldownUntil && state.cooldownUntil <= now) {
-      state.pixelsUsed = 0;
-      state.cooldownUntil = null;
-    }
-
-    // Anónimos no pueden pintar dentro de espacios privados: filtrarlas.
+    // Filtrar celdas dentro de espacios privados (fuera del lock).
     let paintable = cells;
     const xs = cells.map((c) => c.x);
     const ys = cells.map((c) => c.y);
@@ -961,20 +975,91 @@ export class PixelService {
       paintable = ok;
     }
 
-    const available = Math.max(60 - state.pixelsUsed, 0);
-    const toPaint = paintable.slice(0, available);
+    await this.ensureAnonRow(anonId, ip);
 
-    if (toPaint.length === 0) {
-      if (available === 0) {
-        state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
-        anonymousCooldowns.set(ip, state);
+    // Reserva de cuota bajo lock.
+    const reservation = await this.prisma.$transaction(async (tx) => {
+      const anonQuota = await tx.$queryRaw<
+        Array<{
+          pixelsUsed: number;
+          cooldownUntil: Date | null;
+        }>
+      >`SELECT "pixelsUsed", "cooldownUntil"
+  FROM "AnonymousQuota" WHERE id = ${anonId} FOR UPDATE`;
+      const row = anonQuota[0];
+      const now = new Date();
+
+      let pixelsUsed = row.pixelsUsed;
+      let cooldownUntil = row.cooldownUntil;
+
+      if (cooldownUntil && cooldownUntil > now) {
         return {
-          success: false,
-          cooldownSeconds: 2 * 60 * 60,
-          message: 'Límite alcanzado',
-          code: 'LIMIT_REACHED',
+          toPaintCount: 0,
+          blocked: 'COOLDOWN' as const,
+          cooldownUntil,
+          pixelsUsed,
         };
       }
+      if (cooldownUntil && cooldownUntil <= now) {
+        pixelsUsed = 0;
+        cooldownUntil = null;
+      }
+
+      const available = Math.max(ANON_PIXELS - pixelsUsed, 0);
+      const toPaintCount = Math.min(paintable.length, available);
+
+      if (toPaintCount === 0) {
+        if (available === 0) {
+          cooldownUntil = new Date(Date.now() + ANON_COOLDOWN_SECONDS * 1000);
+          await tx.anonymousQuota.update({
+            where: { id: anonId },
+            data: { cooldownUntil },
+          });
+          return {
+            toPaintCount: 0,
+            blocked: 'LIMIT' as const,
+            cooldownUntil,
+            pixelsUsed,
+          };
+        }
+        return {
+          toPaintCount: 0,
+          blocked: 'NOTHING' as const,
+          cooldownUntil,
+          pixelsUsed,
+        };
+      }
+
+      // Reservar toPaintCount píxeles.
+      pixelsUsed += toPaintCount;
+      const data: { pixelsUsed: number; cooldownUntil?: Date } = { pixelsUsed };
+      if (pixelsUsed >= ANON_PIXELS) {
+        cooldownUntil = new Date(Date.now() + ANON_COOLDOWN_SECONDS * 1000);
+        data.cooldownUntil = cooldownUntil;
+      }
+      await tx.anonymousQuota.update({ where: { id: anonId }, data });
+      return { toPaintCount, blocked: null, cooldownUntil, pixelsUsed };
+    });
+
+    if (reservation.blocked === 'COOLDOWN') {
+      return {
+        success: false,
+        cooldownSeconds: Math.ceil(
+          (reservation.cooldownUntil!.getTime() - Date.now()) / 1000,
+        ),
+        message: 'En cooldown',
+        code: 'COOLDOWN',
+      };
+    }
+    if (reservation.blocked === 'LIMIT') {
+      return {
+        success: false,
+        cooldownSeconds: ANON_COOLDOWN_SECONDS,
+        message: 'Límite alcanzado',
+        code: 'LIMIT_REACHED',
+      };
+    }
+    if (reservation.blocked === 'NOTHING') {
       return {
         success: false,
         cooldownSeconds: 0,
@@ -983,6 +1068,8 @@ export class PixelService {
       };
     }
 
+    // Pintar las celdas reservadas (fuera del lock).
+    const toPaint = paintable.slice(0, reservation.toPaintCount);
     const paintedAt = new Date();
     await this.prisma.$transaction(
       toPaint.map((c) =>
@@ -995,17 +1082,10 @@ export class PixelService {
     );
     for (const c of toPaint) this.gateway.broadcastPixel(c.x, c.y, color, null);
 
-    state.pixelsUsed += toPaint.length;
-
-    // Si esta tanda agotó la cuota, arma el cooldown YA y devuélvelo en esta
-    // misma respuesta exitosa (mismo criterio que el pintado de un solo píxel).
-    let cooldownSeconds = 0;
-    if (state.pixelsUsed >= 60) {
-      state.cooldownUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
-      cooldownSeconds = 2 * 60 * 60;
-    }
-
-    anonymousCooldowns.set(ip, state);
+    const cooldownSeconds =
+      reservation.cooldownUntil && reservation.cooldownUntil > new Date()
+        ? Math.ceil((reservation.cooldownUntil.getTime() - Date.now()) / 1000)
+        : 0;
 
     const paintedSet = new Set(toPaint.map((c) => `${c.x},${c.y}`));
     const skipped = cells.filter((c) => !paintedSet.has(`${c.x},${c.y}`));
@@ -1017,7 +1097,7 @@ export class PixelService {
       skipped,
       state: {
         isAdmin: false,
-        pixelsLeft: Math.max(60 - state.pixelsUsed, 0),
+        pixelsLeft: Math.max(ANON_PIXELS - reservation.pixelsUsed, 0),
         cooldownSeconds,
       },
       events: [],
