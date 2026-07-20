@@ -1298,7 +1298,21 @@
     "drag": {
       "paintedXofY": "Tu as peint {{x}} pixels sur {{y}} (limite atteinte)."
     },
-    "lock": { "lock": "Verrouiller l'écran", "unlock": "Déverrouiller l'écran" }
+    "lock": {
+      "lock": "Verrouiller l'écran",
+      "unlock": "Déverrouiller l'écran"
+    },
+    "anonPrompt": {
+      "title": "Tu as atteint la limite",
+      "subtitle": "Crée ton compte gratuit et débloque tout :",
+      "perkTools": "Tous les outils : gomme, publication, espaces privés et signalements",
+      "perkProgress": "Ta progression : XP, niveaux et Bits",
+      "perkCosmetics": "Cosmétiques, boutique, succès et tâches hebdomadaires",
+      "perkSocial": "Amis et classements",
+      "perkOg": "Le titre OG — places limitées",
+      "cta": "Créer un compte",
+      "later": "Pas maintenant"
+    }
   },
   "settings": {
     "language": "Langue",

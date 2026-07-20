@@ -1262,7 +1262,18 @@
     "drag": {
       "paintedXofY": "You painted {{x}} of {{y}} pixels (limit reached)."
     },
-    "lock": { "lock": "Lock screen", "unlock": "Unlock screen" }
+    "lock": { "lock": "Lock screen", "unlock": "Unlock screen" },
+    "anonPrompt": {
+      "title": "You've hit the limit",
+      "subtitle": "Create your free account and unlock everything:",
+      "perkTools": "All tools: eraser, publishing, private spaces and reports",
+      "perkProgress": "Your progress: XP, levels and Bits",
+      "perkCosmetics": "Cosmetics, shop, achievements and weekly tasks",
+      "perkSocial": "Friends and rankings",
+      "perkOg": "The OG title — limited slots",
+      "cta": "Create account",
+      "later": "Not now"
+    }
   },
   "settings": {
     "language": "Language",

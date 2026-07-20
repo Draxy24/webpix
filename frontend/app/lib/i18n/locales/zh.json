@@ -1119,7 +1119,18 @@
     "drag": {
       "paintedXofY": "已绘制 {{x}}/{{y}} 个像素（已达上限）。"
     },
-    "lock": { "lock": "锁定屏幕", "unlock": "解锁屏幕" }
+    "lock": { "lock": "锁定屏幕", "unlock": "解锁屏幕" },
+    "anonPrompt": {
+      "title": "你已达到上限",
+      "subtitle": "免费创建账号，解锁全部功能：",
+      "perkTools": "全部工具：橡皮擦、发布、私人空间和举报",
+      "perkProgress": "你的进度：经验值、等级和 Bits",
+      "perkCosmetics": "装饰、商店、成就和每周任务",
+      "perkSocial": "好友和排行榜",
+      "perkOg": "OG 称号——名额有限",
+      "cta": "创建账号",
+      "later": "以后再说"
+    }
   },
   "settings": {
     "language": "语言",
