@@ -13,9 +13,8 @@ export const PROGRESSION_CONFIG = {
 
 export const LAUNCH_REWARD = {
   cosmeticKey: 'title_og',
-  // AJUSTA estas fechas al mes real de lanzamiento.
-  start: new Date('2026-06-22'),
-  end: new Date('2026-07-22'),
+  // Se otorga a los primeros N usuarios que reciban el título (hito, no fecha).
+  maxRecipients: 500,
 };
 
 export function levelInfo(xp: number) {

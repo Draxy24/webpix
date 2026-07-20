@@ -22,8 +22,6 @@ export class RewardsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    await this.maybeGrantLaunchReward(user.id, user.createdAt);
-
     const info = levelInfo(user.xp);
     const equipped = await this.prisma.userCosmetic.findMany({
       where: { userId, equipped: true },
@@ -170,13 +168,24 @@ export class RewardsService {
     return { granted: true };
   }
 
-  private async maybeGrantLaunchReward(userId: number, createdAt: Date) {
-    if (createdAt < LAUNCH_REWARD.start || createdAt >= LAUNCH_REWARD.end)
-      return;
+  private async maybeGrantLaunchReward(userId: number) {
     const cosmetic = await this.prisma.cosmetic.findUnique({
       where: { key: LAUNCH_REWARD.cosmeticKey },
     });
     if (!cosmetic) return; // catálogo aún no sembrado: no pasa nada
+
+    // ¿ya lo tiene? nada que hacer (y así no contamos de más)
+    const already = await this.prisma.userCosmetic.findUnique({
+      where: { userId_cosmeticId: { userId, cosmeticId: cosmetic.id } },
+    });
+    if (already) return;
+
+    // ¿queda cupo? cuenta cuántos ya tienen el OG
+    const recipients = await this.prisma.userCosmetic.count({
+      where: { cosmeticId: cosmetic.id },
+    });
+    if (recipients >= LAUNCH_REWARD.maxRecipients) return; // hito cerrado
+
     await this.grantCosmetic(userId, LAUNCH_REWARD.cosmeticKey);
   }
 
