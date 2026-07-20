@@ -74,6 +74,12 @@ const ReportModal = dynamic(() => import("./components/ReportModal"), {
 const WelcomeModal = dynamic(() => import("./components/WelcomeModal"), {
   ssr: false,
 });
+const AnonRegisterModal = dynamic(
+  () => import("./components/AnonRegisterModal"),
+  {
+    ssr: false,
+  },
+);
 
 function formatPeriod(period: string, lang: string) {
   const [y, m] = period.split("-").map(Number);
@@ -155,6 +161,7 @@ export default function Home() {
   const openProfileRef = useRef(openProfile);
 
   const [clicksLeft, setClicksLeft] = useState(60);
+  const anonPromptShownRef = useRef(false);
   const [cooldown, setCooldown] = useState(0);
   const clicksRef = useRef(clicksLeft);
   const cooldownRef = useRef(cooldown);
@@ -232,6 +239,7 @@ export default function Home() {
     x2: number;
     y2: number;
   } | null>(null);
+  const [showAnonPrompt, setShowAnonPrompt] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [publishTitle, setPublishTitle] = useState("");
@@ -719,10 +727,12 @@ export default function Home() {
       if (selectionModeRef.current) return;
       if (cooldownRef.current > 0) {
         if (soundEnabledRef.current) playError();
+        showAnonWall();
         return;
       }
       if (clicksRef.current <= 0) {
         if (soundEnabledRef.current) playError();
+        showAnonWall();
         return;
       }
 
@@ -767,6 +777,7 @@ export default function Home() {
               y: triedThisDrag.size,
             }),
           );
+          showAnonWall();
         }
       });
     };
@@ -1203,6 +1214,7 @@ export default function Home() {
       if (activeToolRef.current === "brush") {
         if (cooldownRef.current > 0 || clicksRef.current <= 0) {
           if (soundEnabledRef.current) playError();
+          showAnonWall();
           return;
         }
         painting = true;
@@ -1272,6 +1284,7 @@ export default function Home() {
                 y: triedThisDrag.size,
               }),
             );
+            showAnonWall();
           }
         });
       }
@@ -1552,6 +1565,14 @@ export default function Home() {
         localStorage.setItem("webpix_seen_welcome", "1");
       } catch {}
     }
+  }, []);
+
+  // Muestra el modal de registro cuando un anónimo choca el muro (una vez por sesión).
+  const showAnonWall = useCallback(() => {
+    if (tokenRef.current) return; // logueado: no aplica
+    if (anonPromptShownRef.current) return; // ya se mostró esta sesión
+    anonPromptShownRef.current = true;
+    setShowAnonPrompt(true);
   }, []);
 
   const zoomAtRef = useRef(zoomAt);
@@ -2507,6 +2528,13 @@ export default function Home() {
         <WelcomeModal
           isLoggedIn={!!token}
           onClose={closeWelcome}
+          onRegister={() => router.push("/register")}
+        />
+      )}
+
+      {showAnonPrompt && (
+        <AnonRegisterModal
+          onClose={() => setShowAnonPrompt(false)}
           onRegister={() => router.push("/register")}
         />
       )}
