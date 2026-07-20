@@ -727,12 +727,10 @@ export default function Home() {
       if (selectionModeRef.current) return;
       if (cooldownRef.current > 0) {
         if (soundEnabledRef.current) playError();
-        showAnonWall();
         return;
       }
       if (clicksRef.current <= 0) {
         if (soundEnabledRef.current) playError();
-        showAnonWall();
         return;
       }
 
@@ -777,7 +775,6 @@ export default function Home() {
               y: triedThisDrag.size,
             }),
           );
-          showAnonWall();
         }
       });
     };
@@ -909,6 +906,7 @@ export default function Home() {
 
   useEffect(() => {
     clicksRef.current = clicksLeft;
+    if (clicksLeft <= 0) showAnonWall();
   }, [clicksLeft]);
   useEffect(() => {
     cooldownRef.current = cooldown;
@@ -1214,7 +1212,6 @@ export default function Home() {
       if (activeToolRef.current === "brush") {
         if (cooldownRef.current > 0 || clicksRef.current <= 0) {
           if (soundEnabledRef.current) playError();
-          showAnonWall();
           return;
         }
         painting = true;
@@ -1284,7 +1281,6 @@ export default function Home() {
                 y: triedThisDrag.size,
               }),
             );
-            showAnonWall();
           }
         });
       }
