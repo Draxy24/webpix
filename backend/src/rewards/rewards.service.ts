@@ -214,10 +214,9 @@ export class RewardsService {
 
   private async maybeGrantWelcomePackage(user: {
     id: number;
-    emailVerified: boolean;
-    phoneVerified: boolean;
+    verified: boolean;
   }) {
-    if (!user.emailVerified && !user.phoneVerified) return; // aún no verificado
+    if (!user.verified) return; // verificación primaria del registro
     await this.grantWelcomePackage(user.id); // idempotente; el guard del marco vive adentro
   }
 
