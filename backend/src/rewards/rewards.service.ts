@@ -24,6 +24,7 @@ export class RewardsService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     await this.maybeGrantLaunchReward(user.id);
+    await this.maybeGrantWelcomePackage(user);
 
     const info = levelInfo(user.xp);
     const equipped = await this.prisma.userCosmetic.findMany({
@@ -209,6 +210,15 @@ export class RewardsService {
     if (recipients >= LAUNCH_REWARD.maxRecipients) return; // hito cerrado
 
     await this.grantCosmetic(userId, LAUNCH_REWARD.cosmeticKey);
+  }
+
+  private async maybeGrantWelcomePackage(user: {
+    id: number;
+    emailVerified: boolean;
+    phoneVerified: boolean;
+  }) {
+    if (!user.emailVerified && !user.phoneVerified) return; // aún no verificado
+    await this.grantWelcomePackage(user.id); // idempotente; el guard del marco vive adentro
   }
 
   // ---- Helper temporal de desarrollo: siembra el catálogo y da datos de prueba al admin ----
