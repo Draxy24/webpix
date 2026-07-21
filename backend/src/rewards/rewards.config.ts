@@ -17,6 +17,11 @@ export const LAUNCH_REWARD = {
   maxRecipients: 500,
 };
 
+export const WELCOME_PACKAGE = {
+  bits: 500, // one-time, tras verificar el correo. Es config: ajústalo cuando quieras.
+  frameCosmeticKey: 'frame_bienvenida', // ← reemplaza por la key real de tu marco
+};
+
 export function levelInfo(xp: number) {
   const { BASE_XP, GROWTH, MAX_LEVEL } = PROGRESSION_CONFIG;
   let level = 1;

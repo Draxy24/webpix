@@ -11,6 +11,7 @@ import {
   PROGRESSION_CONFIG,
   STARTER_COSMETICS,
   LAUNCH_REWARD,
+  WELCOME_PACKAGE,
   levelInfo,
 } from './rewards.config';
 
@@ -166,6 +167,25 @@ export class RewardsService {
       data: { userId, cosmeticId: cosmetic.id },
     });
     return { granted: true };
+  }
+
+  async grantWelcomePackage(userId: number) {
+    // Si el marco aún no está sembrado, no rompas la verificación: simplemente no hagas nada.
+    const frame = await this.prisma.cosmetic.findUnique({
+      where: { key: WELCOME_PACKAGE.frameCosmeticKey },
+    });
+    if (!frame) return { granted: false };
+
+    // Idempotente: grantCosmetic solo entrega el marco la primera vez.
+    // Atamos los Bits a ese primer otorgamiento → nunca se duplican.
+    const result = await this.grantCosmetic(
+      userId,
+      WELCOME_PACKAGE.frameCosmeticKey,
+    );
+    if (result.granted) {
+      await this.grantBits(userId, WELCOME_PACKAGE.bits);
+    }
+    return result;
   }
 
   private async maybeGrantLaunchReward(userId: number) {

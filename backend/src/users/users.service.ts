@@ -6,12 +6,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto';
 import { NotificationService } from 'src/notifications/notification.service';
+import { RewardsService } from 'src/rewards/rewards.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
+    private rewards: RewardsService,
   ) {}
 
   async findByEmail(email: string) {
@@ -153,6 +155,14 @@ export class UsersService {
       data: { emailVerified: true },
     });
     await this.prisma.verificationCode.delete({ where: { id: record.id } });
+
+    // Welcome package (one-time, idempotente). NO debe romper la verificación si falla.
+    try {
+      await this.rewards.grantWelcomePackage(userId);
+    } catch (err) {
+      console.error('grantWelcomePackage (email) falló:', err);
+    }
+
     return { success: true };
   }
 
@@ -198,6 +208,13 @@ export class UsersService {
       where: { id: userId },
       data: { phoneVerified: true },
     });
+
+    try {
+      await this.rewards.grantWelcomePackage(userId);
+    } catch (err) {
+      console.error('grantWelcomePackage (phone) falló:', err);
+    }
+
     return { success: true };
   }
 }
