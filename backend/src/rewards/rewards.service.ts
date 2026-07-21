@@ -23,6 +23,8 @@ export class RewardsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
+    await this.maybeGrantLaunchReward(user.id);
+
     const info = levelInfo(user.xp);
     const equipped = await this.prisma.userCosmetic.findMany({
       where: { userId, equipped: true },
