@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { currentPeriod, previousPeriod, periodLabelEs } from './period';
 import { RANKING_REWARD_BITS } from './rankings.config';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RankingsService {
@@ -202,6 +203,7 @@ export class RankingsService {
   }
 
   private async grantMedal(
+    tx: Prisma.TransactionClient,
     userId: number,
     tier: 'gold' | 'silver' | 'bronze',
     metric: 'pixels' | 'creations',
@@ -231,7 +233,7 @@ export class RankingsService {
     const metricName = metric === 'pixels' ? 'Píxeles' : 'Creadores';
     const key = `medal_${tier}_${metric}_${period}`;
 
-    const cosmetic = await this.prisma.cosmetic.upsert({
+    const cosmetic = await tx.cosmetic.upsert({
       where: { key },
       update: {},
       create: {
@@ -246,56 +248,14 @@ export class RankingsService {
       },
     });
 
-    await this.prisma.userCosmetic.upsert({
+    await tx.userCosmetic.upsert({
       where: { userId_cosmeticId: { userId, cosmeticId: cosmetic.id } },
       update: {},
       create: { userId, cosmeticId: cosmetic.id },
     });
   }
 
-  private async grantWinner(
-    row: { userId: number; score: number },
-    info: {
-      period: string;
-      metric: 'pixels' | 'creations';
-      scope: 'global' | 'national';
-      country: string | null;
-      position: number;
-      bits: number;
-    },
-  ) {
-    if (info.bits > 0) {
-      await this.prisma.user.update({
-        where: { id: row.userId },
-        data: { bits: { increment: info.bits } },
-      });
-    }
-    // Medalla de podio (top 3 global), única por mes y métrica
-    if (info.scope === 'global' && info.position <= 3) {
-      const tier =
-        info.position === 1
-          ? 'gold'
-          : info.position === 2
-            ? 'silver'
-            : 'bronze';
-      await this.grantMedal(row.userId, tier, info.metric, info.period);
-    }
-    await this.prisma.rankingWinner.create({
-      data: {
-        period: info.period,
-        metric: info.metric,
-        scope: info.scope,
-        country: info.country,
-        position: info.position,
-        userId: row.userId,
-        score: row.score,
-        bitsAwarded: info.bits,
-      },
-    });
-  }
-
   async closePeriod(period: string) {
-    // Idempotencia: si ya hay ganadores de ese periodo, no repartir de nuevo
     const already = await this.prisma.rankingWinner.count({
       where: { period },
     });
@@ -304,27 +264,32 @@ export class RankingsService {
     }
 
     const TOP = 10;
-    let totalWinners = 0;
-    let totalBits = 0;
+    type Award = {
+      userId: number;
+      score: number;
+      metric: 'pixels' | 'creations';
+      scope: 'global' | 'national';
+      country: string | null;
+      position: number;
+      bits: number;
+    };
+    const plan: Award[] = [];
 
+    // --- Fase 1: solo lecturas. Armamos el plan completo antes de escribir nada. ---
     for (const metric of ['pixels', 'creations'] as const) {
-      // Global
       const global = await this.monthlyRowsForClose(metric, period, null, TOP);
-      for (let i = 0; i < global.length; i++) {
-        const bits = RANKING_REWARD_BITS.global[i] ?? 0;
-        await this.grantWinner(global[i], {
-          period,
+      global.forEach((row, i) => {
+        plan.push({
+          userId: row.userId,
+          score: row.score,
           metric,
           scope: 'global',
           country: null,
           position: i + 1,
-          bits,
+          bits: RANKING_REWARD_BITS.global[i] ?? 0,
         });
-        totalWinners++;
-        totalBits += bits;
-      }
+      });
 
-      // Nacional (top 10 de cada país con participantes)
       const countries = await this.countriesWithScores(metric, period);
       for (const country of countries) {
         const national = await this.monthlyRowsForClose(
@@ -333,23 +298,81 @@ export class RankingsService {
           country,
           TOP,
         );
-        for (let i = 0; i < national.length; i++) {
-          const bits = RANKING_REWARD_BITS.national[i] ?? 0;
-          await this.grantWinner(national[i], {
-            period,
+        national.forEach((row, i) => {
+          plan.push({
+            userId: row.userId,
+            score: row.score,
             metric,
             scope: 'national',
             country,
             position: i + 1,
-            bits,
+            bits: RANKING_REWARD_BITS.national[i] ?? 0,
           });
-          totalWinners++;
-          totalBits += bits;
-        }
+        });
       }
     }
 
-    return { period, skipped: false, totalWinners, totalBits };
+    if (plan.length === 0) {
+      return { period, skipped: false, totalWinners: 0, totalBits: 0 };
+    }
+
+    // Un mismo usuario puede premiarse varias veces (global + nacional, píxeles + creaciones).
+    // Agregamos sus Bits para hacer un solo update por persona.
+    const bitsByUser = new Map<number, number>();
+    for (const a of plan) {
+      if (a.bits > 0)
+        bitsByUser.set(a.userId, (bitsByUser.get(a.userId) ?? 0) + a.bits);
+    }
+
+    // --- Fase 2: todas las escrituras, atómicas. O entra todo, o no entra nada. ---
+    const applied = await this.prisma.$transaction(
+      async (tx) => {
+        const check = await tx.rankingWinner.count({ where: { period } });
+        if (check > 0) return false; // alguien más lo cerró mientras leíamos
+
+        for (const [userId, bits] of bitsByUser) {
+          await tx.user.update({
+            where: { id: userId },
+            data: { bits: { increment: bits } },
+          });
+        }
+
+        for (const a of plan) {
+          if (a.scope === 'global' && a.position <= 3) {
+            const tier =
+              a.position === 1
+                ? 'gold'
+                : a.position === 2
+                  ? 'silver'
+                  : 'bronze';
+            await this.grantMedal(tx, a.userId, tier, a.metric, period);
+          }
+        }
+
+        await tx.rankingWinner.createMany({
+          data: plan.map((a) => ({
+            period,
+            metric: a.metric,
+            scope: a.scope,
+            country: a.country,
+            position: a.position,
+            userId: a.userId,
+            score: a.score,
+            bitsAwarded: a.bits,
+          })),
+        });
+
+        return true;
+      },
+      { timeout: 120000, maxWait: 15000 },
+    );
+
+    if (!applied) {
+      return { period, skipped: true, reason: 'ya cerrado' };
+    }
+
+    const totalBits = plan.reduce((s, a) => s + a.bits, 0);
+    return { period, skipped: false, totalWinners: plan.length, totalBits };
   }
 
   async adminClose(adminUserId: number, period: string) {
