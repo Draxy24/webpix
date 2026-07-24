@@ -13,11 +13,13 @@ async function bootstrap() {
     rawBody: true,
   });
 
-  // Si despliegas detrás de un proxy/balanceador (nginx, Cloudflare, Railway, Render...),
-  // pon TRUST_PROXY=true para que el rate limiter vea la IP real del cliente y no la del
-  // proxy. NO lo actives si el server queda expuesto directo (permitiría falsear la IP).
-  if (process.env.TRUST_PROXY === 'true') {
-    app.set('trust proxy', 1);
+  // Detrás de proxy: Nginx + Cloudflare = 2 saltos confiables. TRUST_PROXY lleva el NÚMERO
+  // de saltos (2 en producción). Sin la variable no se confía en nada (dev local directo).
+  // NUNCA poner 'true': confiaría en toda la cadena y cualquiera podría falsear su IP.
+  const trustProxy = process.env.TRUST_PROXY;
+  if (trustProxy && trustProxy !== 'false') {
+    const hops = Number(trustProxy);
+    app.set('trust proxy', Number.isFinite(hops) && hops > 0 ? hops : 1);
   }
 
   // Cabeceras de seguridad. crossOriginResourcePolicy en 'cross-origin' para que el
